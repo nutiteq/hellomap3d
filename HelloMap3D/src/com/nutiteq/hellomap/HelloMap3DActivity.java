@@ -1,6 +1,7 @@
 package com.nutiteq.hellomap;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 
 import com.nutiteq.MapView;
@@ -8,10 +9,17 @@ import com.nutiteq.components.Color;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.ImmutableMapPos;
 import com.nutiteq.components.Options;
+import com.nutiteq.components.TextureInfo;
+import com.nutiteq.geometry.Marker;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterlayers.TMSMapLayer;
+import com.nutiteq.style.MarkerStyle;
+import com.nutiteq.style.PointStyle;
+import com.nutiteq.ui.DefaultLabel;
+import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
+import com.nutiteq.vectorlayers.MarkerLayer;
 
 /**
  * This is minimal example of Nutiteq 3D map app.
@@ -35,8 +43,8 @@ public class HelloMap3DActivity extends Activity {
         // 1. Get the MapView from the Layout xml
         mapView = (MapView) findViewById(R.id.mapView);
 
-        // Optional, but very useful: map state restore during device rotation,
-        // saved in onRetainNonConfigurationInstance()
+        // Optional, but very useful: restore map state during device rotation,
+        // it is saved in onRetainNonConfigurationInstance() below
         Components retainObject = (Components) getLastNonConfigurationInstance();
         if (retainObject != null) {
             // just restore configuration, skip other initializations
@@ -56,14 +64,14 @@ public class HelloMap3DActivity extends Activity {
 
         mapView.getLayers().setBaseLayer(mapLayer);
 
-        // set initial map view camera - optional. Otherwise "world view" is default
-        // Location: San Francisco, Columbus ave 
+        // set initial map view camera - optional. "World view" is default
+        // Location: San Francisco, Columbus ave, it must be in base layer projection (EPSG3857)
         mapView.setFocusPoint(new ImmutableMapPos(-1.3625519E7f, 4546091.0f));
         mapView.setRotation(0.53f);
         mapView.setZoom(11.1f);
         mapView.setTilt(35.75f);
 
-        // Start the map - mandatory
+        // 4. Start the map - mandatory
         mapView.startMapping();
 
         // Activate some mapview options to make it smoother - optional
@@ -95,8 +103,26 @@ public class HelloMap3DActivity extends Activity {
         // define online map persistent caching - optional, suggested. Default - no caching
         mapView.getOptions().setPersistentCachePath(
                  "/mnt/sdcard/mapcache.db");
-        // set cache limit to 100MB
+        // set persistent raster cache limit to 100MB
         mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
+        
+
+        // 5. Add a clickable marker to map. Must be same projection as base layer, so it is reused
+        // define marker style (image, size, color)
+        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.olmarker);
+        MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.5f).setColor(Color.WHITE).build();
+        // define label what is shown when you click on marker
+        Label markerLabel = new DefaultLabel("San Francisco", "Here is a marker");
+        
+        // define location of the marker, it must be converted to base map coordinate system
+        ImmutableMapPos markerLocation = mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f);
+
+        // create layer and add object to the layer, finaly add layer to the map
+        MarkerLayer markerLayer = new MarkerLayer(mapLayer.getProjection());
+        markerLayer.add(new Marker(markerLocation, markerLabel, markerStyle, markerLayer));
+        mapView.getLayers().addLayer(markerLayer);
+
+        
     }
 
     @Override
