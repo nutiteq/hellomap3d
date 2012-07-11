@@ -107,7 +107,7 @@ public class HelloMap3DActivity extends Activity {
         mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
         
 
-        // 5. Add a clickable marker to map. Must be same projection as base layer, so it is reused
+        // 5. Add simple marker to map. 
         // define marker style (image, size, color)
         Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.olmarker);
         MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.5f).setColor(Color.WHITE).build();
@@ -117,7 +117,8 @@ public class HelloMap3DActivity extends Activity {
         // define location of the marker, it must be converted to base map coordinate system
         ImmutableMapPos markerLocation = mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f);
 
-        // create layer and add object to the layer, finaly add layer to the map
+        // create layer and add object to the layer, finally add layer to the map. 
+        // All overlay layers must be same projection as base layer, so we reuse it
         MarkerLayer markerLayer = new MarkerLayer(mapLayer.getProjection());
         markerLayer.add(new Marker(markerLocation, markerLabel, markerStyle, markerLayer));
         mapView.getLayers().addLayer(markerLayer);
