@@ -40,7 +40,7 @@ public class HelloMap3DActivity extends Activity {
         Log.enableAll();
         Log.setTag("hellomap");
 
-        // 1. Get the MapView from the Layout xml
+        // 1. Get the MapView from the Layout xml - mandatory
         mapView = (MapView) findViewById(R.id.mapView);
 
         // Optional, but very useful: restore map state during device rotation,
@@ -71,8 +71,6 @@ public class HelloMap3DActivity extends Activity {
         mapView.setZoom(11.1f);
         mapView.setTilt(35.75f);
 
-        // 4. Start the map - mandatory
-        mapView.startMapping();
 
         // Activate some mapview options to make it smoother - optional
         mapView.getOptions().setPreloading(true);
@@ -105,7 +103,11 @@ public class HelloMap3DActivity extends Activity {
                  "/mnt/sdcard/mapcache.db");
         // set persistent raster cache limit to 100MB
         mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
+
         
+        // 4. Start the map - mandatory
+        mapView.startMapping();
+
 
         // 5. Add simple marker to map. 
         // define marker style (image, size, color)
