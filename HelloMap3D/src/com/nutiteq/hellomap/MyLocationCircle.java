@@ -82,7 +82,7 @@ public class MyLocationCircle {
         circleScale += circleScaleStep;
         circleAlpha += circleAlphaStep;
         if (circleScale > circleScaleMax) {
-            circleScale = 1.0f;
+            circleScale = 0.0f;
             circleAlpha = 1.0f;
         }       
     }
