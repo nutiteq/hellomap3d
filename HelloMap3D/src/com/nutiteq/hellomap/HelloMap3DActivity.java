@@ -9,13 +9,11 @@ import com.nutiteq.components.Color;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.ImmutableMapPos;
 import com.nutiteq.components.Options;
-import com.nutiteq.components.TextureInfo;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterlayers.TMSMapLayer;
 import com.nutiteq.style.MarkerStyle;
-import com.nutiteq.style.PointStyle;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
@@ -65,11 +63,15 @@ public class HelloMap3DActivity extends Activity {
         mapView.getLayers().setBaseLayer(mapLayer);
 
         // set initial map view camera - optional. "World view" is default
-        // Location: San Francisco, Columbus ave, it must be in base layer projection (EPSG3857)
-        mapView.setFocusPoint(new ImmutableMapPos(-1.3625519E7f, 4546091.0f));
-        mapView.setRotation(0.53f);
-        mapView.setZoom(11.1f);
-        mapView.setTilt(35.75f);
+        // Location: San Francisco 
+        // NB! it must be in base layer projection (EPSG3857), so we convert it from lat and long
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
+        // rotation - 0 = north-up
+        mapView.setRotation(0f);
+        // zoom - 0 = world, like on most web maps
+        mapView.setZoom(10.0f);
+        // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
+        mapView.setTilt(35.0f);
 
 
         // Activate some mapview options to make it smoother - optional
@@ -99,8 +101,7 @@ public class HelloMap3DActivity extends Activity {
         mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
         
         // define online map persistent caching - optional, suggested. Default - no caching
-        mapView.getOptions().setPersistentCachePath(
-                 "/mnt/sdcard/mapcache.db");
+        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
         // set persistent raster cache limit to 100MB
         mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
@@ -122,9 +123,11 @@ public class HelloMap3DActivity extends Activity {
         // create layer and add object to the layer, finally add layer to the map. 
         // All overlay layers must be same projection as base layer, so we reuse it
         MarkerLayer markerLayer = new MarkerLayer(mapLayer.getProjection());
-        markerLayer.add(new Marker(markerLocation, markerLabel, markerStyle, markerLayer));
+        markerLayer.add(new Marker(markerLocation, markerLabel, markerStyle, null));
         mapView.getLayers().addLayer(markerLayer);
 
+        MapEventListener mapListener = new MapEventListener(this);
+        mapView.getOptions().setMapListener(mapListener);
         
     }
 
