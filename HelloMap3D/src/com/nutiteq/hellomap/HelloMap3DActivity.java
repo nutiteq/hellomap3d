@@ -1,8 +1,15 @@
 package com.nutiteq.hellomap;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.ImageButton;
 
 import com.nutiteq.MapView;
 import com.nutiteq.components.Color;
@@ -12,6 +19,7 @@ import com.nutiteq.components.Options;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
+import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.TMSMapLayer;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.ui.DefaultLabel;
@@ -126,9 +134,14 @@ public class HelloMap3DActivity extends Activity {
         markerLayer.add(new Marker(markerLocation, markerLabel, markerStyle, null));
         mapView.getLayers().addLayer(markerLayer);
 
+        // add event listener
         MapEventListener mapListener = new MapEventListener(this);
         mapView.getOptions().setMapListener(mapListener);
-        
+   
+        // add GPS My Location functionality 
+        MyLocationCircle locationCircle = new MyLocationCircle();
+        mapListener.setLocationCircle(locationCircle);
+        initGps(locationCircle);
     }
 
     @Override
@@ -136,4 +149,31 @@ public class HelloMap3DActivity extends Activity {
         Log.debug("onRetainNonConfigurationInstance");
         return this.mapView.getComponents();
     }
+    
+    protected void initGps(final MyLocationCircle locationCircle) {
+        final Projection proj = mapView.getLayers().getBaseLayer().getProjection();
+        
+        LocationListener locationListener = new LocationListener() 
+        {
+            public void onLocationChanged(Location location) {
+                 if (locationCircle != null) {
+                     locationCircle.setLocation(proj, location);
+                     locationCircle.setVisible(true);
+                 }
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+            public void onProviderEnabled(String provider) {}
+
+            public void onProviderDisabled(String provider) {}
+        };
+        
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 100, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locationListener);
+
+    }
+
 }

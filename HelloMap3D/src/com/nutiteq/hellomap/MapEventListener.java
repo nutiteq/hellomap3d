@@ -13,6 +13,11 @@ import com.nutiteq.ui.MapListener;
 public class MapEventListener extends MapListener {
 
     private Activity activity;
+    private MyLocationCircle locationCircle;
+
+    public void setLocationCircle(MyLocationCircle locationCircle) {
+        this.locationCircle = locationCircle;
+    }
 
     // activity is often useful to handle click events 
     public MapEventListener(Activity activity) {
@@ -29,7 +34,10 @@ public class MapEventListener extends MapListener {
     }
 
     @Override
-    public void onDrawFrameBefore3D(GL10 arg0, float zoomPow2) {
+    public void onDrawFrameBefore3D(GL10 gl, float zoomPow2) {
+        if(this.locationCircle != null){
+            this.locationCircle.draw(gl, zoomPow2);
+        }
     }
 
     // Vector element (touch) handlers
@@ -59,10 +67,5 @@ public class MapEventListener extends MapListener {
     @Override
     public void onMapMoved() {
         // this method is also called from non-UI thread
-        activity.runOnUiThread(new Runnable() {
-            public void run() {
-                Toast.makeText(activity, "onMapMoved", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 }
