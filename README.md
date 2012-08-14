@@ -1,4 +1,7 @@
-This is a demo project for Nutiteq 3D Android mapping SDK.
+This is a demo project for **Nutiteq 3D Android mapping SDK**. Nutiteq SDK is a replacement for Google Maps API (MapView) for Android, so it has all your usual mapping SDK features (map panning, vector/raster overlays etc) plus some extras: 
+* 2.5/3D view: map tilting, rotating and 3D models
+* offline mapping (MBTiles, persistent caching etc)
+* supports any map projection, which makes it more usable for GIS apps
 
 ![Screenshot with 3D models](https://dl.dropbox.com/u/3573333/mapxt_3d_tallinn_device-2012-07-25-124845.png)
 
