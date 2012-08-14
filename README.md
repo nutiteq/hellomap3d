@@ -1,10 +1,12 @@
 This is a demo project for Nutiteq 3D Android mapping SDK.
 
-# Developers
+![Screenshot with 3D models](https://dl.dropbox.com/u/3573333/mapxt_3d_tallinn_device-2012-07-25-124845.png)
+
+# Usage
 To get started see [project Wiki pages](https://github.com/nutiteq/hellomap3d/wiki). It shows how to create a map and add layers on top of that.
 
-# Contribute
-Please contact support@nutiteq.com for contributors, questions, feedback etc.
+# Contribution 
+We welcome any kind of contributions: questions, pull requests, questions, feedback, wiki updates etc. Please join [nutiteq-dev@googlegroups.com] (https://groups.google.com/forum/#!forum/nutiteq-dev) for discussions.
 
 # License
 * Nutiteq 3D SDK - commercial evaluation license, (c) Nutiteq Llc. Request nutiteq@nutiteq.com for details
