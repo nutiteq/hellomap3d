@@ -14,7 +14,6 @@ import com.nutiteq.components.TileQuadTreeNode;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
-import com.nutiteq.tasks.MapsforgeFetchTileTask;
 
 public class MapsforgeMapLayer extends RasterLayer {
 
