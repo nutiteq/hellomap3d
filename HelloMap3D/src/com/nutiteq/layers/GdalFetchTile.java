@@ -31,8 +31,6 @@ public class GdalFetchTile {
 
     private static final int TILE_SIZE = 256;
 
-    private static final boolean METHOD_DBB = true;
-
     private int z;
     private int x;
     private int y;
@@ -165,7 +163,6 @@ public class GdalFetchTile {
         // copy data to tile buffer tileData, and apply color table or combine bands
         int colorType = band.GetRasterColorInterpretation();
         ColorTable ct = band.GetRasterColorTable();
-        if (METHOD_DBB) {
             for (int y = 0; y < TILE_SIZE; y++) {
                 for (int x = 0; x < TILE_SIZE; x++) {
                     if(x >= xOffsetBuf && y >= yOffsetBuf && x<=xMaxBuf && y<=yMaxBuf){
@@ -205,8 +202,7 @@ public class GdalFetchTile {
                     }
                 }
             }
-        }
-        
+
         } // loop for over bands
 //        Log.debug("gdalfetchtile time  = " + (System.nanoTime() - time)
 //                / 1000000 + " ms");
