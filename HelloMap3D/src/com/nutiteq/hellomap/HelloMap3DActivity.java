@@ -7,9 +7,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.ImageButton;
 
 import com.nutiteq.MapView;
 import com.nutiteq.components.Color;
@@ -17,10 +14,11 @@ import com.nutiteq.components.Components;
 import com.nutiteq.components.ImmutableMapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.geometry.Marker;
+import com.nutiteq.layers.GdalMapLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
-import com.nutiteq.rasterlayers.TMSMapLayer;
+import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
@@ -65,9 +63,24 @@ public class HelloMap3DActivity extends Activity {
         // 3. Define map layer for basemap - mandatory.
         // Here we use MapQuest open tiles
         // Almost all online maps use EPSG3857 projection.
-        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
-                "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
+//        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
+//                "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
 
+        
+       RasterLayer mapLayer = null;
+//      
+//    try {
+//        JobTheme renderTheme = new ExternalRenderTheme(new File(Environment.getExternalStorageDirectory() + "/mapxt/osmarender.xml"));
+//
+//          mapLayer = new MapsforgeMapLayer(new EPSG3857(), 0, 20, 1004,
+//                  Environment.getExternalStorageDirectory() + "/mapxt/estonia.map",renderTheme);
+//      } catch (FileNotFoundException e) {
+//          e.printStackTrace();
+//      }
+
+       mapLayer = new GdalMapLayer(new EPSG3857(), 0, 18, 987, "/mnt/sdcard/mapxt/natural-earth-2-mercator.tif", mapView);
+
+    
         mapView.getLayers().setBaseLayer(mapLayer);
 
         // set initial map view camera - optional. "World view" is default
