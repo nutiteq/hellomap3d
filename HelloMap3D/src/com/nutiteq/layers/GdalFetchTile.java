@@ -63,7 +63,7 @@ public class GdalFetchTile {
             return null;
         }
 
-        // calculate pixel ranges of source image
+        // 2. calculate pixel ranges of source image
         double[] adfGeoTransform = new double[6];
         hDataset.GetGeoTransform(adfGeoTransform);
 //        Log.debug("geoTransform:" + Arrays.toString(adfGeoTransform));
@@ -87,7 +87,7 @@ public class GdalFetchTile {
         float xScale = (pixelsSrcMax[0]-pixelsSrcMin[0]) / (float)xSizeBuf; // unit: srcPix/screenPix
         float yScale = (pixelsSrcMax[1]-pixelsSrcMin[1]) / (float)ySizeBuf;
 
-        // handle border tiles which have only partial data
+        // 3. handle border tiles which have only partial data
         if(pixelsSrcMax[0] > hDataset.getRasterXSize()){
             // x over real size, reduce both buffer and loaded data proportionally
             xMaxBuf = (int) ((hDataset.getRasterXSize()- pixelsSrcMin[0]) / xScale);
@@ -97,7 +97,7 @@ public class GdalFetchTile {
         }
         
         if(pixelsSrcMax[1] > hDataset.getRasterYSize()){
-            // x over real size, reduce both buffer and loaded data proportionally
+            // y over real size, reduce both buffer and loaded data proportionally
             yMaxBuf = (int) ((hDataset.getRasterYSize()- pixelsSrcMin[1]) / yScale);
             ySizeBuf = yMaxBuf;
             pixelsSrcMax[1] = hDataset.getRasterYSize();
@@ -125,6 +125,7 @@ public class GdalFetchTile {
             return null;
         }
 
+        // 4. Read data
         int xSizeData = (pixelsSrcMax[0] - pixelsSrcMin[0]);
         int ySizeData = (pixelsSrcMax[1] - pixelsSrcMin[1]);
 //        Log.debug("xy size:" + xSizeData + "x" + ySizeData);

@@ -89,8 +89,17 @@ public class GdalMapLayer extends RasterLayer {
 
             return;
         }
-        fullGdalInfo();
         
+        listDrivers();
+        //fullGdalInfo();
+        
+    }
+
+    private void listDrivers() {
+        for (int i=0;i<gdal.GetDriverCount();i++){
+            Driver driver = gdal.GetDriver(i);
+            Log.info("driver " + driver.getShortName()+" ("+driver.getLongName()+")");
+        }
     }
 
 
