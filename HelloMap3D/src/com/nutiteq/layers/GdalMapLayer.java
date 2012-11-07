@@ -8,9 +8,11 @@ import org.gdal.gdal.ColorTable;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.Driver;
 import org.gdal.gdal.GCP;
+import org.gdal.gdal.ProgressCallback;
 import org.gdal.gdal.RasterAttributeTable;
 import org.gdal.gdal.TermProgressCallback;
 import org.gdal.gdal.gdal;
+import org.gdal.gdalconst.gdalconst;
 import org.gdal.gdalconst.gdalconstConstants;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
@@ -33,10 +35,11 @@ import com.vividsolutions.jts.geom.Envelope;
 
 public class GdalMapLayer extends RasterLayer {
     
-    
     // force Java to load PROJ.4 library. Needed as we don't call it directly, but 
     // GDAL datasource reading may need it.
     
+    private static final String EPSG_3785_WKT = "PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"Popular Visualisation CRS\",DATUM[\"Popular_Visualisation_Datum\",SPHEROID[\"Popular Visualisation Sphere\",6378137,0,AUTHORITY[\"EPSG\",\"7059\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6055\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.01745329251994328,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4055\"]],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],AUTHORITY[\"EPSG\",\"3785\"],AXIS[\"X\",EAST],AXIS[\"Y\",NORTH]]";
+
     static {
         try {
           System.loadLibrary("proj");
@@ -64,15 +67,32 @@ public class GdalMapLayer extends RasterLayer {
      * @param mapView
      */
     public GdalMapLayer(Projection projection, int minZoom, int maxZoom,
-            int id, String gdalSource, MapView mapView) {
+            int id, String gdalSource, MapView mapView, boolean reproject) {
         super(projection, minZoom, maxZoom, id, gdalSource);
         
         this.mapView = mapView;
         gdal.AllRegister();
-        hDataset = gdal.Open(gdalSource, gdalconstConstants.GA_ReadOnly);
+        listDrivers();
 
+        Dataset originalData = gdal.Open(gdalSource, gdalconstConstants.GA_ReadOnly);
         
-        this.boundsEnvelope = bounds(hDataset); 
+        fullGdalInfo(originalData);
+
+        SpatialReference fromProj = new SpatialReference(originalData.GetProjectionRef());
+        SpatialReference layerProjection = new SpatialReference(EPSG_3785_WKT);
+        
+        if(reproject){
+            // on the fly reprojection - slower reading, fast open and less memory
+            hDataset = gdal.AutoCreateWarpedVRT(originalData,fromProj.ExportToWkt(), layerProjection.ExportToWkt(),gdalconst.GRA_NearestNeighbour, 0.125);
+            // reproject to memory - faster reading, more memory and time needed to open
+//            hDataset = reprojectDataset(originalData, 10.0, fromProj, layerProjection);
+            fullGdalInfo(hDataset);
+            originalData.delete();
+        }else{
+            hDataset = originalData;
+        }
+        
+        this.boundsEnvelope = bounds(hDataset,layerProjection); 
 
         /* -------------------------------------------------------------------- */
         /*      Report general info for debugging.                              */
@@ -90,9 +110,47 @@ public class GdalMapLayer extends RasterLayer {
             return;
         }
         
-        listDrivers();
-        //fullGdalInfo();
+    }
+
+    // pre-reproject dataset 
+    // ported from http://jgomezdans.github.com/gdal_notes/reprojection.html
+    // FIXME: it does not work yet, produces "black data". 
+    private Dataset reprojectDataset(Dataset data, double pixelSpacing, SpatialReference fromProj,
+            SpatialReference toProjection) {
+
+        double[] adfGeoTransform = new double[6];
+        data.GetGeoTransform(adfGeoTransform);
         
+        Envelope newBounds = bounds(data,toProjection);
+        Driver memoryDriver = gdal.GetDriverByName("MEM");
+        int w = (int)((newBounds.getMaxX() - newBounds.getMinX())/pixelSpacing);
+        int h =  (int)((newBounds.getMaxY() - newBounds.getMinY())/pixelSpacing);
+                
+        Dataset dest = memoryDriver.Create("", w, h, data.getRasterCount(), gdalconst.GDT_Byte);
+//        double[] newGeotransform = {newBounds.getMinX(), pixelSpacing, adfGeoTransform[2], newBounds.getMaxY() , adfGeoTransform[4], -pixelSpacing };
+        double[] newGeotransform = {-9662887.997233687,9.269968462003103,0,3574568.743162234,0,-9.269968462003103};
+        dest.SetGeoTransform( newGeotransform );
+        dest.SetProjection ( toProjection.ExportToWkt() );
+        Log.debug("start reprojection");
+        long time = System.currentTimeMillis();
+        int res = gdal.ReprojectImage( data, dest, 
+                toProjection.ExportToWkt(), fromProj.ExportToWkt(),
+                gdalconst.GRA_NearestNeighbour, 6.71089e+07, 0.125 ,new ProgressCallback(){
+            @Override
+            public int run(double dfComplete, String message)
+            {
+                Log.debug("Progress: "+dfComplete+" msg:"+message);
+                return 0;
+            }
+        });
+        long timeTook =  System.currentTimeMillis()-time;
+        Log.debug("projection res = " + res + " time ms: "+timeTook);
+        if(res == gdalconst.CE_Failure){
+            Log.error("error in reprojecting: "+gdal.GetLastErrorMsg());
+        }
+        dest.GetRasterBand(1).SetColorInterpretation(data.GetRasterBand(1).GetColorInterpretation());
+        dest.GetRasterBand(1).SetColorTable(data.GetRasterBand(1).GetColorTable());
+        return dest;
     }
 
     private void listDrivers() {
@@ -103,19 +161,16 @@ public class GdalMapLayer extends RasterLayer {
     }
 
 
-    private Envelope bounds(Dataset hDataset) {
+    private Envelope bounds(Dataset data,SpatialReference layerProjection) {
         double[][] corner= new double[4][2];
-        // hardcoded EPSG:3857 here
-        // TODO: take real layer projection and  
-        SpatialReference layerProjection = new SpatialReference("PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"Popular Visualisation CRS\",DATUM[\"Popular_Visualisation_Datum\",SPHEROID[\"Popular Visualisation Sphere\",6378137,0,AUTHORITY[\"EPSG\",\"7059\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6055\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.01745329251994328,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4055\"]],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],AUTHORITY[\"EPSG\",\"3785\"],AXIS[\"X\",EAST],AXIS[\"Y\",NORTH]]");
 
-   //     corner[0] = corner(hDataset, layerProjection, 0.0, 0.0);
-        corner[1] = corner(hDataset, layerProjection, 0.0, hDataset
+        corner[0] = corner(data, layerProjection, 0.0, 0.0);
+        corner[1] = corner(data, layerProjection, 0.0, data
                 .getRasterYSize());
-        corner[2] = corner(hDataset,layerProjection, hDataset
+        corner[2] = corner(data,layerProjection, data
                 .getRasterXSize(), 0.0);
-//        corner[3] = corner(hDataset, layerProjection, hDataset
-//                .getRasterXSize(), hDataset.getRasterYSize());
+        corner[3] = corner(data, layerProjection, data
+                .getRasterXSize(), data.getRasterYSize());
         
         return new Envelope(corner[1][0],corner[2][0],corner[1][1],corner[2][1]);
     }
@@ -167,66 +222,61 @@ public class GdalMapLayer extends RasterLayer {
     
     /**
      * Calculate corner coordinates of dataset, in layerProjection
-     * @param hDataset
-     * @param layerProjection
+     * @param data
+     * @param layerProj
      * @param x coordinates of bounds
      * @param y coordinates of bounds 
      * @return
      */
-    static double[] corner(Dataset hDataset, SpatialReference layerProjection, double x, double y)
+    static double[] corner(Dataset data, SpatialReference layerProj, double x, double y)
 
     {
         double dfGeoX, dfGeoY;
-        String pszProjection;
+        String dataProjection;
         double[] adfGeoTransform = new double[6];
         CoordinateTransformation hTransform = null;
 
         /* -------------------------------------------------------------------- */
         /*      Transform the point into georeferenced coordinates.             */
         /* -------------------------------------------------------------------- */
-        hDataset.GetGeoTransform(adfGeoTransform);
+        data.GetGeoTransform(adfGeoTransform);
         
         {
-            pszProjection = hDataset.GetProjectionRef();
-          //  pszProjection = "EPSG:4326";
+            dataProjection = data.GetProjectionRef();
 
             dfGeoX = adfGeoTransform[0] + adfGeoTransform[1] * x
                     + adfGeoTransform[2] * y;
             dfGeoY = adfGeoTransform[3] + adfGeoTransform[4] * x
                     + adfGeoTransform[5] * y;
         }
-
-        return new double[]{dfGeoX, dfGeoY};
-/*        
+        
+        SpatialReference dataProj = new SpatialReference(dataProjection);
+        
+        // is reprojection needed?
+        Log.debug("dataProj "+dataProj.GetAuthorityCode(null)+ " layerProj "+layerProj.GetAuthorityCode(null));
+        if(dataProj.GetAuthorityCode(null) != null && dataProj.GetAuthorityCode(null).equals(layerProj.GetAuthorityCode(null))){
+            return new double[]{dfGeoX, dfGeoY};
+        }
+        
         if (adfGeoTransform[0] == 0 && adfGeoTransform[1] == 0
                 && adfGeoTransform[2] == 0 && adfGeoTransform[3] == 0
                 && adfGeoTransform[4] == 0 && adfGeoTransform[5] == 0) {
             return null;
         }
 
-        if (pszProjection != null && pszProjection.length() > 0) {
-            SpatialReference hProj;
+        if (dataProjection != null && dataProjection.length() > 0) {
 
-            hProj = new SpatialReference(pszProjection);
-            
-            // if not defined, use default projection EPSG:4326
-//            if (hProj == null)
-//                hLatLong = new SpatialReference("GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.01745329251994328,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]");
-
-            // force EPSG:3857 as source projection
-            hProj = layerProjection.CloneGeogCS();
-
-            if (layerProjection != null) {
+            if (layerProj != null) {
                 gdal.PushErrorHandler( "CPLQuietErrorHandler" );
-                hTransform = new CoordinateTransformation(hProj, layerProjection);
+                hTransform = new CoordinateTransformation(dataProj, layerProj);
                 gdal.PopErrorHandler();
-                layerProjection.delete();
+//                layerProj.delete();
                 if (gdal.GetLastErrorMsg().indexOf("Unable to load PROJ.4 library") != -1)
                     hTransform = null;
             }
 
-            if (hProj != null)
-                hProj.delete();
+//            if (dataProj != null)
+//                dataProj.delete();
         }
 
         double[] transPoint = new double[3];
@@ -238,14 +288,15 @@ public class GdalMapLayer extends RasterLayer {
             hTransform.delete();
 
         return new double[]{transPoint[0], transPoint[1]};
-        */
+        
     }
     
     /**
      * Reports GDAL info (like gdalinfo utility)
      * Following code is from gdalinfo.java sample
+     * @param data 
      */
-    private void fullGdalInfo(){
+    private void fullGdalInfo(Dataset data){
         
         Band hBand;
         int i, iBand;
@@ -266,11 +317,11 @@ public class GdalMapLayer extends RasterLayer {
         /* -------------------------------------------------------------------- */
         /*      Report general info.                                            */
         /* -------------------------------------------------------------------- */
-        hDriver = hDataset.GetDriver();
+        hDriver = data.GetDriver();
         Log.info("Driver: " + hDriver.getShortName() + "/"
                 + hDriver.getLongName());
 
-                    papszFileList = hDataset.GetFileList( );
+                    papszFileList = data.GetFileList( );
                     if( papszFileList.size() == 0 )
                     {
                         Log.info( "Files: none associated" );
@@ -283,17 +334,17 @@ public class GdalMapLayer extends RasterLayer {
                             Log.info( "       " +  (String)e.nextElement() );
                     }
 
-        Log.info("Size is " + hDataset.getRasterXSize() + ", "
-                + hDataset.getRasterYSize());
+        Log.info("Size is " + data.getRasterXSize() + ", "
+                + data.getRasterYSize());
 
         /* -------------------------------------------------------------------- */
         /*      Report projection.                                              */
         /* -------------------------------------------------------------------- */
-        if (hDataset.GetProjectionRef() != null) {
+        if (data.GetProjectionRef() != null) {
             SpatialReference hSRS;
             String pszProjection;
 
-            pszProjection = hDataset.GetProjectionRef();
+            pszProjection = data.GetProjectionRef();
 
             hSRS = new SpatialReference(pszProjection);
             if (hSRS != null && pszProjection.length() != 0) {
@@ -305,7 +356,7 @@ public class GdalMapLayer extends RasterLayer {
                 //gdal.CPLFree( pszPrettyWkt );
             } else
                 Log.info("Coordinate System is `"
-                        + hDataset.GetProjectionRef() + "'");
+                        + data.GetProjectionRef() + "'");
 
             hSRS.delete();
         }
@@ -313,7 +364,7 @@ public class GdalMapLayer extends RasterLayer {
         /* -------------------------------------------------------------------- */
         /*      Report Geotransform.                                            */
         /* -------------------------------------------------------------------- */
-        hDataset.GetGeoTransform(adfGeoTransform);
+        data.GetGeoTransform(adfGeoTransform);
         Log.info("geotransform "+ Arrays.toString(adfGeoTransform));
         {
             if (adfGeoTransform[2] == 0.0 && adfGeoTransform[4] == 0.0) {
@@ -334,13 +385,13 @@ public class GdalMapLayer extends RasterLayer {
         /* -------------------------------------------------------------------- */
         /*      Report GCPs.                                                    */
         /* -------------------------------------------------------------------- */
-        if (bShowGCPs && hDataset.GetGCPCount() > 0) {
+        if (bShowGCPs && data.GetGCPCount() > 0) {
             Log.info("GCP Projection = "
-                    + hDataset.GetGCPProjection());
+                    + data.GetGCPProjection());
 
             int count = 0;
             Vector GCPs = new Vector();
-            hDataset.GetGCPs(GCPs);
+            data.GetGCPs(GCPs);
 
             Enumeration e = GCPs.elements();
             while (e.hasMoreElements()) {
@@ -357,7 +408,7 @@ public class GdalMapLayer extends RasterLayer {
         /* -------------------------------------------------------------------- */
         /*      Report metadata.                                                */
         /* -------------------------------------------------------------------- */
-        papszMetadata = hDataset.GetMetadata_List("");
+        papszMetadata = data.GetMetadata_List("");
         if (bShowMetadata && papszMetadata.size() > 0) {
             Enumeration keys = papszMetadata.elements();
             Log.info("Metadata:");
@@ -370,7 +421,7 @@ public class GdalMapLayer extends RasterLayer {
                     while(eExtraMDDDomains.hasMoreElements())
                     {
                         String pszDomain = (String)eExtraMDDDomains.nextElement();
-                        papszMetadata = hDataset.GetMetadata_List(pszDomain);
+                        papszMetadata = data.GetMetadata_List(pszDomain);
                         if( bShowMetadata && papszMetadata.size() > 0 )
                         {
                             Enumeration keys = papszMetadata.elements();
@@ -383,7 +434,7 @@ public class GdalMapLayer extends RasterLayer {
                     /* -------------------------------------------------------------------- */
                     /*      Report "IMAGE_STRUCTURE" metadata.                              */
                     /* -------------------------------------------------------------------- */
-                    papszMetadata = hDataset.GetMetadata_List("IMAGE_STRUCTURE" );
+                    papszMetadata = data.GetMetadata_List("IMAGE_STRUCTURE" );
                     if( bShowMetadata && papszMetadata.size() > 0) {
             Enumeration keys = papszMetadata.elements();
             Log.info("Image Structure Metadata:");
@@ -394,7 +445,7 @@ public class GdalMapLayer extends RasterLayer {
         /* -------------------------------------------------------------------- */
         /*      Report subdatasets.                                             */
         /* -------------------------------------------------------------------- */
-        papszMetadata = hDataset.GetMetadata_List("SUBDATASETS");
+        papszMetadata = data.GetMetadata_List("SUBDATASETS");
         if (papszMetadata.size() > 0) {
             Log.info("Subdatasets:");
             Enumeration keys = papszMetadata.elements();
@@ -406,7 +457,7 @@ public class GdalMapLayer extends RasterLayer {
                 /* -------------------------------------------------------------------- */
                 /*      Report geolocation.                                             */
                 /* -------------------------------------------------------------------- */
-                    papszMetadata = hDataset.GetMetadata_List("GEOLOCATION" );
+                    papszMetadata = data.GetMetadata_List("GEOLOCATION" );
                     if (papszMetadata.size() > 0) {
                         Log.info( "Geolocation:" );
                         Enumeration keys = papszMetadata.elements();
@@ -418,7 +469,7 @@ public class GdalMapLayer extends RasterLayer {
                 /* -------------------------------------------------------------------- */
                 /*      Report RPCs                                                     */
                 /* -------------------------------------------------------------------- */
-                    papszMetadata = hDataset.GetMetadata_List("RPC" );
+                    papszMetadata = data.GetMetadata_List("RPC" );
                     if (papszMetadata.size() > 0) {
                         Log.info( "RPC Metadata:" );
                         Enumeration keys = papszMetadata.elements();
@@ -432,28 +483,28 @@ public class GdalMapLayer extends RasterLayer {
         /* -------------------------------------------------------------------- */
         Log.info("Corner Coordinates:");
         double[][] corner= new double[4][2];
-        corner[0] = GDALInfoReportCorner(hDataset, "Upper Left ", 0.0, 0.0);
-        corner[1] = GDALInfoReportCorner(hDataset, "Lower Left ", 0.0, hDataset
+        corner[0] = GDALInfoReportCorner(data, "Upper Left ", 0.0, 0.0);
+        corner[1] = GDALInfoReportCorner(data, "Lower Left ", 0.0, data
                 .getRasterYSize());
-        corner[2] = GDALInfoReportCorner(hDataset, "Upper Right", hDataset
+        corner[2] = GDALInfoReportCorner(data, "Upper Right", data
                 .getRasterXSize(), 0.0);
-        corner[3] = GDALInfoReportCorner(hDataset, "Lower Right", hDataset
-                .getRasterXSize(), hDataset.getRasterYSize());
-        GDALInfoReportCorner(hDataset, "Center     ",
-                hDataset.getRasterXSize() / 2.0,
-                hDataset.getRasterYSize() / 2.0);
+        corner[3] = GDALInfoReportCorner(data, "Lower Right", data
+                .getRasterXSize(), data.getRasterYSize());
+        GDALInfoReportCorner(data, "Center     ",
+                data.getRasterXSize() / 2.0,
+                data.getRasterYSize() / 2.0);
 
         
         
         /* ==================================================================== */
         /*      Loop over bands.                                                */
         /* ==================================================================== */
-        for (iBand = 0; iBand < hDataset.getRasterCount(); iBand++) {
+        for (iBand = 0; iBand < data.getRasterCount(); iBand++) {
             Double[] pass1 = new Double[1], pass2 = new Double[1];
             double[] adfCMinMax = new double[2];
             ColorTable hTable;
 
-            hBand = hDataset.GetRasterBand(iBand + 1);
+            hBand = data.GetRasterBand(iBand + 1);
 
             /*if( bSample )
              {
@@ -712,7 +763,7 @@ public class GdalMapLayer extends RasterLayer {
     /*                        GDALInfoReportCorner()                        */
     /************************************************************************/
 
-    static double[] GDALInfoReportCorner(Dataset hDataset, String corner_name,
+    static double[] GDALInfoReportCorner(Dataset data, String corner_name,
             double x, double y)
 
     {
@@ -726,11 +777,11 @@ public class GdalMapLayer extends RasterLayer {
         /* -------------------------------------------------------------------- */
         /*      Transform the point into georeferenced coordinates.             */
         /* -------------------------------------------------------------------- */
-        hDataset.GetGeoTransform(adfGeoTransform);
+        data.GetGeoTransform(adfGeoTransform);
         
         
         {
-            pszProjection = hDataset.GetProjectionRef();
+            pszProjection = data.GetProjectionRef();
           //  pszProjection = "EPSG:4326";
 
             dfGeoX = adfGeoTransform[0] + adfGeoTransform[1] * x
@@ -764,7 +815,7 @@ public class GdalMapLayer extends RasterLayer {
 //                hLatLong = new SpatialReference("GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.01745329251994328,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]");
 
             // force EPSG:3857 as destination projection
-            hLatLong = new SpatialReference("PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"Popular Visualisation CRS\",DATUM[\"Popular_Visualisation_Datum\",SPHEROID[\"Popular Visualisation Sphere\",6378137,0,AUTHORITY[\"EPSG\",\"7059\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6055\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.01745329251994328,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4055\"]],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],AUTHORITY[\"EPSG\",\"3785\"],AXIS[\"X\",EAST],AXIS[\"Y\",NORTH]]");
+            hLatLong = new SpatialReference(EPSG_3785_WKT);
             // hLatLong = hProj.CloneGeogCS();
             
             if (hLatLong != null) {

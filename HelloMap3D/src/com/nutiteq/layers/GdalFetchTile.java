@@ -70,11 +70,11 @@ public class GdalFetchTile {
         int[] pixelsSrcMin = convertGeoLocationToPixelLocation(
                 requestedBounds.getMinX(), requestedBounds.getMaxY(),
                 adfGeoTransform);
-//        Log.debug("minxy:" + pixelsSrcMin[0] + " " + pixelsSrcMin[1]);
+        Log.debug("minxy:" + pixelsSrcMin[0] + " " + pixelsSrcMin[1]);
         int[] pixelsSrcMax = convertGeoLocationToPixelLocation(
                 requestedBounds.getMaxX(), requestedBounds.getMinY(),
                 adfGeoTransform);
-//        Log.debug("maxxy:" + pixelsSrcMax[0] + " " + pixelsSrcMax[1]);
+        Log.debug("maxxy:" + pixelsSrcMax[0] + " " + pixelsSrcMax[1]);
         
         // tile dimensions
         int xSizeBuf = TILE_SIZE;
@@ -132,11 +132,6 @@ public class GdalFetchTile {
 
         int[] tileData = new int[TILE_SIZE * TILE_SIZE];
 
-        // TODO jaakl: reprojection could be done here. check out
-        // http://jgomezdans.github.com/gdal_notes/reprojection.html
-        // until this requires source data to be in EPSG3857
-        // however, virtual reprojection using VRT works also
-        
         for (int iBand = 0; iBand < hDataset.getRasterCount(); iBand++) {
         
         Band band = hDataset.GetRasterBand(iBand+1);
@@ -229,7 +224,7 @@ public class GdalFetchTile {
 
         int xPixel = 0, yPixel = 0;
 
-        if (g[2] == 0) {
+        if (true /*g[2] == 0*/) {
             xPixel = (int) ((xGeo - g[0]) / g[1]);
             yPixel = (int) ((yGeo - g[3] - xPixel * g[4]) / g[5]);
         } else {
