@@ -92,6 +92,7 @@ public class GdalMapLayer extends RasterLayer {
             if(data != null){
                 Envelope bbox = bounds(data,layerProjection); 
                 dataSets.put(bbox,new DatasetInfo(data.GetFileList(),bestZoom(bbox.getWidth(),data.getRasterXSize())));
+                openDataSets.put(bbox, data);
             }
         }else{
             // open all files in a folder
@@ -136,6 +137,7 @@ public class GdalMapLayer extends RasterLayer {
                         if(data != null){
                             Envelope bbox = bounds(data,layerProjection); 
                             dataSets.put(bbox,new DatasetInfo(data.GetFileList(),bestZoom(bbox.getWidth(),data.getRasterXSize())));
+                            openDataSets.put(bbox, data);
                             Log.debug("Added GDAL file: "+name+" bounds: "+bbox);
                         }
                     }else{
