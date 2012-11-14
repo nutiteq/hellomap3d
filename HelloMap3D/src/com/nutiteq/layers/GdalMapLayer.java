@@ -43,7 +43,10 @@ public class GdalMapLayer extends RasterLayer {
     // force Java to load PROJ.4 library. Needed as we don't call it directly, but 
     // GDAL datasource reading may need it.
     
-    private static final String EPSG_3785_WKT = "PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"Popular Visualisation CRS\",DATUM[\"Popular_Visualisation_Datum\",SPHEROID[\"Popular Visualisation Sphere\",6378137,0,AUTHORITY[\"EPSG\",\"7059\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6055\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.01745329251994328,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4055\"]],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],AUTHORITY[\"EPSG\",\"3785\"],AXIS[\"X\",EAST],AXIS[\"Y\",NORTH]]";
+    private static final double VRT_MAXERROR = 0.125;
+    private static final int VRT_RESAMPLER = gdalconst.GRA_NearestNeighbour;
+    
+    private static final String EPSG_3785_WKT = "PROJCS[\"Google Maps Global Mercator\",    GEOGCS[\"WGS 84\",        DATUM[\"WGS_1984\",            SPHEROID[\"WGS 84\",6378137,298.257223563,                AUTHORITY[\"EPSG\",\"7030\"]],            AUTHORITY[\"EPSG\",\"6326\"]],        PRIMEM[\"Greenwich\",0,            AUTHORITY[\"EPSG\",\"8901\"]],        UNIT[\"degree\",0.01745329251994328,            AUTHORITY[\"EPSG\",\"9122\"]],        AUTHORITY[\"EPSG\",\"4326\"]],    PROJECTION[\"Mercator_2SP\"],    PARAMETER[\"standard_parallel_1\",0],    PARAMETER[\"latitude_of_origin\",0],    PARAMETER[\"central_meridian\",0],    PARAMETER[\"false_easting\",0],    PARAMETER[\"false_northing\",0],    UNIT[\"Meter\",1],    EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs\"],    AUTHORITY[\"EPSG\",\"3785\"]]";
     private static final double WORLD_WIDTH = 20037508.3428; // width of EPSG:3785
     SpatialReference layerProjection = new SpatialReference(EPSG_3785_WKT);
 
@@ -60,6 +63,8 @@ public class GdalMapLayer extends RasterLayer {
     private MapView mapView;
     Map<Envelope, DatasetInfo> dataSets = new HashMap<Envelope, DatasetInfo>();
     Map<Envelope, Dataset> openDataSets = new HashMap<Envelope, Dataset>();
+    private int counter=1;
+    private boolean showAlways;
 
     /**
      * Read raster data source using GDAL library. Tested with:
@@ -85,13 +90,19 @@ public class GdalMapLayer extends RasterLayer {
         
         // debug print list all drivers
        // listDrivers();
+        File rootFile = new File(gdalSource);
         
-        if(!gdalSource.endsWith("/")){
+        if(!rootFile.exists()){
+            Log.debug("GDAL file or folder does not exist: "+rootFile.getAbsolutePath());
+            return;
+        }
+        
+        if(!rootFile.isDirectory()){
             // open single file
             Dataset data = openGdalFile(gdalSource, reproject);
             if(data != null){
                 Envelope bbox = bounds(data,layerProjection); 
-                dataSets.put(bbox,new DatasetInfo(data.GetFileList(),bestZoom(bbox.getWidth(),data.getRasterXSize())));
+                dataSets.put(bbox,new DatasetInfo(data.GetFileList(),bestZoom(bbox.getWidth(),data.getRasterXSize()), counter, bbox));
                 openDataSets.put(bbox, data);
             }
         }else{
@@ -103,6 +114,7 @@ public class GdalMapLayer extends RasterLayer {
                 FileInputStream fis = new FileInputStream(indexFile);
                 fis.read(indexData);
                 dataSets = (Map<Envelope, DatasetInfo>) Serializer.deserializeObject(indexData);
+                Log.debug("loaded gdal.index with "+dataSets.size()+" entries");
                 fis.close();
             }else{
                 File dir = new File(gdalSource);
@@ -130,15 +142,16 @@ public class GdalMapLayer extends RasterLayer {
                 String name = files[i].getName();
                 if(files[i].isDirectory()){
                     // recurse into directory
-                    readFilesRecursive(gdalSource+name,reproject,files[i]);
+                    readFilesRecursive(gdalSource+"/"+name,reproject,files[i]);
                 }else{
                     if(name.toUpperCase().endsWith("KAP")){
                         Dataset data = openGdalFile(gdalSource+"/"+name, reproject);
                         if(data != null){
                             Envelope bbox = bounds(data,layerProjection); 
-                            dataSets.put(bbox,new DatasetInfo(data.GetFileList(),bestZoom(bbox.getWidth(),data.getRasterXSize())));
-                            openDataSets.put(bbox, data);
-                            Log.debug("Added GDAL file: "+name+" bounds: "+bbox);
+                            dataSets.put(bbox,new DatasetInfo(data.GetFileList(),bestZoom(bbox.getWidth(),data.getRasterXSize()), counter, bbox));
+                            data.delete();
+                            //openDataSets.put(bbox, data);
+                            Log.debug("Added "+(this.counter++)+". GDAL file: "+name+" bounds: "+bbox);
                         }
                     }else{
                         Log.debug("Skipping file, did not like extension of "+name);
@@ -164,7 +177,7 @@ public class GdalMapLayer extends RasterLayer {
         
         if(reproject){
             // on the fly reprojection - slower reading, fast open and less memory
-            openData = gdal.AutoCreateWarpedVRT(originalData,fromProj.ExportToWkt(), layerProjection.ExportToWkt(),gdalconst.GRA_NearestNeighbour, 0.125);
+            openData = gdal.AutoCreateWarpedVRT(originalData,fromProj.ExportToWkt(), layerProjection.ExportToWkt(),VRT_RESAMPLER, VRT_MAXERROR);
             // reproject to memory - faster reading, more memory and time needed to open
 //            hDataset = reprojectDataset(originalData, 10.0, fromProj, layerProjection);
             //fullGdalInfo(openData);
@@ -266,7 +279,7 @@ public class GdalMapLayer extends RasterLayer {
     public void fetchTile(TileQuadTreeNode tile) {
         Log.debug("GdalMapLayer: Start loading " + " zoom=" + tile.zoom + " x="
                 + tile.x + " y=" + tile.y);
-        
+        long timeStart = System.currentTimeMillis();
         Envelope requestedTileBounds = TileUtils.TileBounds(tile.x, tile.y, tile.zoom);
         
         boolean found = false;
@@ -274,17 +287,18 @@ public class GdalMapLayer extends RasterLayer {
         for(Entry<Envelope, DatasetInfo> entry : dataSets.entrySet()){
             Envelope dataBounds = entry.getKey();
             
-            if (dataBounds.covers(requestedTileBounds) && isSuitableZoom(entry.getValue().bestZoom, tile.zoom) ) {
-                Log.debug("found intersection with "+entry.getValue());
+            if ((this.showAlways && dataBounds.intersects(requestedTileBounds)) 
+                    || (!this.showAlways && dataBounds.contains(requestedTileBounds) && isSuitableZoom(entry.getValue().bestZoom, tile.zoom)) ) {
+                long timeEnd = System.currentTimeMillis();
+                Log.debug("found intersection with "+entry.getValue()+" took ms:"+(timeEnd-timeStart));
+                
                 found  = true;
-
                 Dataset dataSet;
-               
                 dataSet = openDataSets.get(dataBounds);
 
                 // lazy loading (opening) of dataset
                 if(dataSet == null){
-                    Vector<String> fileName = dataSets.get(dataBounds).dataSets;
+                    Vector<String> fileName = dataSets.get(dataBounds).dataFile;
                     dataSet = openGdalFile((String)fileName.firstElement(),true);
                     openDataSets.put(dataBounds,dataSet);
                 }
@@ -949,6 +963,14 @@ public class GdalMapLayer extends RasterLayer {
     public  Map<Envelope, DatasetInfo> getDatasets() {
         
         return dataSets;
+    }
+
+    /**
+     * If set, ignore best zoom and have partial tiles
+     * @param showAlways
+     */
+    public void setShowAlways(boolean showAlways) {
+        this.showAlways = showAlways;
     }
     
  

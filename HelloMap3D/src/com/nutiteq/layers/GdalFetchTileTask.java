@@ -176,9 +176,17 @@ public class GdalFetchTileTask extends FetchTileTask{
         Log.debug("gdalfetchtile time for reading: " + (System.nanoTime() - time)
                 / 1000000 + " ms");
         
-        // copy data to tile buffer tileData, and apply color table or combine bands
+        // copy colortable to Java array for faster access
         int colorType = band.GetRasterColorInterpretation();
         ColorTable ct = band.GetRasterColorTable();
+        int numColors = ct.GetCount();
+        int[] colorTable = new int[numColors];
+        for(int i = 1; i<numColors;i++){
+            colorTable[i]=ct.GetColorEntry(i);
+        }
+
+        // copy data to tile buffer tileData, and apply color table or combine bands
+        
             for (int y = 0; y < TILE_SIZE; y++) {
                 for (int x = 0; x < TILE_SIZE; x++) {
                     if(x >= xOffsetBuf && y >= yOffsetBuf && x<=xMaxBuf && y<=yMaxBuf){
@@ -189,8 +197,8 @@ public class GdalFetchTileTask extends FetchTileTask{
 
                         // 1) if indexed color
                         if(colorType == gdalconst.GCI_PaletteIndex){ 
-                            if(ct != null && val<ct.GetCount() && val>=0){
-                                decoded = ct.GetColorEntry(val);
+                            if(val<numColors && val>=0){
+                                decoded = colorTable[val];
                             }else{
                                 // no colortable match found value, should not happen
                                 decoded = android.graphics.Color.CYAN & 0x88ffffff;
@@ -209,8 +217,9 @@ public class GdalFetchTileTask extends FetchTileTask{
                         }
                         
                         // TODO Handle other color schemas: RGB in one band etc. Test data needed
-
-                        tileData[y * TILE_SIZE + x] |=  decoded | 0xff000000;
+                       // following forces alpha=FF for the case where alphaband is missing. Better solution needed to support dataset what really has alpha
+                        
+                        tileData[y * TILE_SIZE + x] |=  decoded | 0xFF000000;   
                         
                     }else{
                         // outside of tile bounds. Normally keep transparent, give color for debugging 
