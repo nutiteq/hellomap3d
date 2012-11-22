@@ -1,8 +1,10 @@
 package com.nutiteq.layers;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -23,9 +25,9 @@ import org.gdal.gdalconst.gdalconst;
 import org.gdal.gdalconst.gdalconstConstants;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
+import org.gdal.osr.osr;
 
 import android.graphics.Color;
-import cern.colt.Arrays;
 
 import com.nutiteq.MapView;
 import com.nutiteq.components.TileQuadTreeNode;
@@ -36,7 +38,6 @@ import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.utils.Serializer;
 import com.nutiteq.utils.TileUtils;
 import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.math.MathUtil;
 
 public class GdalMapLayer extends RasterLayer {
     
@@ -93,18 +94,13 @@ public class GdalMapLayer extends RasterLayer {
         File rootFile = new File(gdalSource);
         
         if(!rootFile.exists()){
-            Log.debug("GDAL file or folder does not exist: "+rootFile.getAbsolutePath());
+            Log.error("GDAL file or folder does not exist: "+rootFile.getAbsolutePath());
             return;
         }
         
         if(!rootFile.isDirectory()){
             // open single file
-            Dataset data = openGdalFile(gdalSource, reproject);
-            if(data != null){
-                Envelope bbox = bounds(data,layerProjection); 
-                dataSets.put(bbox,new DatasetInfo(data.GetFileList(),bestZoom(bbox.getWidth(),data.getRasterXSize()), counter, bbox));
-                openDataSets.put(bbox, data);
-            }
+            addFileDataSets(rootFile.getPath(), reproject, rootFile.getName());
         }else{
             // open all files in a folder
             // use gdal.index as cache
@@ -126,8 +122,9 @@ public class GdalMapLayer extends RasterLayer {
         }
     }
 
+    
     private void readFilesRecursive(String gdalSource, boolean reproject,
-            File dir) {
+            File dir) throws IOException {
         File[] files = dir.listFiles();
         
         if(files == null){
@@ -144,43 +141,122 @@ public class GdalMapLayer extends RasterLayer {
                     // recurse into directory
                     readFilesRecursive(gdalSource+"/"+name,reproject,files[i]);
                 }else{
-                    if(name.toUpperCase().endsWith("KAP")){
-                        Dataset data = openGdalFile(gdalSource+"/"+name, reproject);
-                        if(data != null){
-                            Envelope bbox = bounds(data,layerProjection); 
-                            dataSets.put(bbox,new DatasetInfo(data.GetFileList(),bestZoom(bbox.getWidth(),data.getRasterXSize()), counter, bbox));
-                            data.delete();
-                            //openDataSets.put(bbox, data);
-                            Log.debug("Added "+(this.counter++)+". GDAL file: "+name+" bounds: "+bbox);
-                        }
-                    }else{
-                        Log.debug("Skipping file, did not like extension of "+name);
-                    }
+                    addFileDataSets(gdalSource, reproject, name);
                 }
             }
         }
     }
 
+
     /**
      * @param gdalSource
      * @param reproject
-     * @return 
+     * @param fileName
+     * @throws IOException
      */
+    private void addFileDataSets(String gdalSource, boolean reproject,
+            String fileName) throws IOException {
+
+        String fullPath;
+        if(gdalSource.endsWith(fileName)){
+            fullPath = gdalSource; 
+        }else{
+            fullPath = gdalSource+File.separator+fileName;
+        }
+        
+        if(fileName.toUpperCase().endsWith("KAP")){
+            Log.debug("Adding "+(this.counter)+". "+fileName);
+            DatasetInfo dataSet = readGdalFileData(fullPath, reproject);
+            if(dataSet != null){
+                dataSets.put(dataSet.envelope,dataSet);
+            //    Log.debug("Added "+(this.counter)+". GDAL file: "+fileName+" bounds: "+dataSet.envelope);
+            }
+        }else{
+            Log.debug("Skipping file, did not like extension of "+fileName);
+        }
+    }
+
+    // reads chart name from BSB/NA field
+    private String readKapDescription(String gdalSource) throws IOException {
+      //Get the text file
+        File file = new File(gdalSource);
+        if(file == null || !file.exists() || file.isDirectory())
+            return null;
+        
+        String name = null;
+        String scale = null;
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+
+            while (((line = br.readLine()) != null) && !(name != null && scale != null)) {
+                if(line.startsWith("BSB/NA")){
+                    name = line.substring(7, Math.max(line.indexOf(","),line.length()));
+                }else if(line.startsWith("KNP/SC")){
+                    scale = line.substring(7, Math.max(line.indexOf(","),line.length()));
+                }
+            }
+        br.close();
+        return name+"; scale 1:"+scale;
+    }
+    
+    // reads GDAL dataset metadata
+    private DatasetInfo readGdalFileData(String gdalSource, boolean reproject) throws IOException {
+        
+        String chartName = readKapDescription(gdalSource);
+                
+        Dataset originalData = gdal.Open(gdalSource, gdalconstConstants.GA_ReadOnly);
+        if (originalData == null)
+            return null;
+        Dataset openData = null;
+        
+        // get original bounds in Wgs84
+        SpatialReference hLatLong = new SpatialReference(osr.SRS_WKT_WGS84);
+        double[][] originalBounds = boundsWgs84(originalData, hLatLong);
+        
+        if(reproject){
+            // on the fly reprojection - slower reading, but fast open and less memory
+            openData = gdal.AutoCreateWarpedVRT(originalData,null, layerProjection.ExportToWkt(),VRT_RESAMPLER, VRT_MAXERROR);
+
+   //         fullGdalInfo(openData);
+            originalData.delete();
+            
+        }else{
+            openData = originalData;
+        }
+        
+        Envelope bbox = bounds(openData, layerProjection);
+        if(bbox == null){
+            return null;
+        }
+        DatasetInfo datasetInfo = new DatasetInfo(chartName, (Vector<String>) openData.GetFileList().clone(), bestZoom(bbox.getWidth(),openData.getRasterXSize()), counter++, bbox, originalBounds);
+        
+        openData.delete();
+        
+        return datasetInfo;
+    }
+    
+    // Opens GDAL file, gets dataset pointer
     private Dataset openGdalFile(String gdalSource, boolean reproject) {
         Dataset originalData = gdal.Open(gdalSource, gdalconstConstants.GA_ReadOnly);
         if (originalData == null)
             return null;
         Dataset openData = null;
-       // fullGdalInfo(originalData);
+        
+        // get original bounds
+        Envelope originalBounds = bounds(originalData, null);
+        Log.debug("original Bounds "+originalBounds);
+        fullGdalInfo(originalData);
 
-        SpatialReference fromProj = new SpatialReference(originalData.GetProjectionRef());
+//        SpatialReference fromProj = new SpatialReference(originalData.GetProjectionRef());
         
         if(reproject){
             // on the fly reprojection - slower reading, fast open and less memory
-            openData = gdal.AutoCreateWarpedVRT(originalData,fromProj.ExportToWkt(), layerProjection.ExportToWkt(),VRT_RESAMPLER, VRT_MAXERROR);
+     //       openData = gdal.AutoCreateWarpedVRT(originalData,fromProj.ExportToWkt(), layerProjection.ExportToWkt(),VRT_RESAMPLER, VRT_MAXERROR);
+            openData = gdal.AutoCreateWarpedVRT(originalData,null, layerProjection.ExportToWkt(),VRT_RESAMPLER, VRT_MAXERROR);
+
             // reproject to memory - faster reading, more memory and time needed to open
 //            hDataset = reprojectDataset(originalData, 10.0, fromProj, layerProjection);
-            //fullGdalInfo(openData);
+   //         fullGdalInfo(openData);
             originalData.delete();
         }else{
             openData = originalData;
@@ -262,7 +338,10 @@ public class GdalMapLayer extends RasterLayer {
 
     private Envelope bounds(Dataset data,SpatialReference layerProjection) {
         double[][] corner= new double[4][2];
-
+        if(data == null){
+            Log.error("data null");
+            return null;
+        }
         corner[0] = corner(data, layerProjection, 0.0, 0.0);
         corner[1] = corner(data, layerProjection, 0.0, data
                 .getRasterYSize());
@@ -274,7 +353,20 @@ public class GdalMapLayer extends RasterLayer {
         return new Envelope(corner[1][0],corner[2][0],corner[1][1],corner[2][1]);
     }
 
-
+    private double[][] boundsWgs84(Dataset data,SpatialReference layerProjection) {
+        double[][] corners= new double[4][2];
+        
+        corners[0] = corner(data, layerProjection, 0.0, 0.0);
+        corners[1] = corner(data, layerProjection, 0.0, data
+                .getRasterYSize());
+        corners[2] = corner(data,layerProjection, data
+                .getRasterXSize(), 0.0);
+        corners[3] = corner(data, layerProjection, data
+                .getRasterXSize(), data.getRasterYSize());
+        
+        return corners; 
+    }
+    
     @Override
     public void fetchTile(TileQuadTreeNode tile) {
         Log.debug("GdalMapLayer: Start loading " + " zoom=" + tile.zoom + " x="
@@ -336,12 +428,12 @@ public class GdalMapLayer extends RasterLayer {
     /**
      * Calculate corner coordinates of dataset, in layerProjection
      * @param data
-     * @param layerProj
+     * @param dstProj
      * @param x coordinates of bounds
      * @param y coordinates of bounds 
      * @return
      */
-    static double[] corner(Dataset data, SpatialReference layerProj, double x, double y)
+    static double[] corner(Dataset data, SpatialReference dstProj, double x, double y)
 
     {
         double dfGeoX, dfGeoY;
@@ -356,7 +448,10 @@ public class GdalMapLayer extends RasterLayer {
         
         {
             dataProjection = data.GetProjectionRef();
-
+            if(dataProjection.equals("")){
+                dataProjection = data.GetGCPProjection();
+            }
+//Log.debug("dataProjection "+dataProjection);
             dfGeoX = adfGeoTransform[0] + adfGeoTransform[1] * x
                     + adfGeoTransform[2] * y;
             dfGeoY = adfGeoTransform[3] + adfGeoTransform[4] * x
@@ -367,7 +462,7 @@ public class GdalMapLayer extends RasterLayer {
         
         // is reprojection needed?
        // Log.debug("dataProj "+dataProj.GetAuthorityCode(null)+ " layerProj "+layerProj.GetAuthorityCode(null));
-        if(layerProj == null || (dataProj.GetAuthorityCode(null) != null && dataProj.GetAuthorityCode(null).equals(layerProj.GetAuthorityCode(null)))){
+        if(dstProj == null || (dataProj.GetAuthorityCode(null) != null && dataProj.GetAuthorityCode(null).equals(dstProj.GetAuthorityCode(null)))){
             return new double[]{dfGeoX, dfGeoY};
         }
         
@@ -379,14 +474,15 @@ public class GdalMapLayer extends RasterLayer {
 
         if (dataProjection != null && dataProjection.length() > 0) {
 
-            if (layerProj != null) {
+            if (dstProj != null) {
                 gdal.PushErrorHandler( "CPLQuietErrorHandler" );
-                hTransform = new CoordinateTransformation(dataProj, layerProj);
+                hTransform = new CoordinateTransformation(dataProj, dstProj);
                 gdal.PopErrorHandler();
 //                layerProj.delete();
-                if (gdal.GetLastErrorMsg().indexOf("Unable to load PROJ.4 library") != -1)
+                if (gdal.GetLastErrorMsg().indexOf("Unable to load PROJ.4 library") != -1){
                     Log.error(gdal.GetLastErrorMsg());
                     hTransform = null;
+                }
             }
 
 //            if (dataProj != null)
@@ -479,7 +575,7 @@ public class GdalMapLayer extends RasterLayer {
         /*      Report Geotransform.                                            */
         /* -------------------------------------------------------------------- */
         data.GetGeoTransform(adfGeoTransform);
-        Log.info("geotransform "+ Arrays.toString(adfGeoTransform));
+    //    Log.info("geotransform "+ Arrays.toString(adfGeoTransform));
         {
             if (adfGeoTransform[2] == 0.0 && adfGeoTransform[4] == 0.0) {
                 Log.info("Origin = (" + adfGeoTransform[0] + ","
@@ -924,12 +1020,11 @@ public class GdalMapLayer extends RasterLayer {
 
             hProj = new SpatialReference(pszProjection);
             
-            // if not defined, use default projection EPSG:4326
-//            if (hProj == null)
-//                hLatLong = new SpatialReference("GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.01745329251994328,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]");
+            // use default projection EPSG:4326
+            hLatLong = new SpatialReference("GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.01745329251994328,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]");
 
             // force EPSG:3857 as destination projection
-            hLatLong = new SpatialReference(EPSG_3785_WKT);
+//            hLatLong = new SpatialReference(EPSG_3785_WKT);
             // hLatLong = hProj.CloneGeogCS();
             
             if (hLatLong != null) {
