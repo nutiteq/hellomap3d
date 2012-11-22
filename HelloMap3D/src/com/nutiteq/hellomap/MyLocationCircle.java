@@ -8,7 +8,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.location.Location;
 
-import com.nutiteq.components.ImmutableMapPos;
+import com.nutiteq.components.MapPos;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.utils.Const;
 
@@ -92,10 +92,10 @@ public class MyLocationCircle {
     }
 
     public void setLocation(Projection proj, Location location) {
-        ImmutableMapPos mapPos = proj.fromWgs84((float) location.getLongitude(),
-                (float) location.getLatitude());
-        this.circleX = proj.toInternal(mapPos.x, mapPos.y).x;
-        this.circleY = proj.toInternal(mapPos.x, mapPos.y).y;
+        MapPos mapPos = proj.fromWgs84(location.getLongitude(),
+                 location.getLatitude());
+        this.circleX = (float) proj.toInternal(mapPos.x, mapPos.y).x;
+        this.circleY = (float) proj.toInternal(mapPos.x, mapPos.y).y;
         this.circleRadius = location.getAccuracy();
         
     }

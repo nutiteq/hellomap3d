@@ -54,14 +54,9 @@ public class MapEventListener extends MapListener {
 
     // Map View manipulation handlers
     @Override
-    public void onMapClicked(final float x, final float y, final boolean longClick) {
-        // NB! this event is not called from UI thread, so we need following trick to show Toast
+    public void onMapClicked(final double x, final double y, final boolean longClick) {
         // x and y are in base map projection, we convert them to the familiar WGS84 
-        activity.runOnUiThread(new Runnable() {
-            public void run() {
-                Toast.makeText(activity, "onMapClicked "+(new EPSG3857()).toWgs84(x, y).x+" "+(new EPSG3857()).toWgs84(x, y).y+" longClick: "+longClick, Toast.LENGTH_SHORT).show();
-            }
-        });
+         Toast.makeText(activity, "onMapClicked "+(new EPSG3857()).toWgs84(x, y).x+" "+(new EPSG3857()).toWgs84(x, y).y+" longClick: "+longClick, Toast.LENGTH_SHORT).show();
     }
 
     @Override
