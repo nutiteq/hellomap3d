@@ -47,7 +47,7 @@ public class MapEventListener extends MapListener {
     }
 
     @Override
-    public void onVectorElementClicked(VectorElement vectorElement, boolean longClick) {
+    public void onVectorElementClicked(VectorElement vectorElement, double x, double y, boolean longClick) {
         Toast.makeText(activity, "onVectorElementClicked "+((DefaultLabel) vectorElement.getLabel()).getTitle()+" longClick: "+longClick, Toast.LENGTH_SHORT).show();
 
     }
