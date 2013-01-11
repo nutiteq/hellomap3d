@@ -74,7 +74,7 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 	@Override
 	public void calculateVisibleElements(Envelope envelope, int zoom) {
 		if (zoom < minZoom) {
-			visibleElementsList = null; 
+			setVisibleElementsList(null); 
 			return;
 		}
 		
@@ -181,7 +181,7 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 		}
 		Log.debug("Triangulation time: " + (System.currentTimeMillis() - start));
 
-		visibleElementsList = newVisibleElementsList;
+		setVisibleElementsList(newVisibleElementsList);
 	}
 
 	private float convertToMeters(float hVal, String unit) {
