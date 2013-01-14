@@ -1,7 +1,8 @@
 package com.nutiteq.utils;
 
+import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
-import com.vividsolutions.jts.geom.Envelope;
+
 
 public class TileUtils {
     
