@@ -398,7 +398,7 @@ public class GdalMapLayer extends RasterLayer {
                 //create task
                 GdalFetchTileTask tileTask = new GdalFetchTileTask(tile,
                       components, requestedTileBounds, getTileIdOffset(), dataSet, boundsEnvelope, mapView);
-                components.rasterTaskPool.execute(tileTask);
+                executeFetchTask(tileTask);
                 break;
             }
         }

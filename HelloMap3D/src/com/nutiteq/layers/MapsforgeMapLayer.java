@@ -39,7 +39,7 @@ public class MapsforgeMapLayer extends RasterLayer {
   @Override
   public void fetchTile(TileQuadTreeNode tile) {
     Log.debug("MapsforgeLayer: Start loading " + " zoom=" + tile.zoom + " x=" + tile.x + " y=" + tile.y);
-    components.rasterTaskPool.execute(new MapsforgeFetchTileTask(tile, components, tileIdOffset, mapGenerator, theme));
+    executeFetchTask(new MapsforgeFetchTileTask(tile, components, tileIdOffset, mapGenerator, theme));
 
   }
 
