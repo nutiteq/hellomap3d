@@ -13,7 +13,7 @@ We welcome any kind of contributions: questions, pull requests, questions, feedb
 
 # License
 There are currently following options:
-* [[Free OpenStreetMap License]] - usable with OSM base map
+* [Free OpenStreetMap License](https://github.com/nutiteq/hellomap3d/wiki/Free-openstreetmap-license) - usable with OSM base map
 * Free evaluation/development license. Just use the SDK for development, no key or registration needed
 * Commercial license, (c) Nutiteq Llc. Request nutiteq@nutiteq.com for details
 
