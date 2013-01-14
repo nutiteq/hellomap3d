@@ -12,7 +12,10 @@ To get started see [project Wiki pages](https://github.com/nutiteq/hellomap3d/wi
 We welcome any kind of contributions: questions, pull requests, questions, feedback, wiki updates etc. Please join [nutiteq-dev@googlegroups.com] (https://groups.google.com/forum/#!forum/nutiteq-dev) for discussions.
 
 # License
-* Nutiteq 3D SDK - commercial evaluation license, (c) Nutiteq Llc. Request nutiteq@nutiteq.com for details
+There are currently following options:
+* [[Free OpenStreetMap License]] - usable with OSM base map
+* Free evaluation/development license. Just use the SDK for development, no key or registration needed
+* Commercial license, (c) Nutiteq Llc. Request nutiteq@nutiteq.com for details
 
 Third party software licenses for core library:
 * Colt -  MIT-style and LGPL licenses http://acs.lbl.gov/software/colt/license.html
