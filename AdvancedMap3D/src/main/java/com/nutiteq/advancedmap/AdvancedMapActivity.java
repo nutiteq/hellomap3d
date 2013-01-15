@@ -22,11 +22,13 @@ import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.GdalMapLayer;
 import com.nutiteq.layers.raster.MapsforgeMapLayer;
+import com.nutiteq.layers.raster.WmsLayer;
 import com.nutiteq.layers.vector.Polygon3DOSMLayer;
 import com.nutiteq.layers.vector.SpatialLiteDb;
 import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
+import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.TMSMapLayer;
 import com.nutiteq.style.LineStyle;
@@ -139,7 +141,8 @@ public class AdvancedMapActivity extends Activity {
         mapView.startMapping();
 
         // 5. Add layers to map
-//        addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/natural-earth-2-mercator.tif");
+        // from http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W.zip
+      //  addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/NE2_HR_LC_SR_W.tif");
 
         addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
         
@@ -152,6 +155,8 @@ public class AdvancedMapActivity extends Activity {
 
 //        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/buildings.sqlite");
         
+        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
+        
     }
 
 
@@ -159,7 +164,7 @@ public class AdvancedMapActivity extends Activity {
         //  GDAL raster layer test
         GdalMapLayer gdalLayer;
         try {
-            gdalLayer = new GdalMapLayer(proj, 0, 18, 986, filePath, mapView, false);
+            gdalLayer = new GdalMapLayer(proj, 0, 18, 9991, filePath, mapView, true);
             mapView.getLayers().setBaseLayer(gdalLayer);
 
         } catch (IOException e) {
@@ -275,6 +280,11 @@ public class AdvancedMapActivity extends Activity {
          e.printStackTrace();
      }
 
+     }
+     
+     private void addWmsLayer(Projection proj, String url, String layers, Projection dataProjection){
+       WmsLayer wmsLayer = new WmsLayer(proj, 0, 19, 1012, url, "", layers, "image/png", dataProjection);
+       mapView.getLayers().addLayer(wmsLayer);
      }
 
 }
