@@ -173,17 +173,21 @@ public class GdalFetchTileTask extends FetchTileTask{
             return null;
         }
         
-        Log.debug("gdalfetchtile time for reading: " + (System.nanoTime() - time)
+        Log.debug("gdalfetchtile time for reading band " + iBand+ ": "  + (System.nanoTime() - time)
                 / 1000000 + " ms");
         
         // copy colortable to Java array for faster access
         int colorType = band.GetRasterColorInterpretation();
         ColorTable ct = band.GetRasterColorTable();
-        int numColors = ct.GetCount();
-        int[] colorTable = new int[numColors];
-        for(int i = 1; i<numColors;i++){
-            colorTable[i]=ct.GetColorEntry(i);
-        }
+        int[] colorTable = null;
+        int numColors = 0;
+        if(ct != null){
+                numColors = ct.GetCount();
+                colorTable = new int[numColors];
+                for (int i = 1; i < numColors; i++) {
+                    colorTable[i] = ct.GetColorEntry(i);
+                }
+           }
 
         // copy data to tile buffer tileData, and apply color table or combine bands
         
@@ -222,7 +226,7 @@ public class GdalFetchTileTask extends FetchTileTask{
                         tileData[y * TILE_SIZE + x] |=  decoded | 0xFF000000;   
                         
                     }else{
-                        // outside of tile bounds. Normally keep transparent, give color for debugging 
+                        // outside of tile bounds. Normally keep transparent, tint green just for debugging 
                         //tileData[y * TILE_SIZE + x] = android.graphics.Color.GREEN & 0x88ffffff;
                     }
                 }

@@ -8,5 +8,6 @@ mvn install:install-file -DgroupId=com.jhlabs -DartifactId=javaproj-noawt -Dvers
 
 * Test datasets *
 
- Spatialite : Romania OSM data, Spatialite 3.0 format: https://www.dropbox.com/c/shmodel?nsid=125341383&sjid=0&state=2&signature=daef840&path=/romania_sp3857.sqlite&id=shmodel
- 
+ Spatialite : Romania OSM data, Spatialite 3.0 format: https://www.dropbox.com/s/j4aahjo7whkzx2r/romania_sp3857.sqlite
+ Raster data: Digital Earth, Natural earth converted to Spherical Mercator: natural-earth-2-mercator.tif
+  

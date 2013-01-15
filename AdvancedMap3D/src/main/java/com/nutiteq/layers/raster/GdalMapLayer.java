@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +34,8 @@ import com.nutiteq.MapView;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.TileQuadTreeNode;
 import com.nutiteq.db.MbTilesDatabaseHelper;
+import com.nutiteq.layers.raster.DatasetInfo;
+import com.nutiteq.layers.raster.GdalFetchTileTask;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
@@ -89,8 +92,9 @@ public class GdalMapLayer extends RasterLayer {
         this.mapView = mapView;
         gdal.AllRegister();
         
-        // debug print list all drivers
-       // listDrivers();
+        // debug print list all enabled drivers
+        listDrivers();
+        
         File rootFile = new File(gdalSource);
         
         if(!rootFile.exists()){
@@ -103,7 +107,7 @@ public class GdalMapLayer extends RasterLayer {
             addFileDataSets(rootFile.getPath(), reproject, rootFile.getName());
         }else{
             // open all files in a folder
-            // use gdal.index as cache
+            // use gdal.index as metadata cache, create if needed
             File indexFile = new File(gdalSource+"/gdal.index");
             if(indexFile.exists()){
                 byte [] indexData = new byte[(int)indexFile.length()];
@@ -164,16 +168,16 @@ public class GdalMapLayer extends RasterLayer {
             fullPath = gdalSource+File.separator+fileName;
         }
         
-        if(fileName.toUpperCase().endsWith("KAP")){
+//        if(fileName.toUpperCase().endsWith("KAP")){
             Log.debug("Adding "+(this.counter)+". "+fileName);
             DatasetInfo dataSet = readGdalFileData(fullPath, reproject);
             if(dataSet != null){
                 dataSets.put(dataSet.envelope,dataSet);
-            //    Log.debug("Added "+(this.counter)+". GDAL file: "+fileName+" bounds: "+dataSet.envelope);
+                Log.debug("Opened "+(this.counter)+". GDAL file: "+fileName+" bounds: "+dataSet.envelope.minX+" "+dataSet.envelope.minY+" "+dataSet.envelope.maxX+" "+dataSet.envelope.maxY);
             }
-        }else{
-            Log.debug("Skipping file, did not like extension of "+fileName);
-        }
+//        }else{
+//            Log.debug("Skipping file, did not like extension of "+fileName);
+//        }
     }
 
     // reads chart name from BSB/NA field
@@ -202,7 +206,12 @@ public class GdalMapLayer extends RasterLayer {
     // reads GDAL dataset metadata
     private DatasetInfo readGdalFileData(String gdalSource, boolean reproject) throws IOException {
         
-        String chartName = readKapDescription(gdalSource);
+        String datasetName;
+        if(gdalSource.toUpperCase().endsWith("KAP")){
+            datasetName = readKapDescription(gdalSource);
+        }else{
+            datasetName = gdalSource;
+        }
                 
         Dataset originalData = gdal.Open(gdalSource, gdalconstConstants.GA_ReadOnly);
         if (originalData == null)
@@ -228,7 +237,7 @@ public class GdalMapLayer extends RasterLayer {
         if(bbox == null){
             return null;
         }
-        DatasetInfo datasetInfo = new DatasetInfo(chartName, (Vector<String>) openData.GetFileList().clone(), bestZoom(bbox.getWidth(),openData.getRasterXSize()), counter++, bbox, originalBounds);
+        DatasetInfo datasetInfo = new DatasetInfo(datasetName, (Vector<String>) openData.GetFileList().clone(), bestZoom(bbox.getWidth(),openData.getRasterXSize()), counter++, bbox, originalBounds);
         
         openData.delete();
         
@@ -288,7 +297,7 @@ public class GdalMapLayer extends RasterLayer {
 
     // pre-reproject dataset 
     // ported from http://jgomezdans.github.com/gdal_notes/reprojection.html
-    // FIXME: it does not work yet, produces "black data". 
+    // FIXME: it does not work yet, produces "black data" for BSB
     private Dataset reprojectDataset(Dataset data, double pixelSpacing, SpatialReference fromProj,
             SpatialReference toProjection) {
 
@@ -372,7 +381,9 @@ public class GdalMapLayer extends RasterLayer {
         Log.debug("GdalMapLayer: Start loading " + " zoom=" + tile.zoom + " x="
                 + tile.x + " y=" + tile.y);
         long timeStart = System.currentTimeMillis();
-        Envelope requestedTileBounds = TileUtils.TileBounds(tile.x, tile.y, tile.zoom);
+       
+        
+        Envelope requestedTileBounds = TileUtils.TileBounds(tile.x, tile.y, tile.zoom, projection);
         
         boolean found = false;
         
@@ -382,7 +393,7 @@ public class GdalMapLayer extends RasterLayer {
             if ((this.showAlways && dataBounds.intersects(requestedTileBounds)) 
                     || (!this.showAlways && dataBounds.contains(requestedTileBounds) && isSuitableZoom(entry.getValue().bestZoom, tile.zoom)) ) {
                 long timeEnd = System.currentTimeMillis();
-                Log.debug("found intersection with "+entry.getValue()+" took ms:"+(timeEnd-timeStart));
+                Log.debug("found intersection with x="+tile.x+" y="+tile.y+" zoom="+tile.zoom+" took ms:"+(timeEnd-timeStart));
                 
                 found  = true;
                 Dataset dataSet;

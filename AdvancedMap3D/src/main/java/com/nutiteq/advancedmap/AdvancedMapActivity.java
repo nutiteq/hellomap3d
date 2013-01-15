@@ -1,5 +1,6 @@
 package com.nutiteq.advancedmap;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import android.app.Activity;
@@ -14,6 +15,7 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Marker;
+import com.nutiteq.layers.raster.GdalMapLayer;
 import com.nutiteq.layers.vector.SpatialLiteDb;
 import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
@@ -90,7 +92,7 @@ public class AdvancedMapActivity extends Activity {
         // rotation - 0 = north-up
         mapView.setRotation(0f);
         // zoom - 0 = world, like on most web maps
-        mapView.setZoom(14.0f);
+        mapView.setZoom(4.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
         mapView.setTilt(90.0f);
 
@@ -129,12 +131,30 @@ public class AdvancedMapActivity extends Activity {
         // 4. Start the map - mandatory
         mapView.startMapping();
 
-        addLayers(mapLayer.getProjection());
+        // 5. Add layers to map
+        addGdalayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/natural-earth-2-mercator.tif");
+
+//        addMarkerLayer(mapLayer.getProjection(),proj.fromWgs84(-122.416667f, 37.766667f));
         
+//        addSpatialiteLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/romania_sp3857.sqlite");
+
     }
 
 
-    private void addLayers(Projection proj) {
+    private void addGdalayer(Projection proj, String filePath) {
+        //  GDAL raster layer test
+        GdalMapLayer gdalLayer;
+        try {
+            gdalLayer = new GdalMapLayer(proj, 0, 18, 986, filePath, mapView, false);
+            mapView.getLayers().setBaseLayer(gdalLayer);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void addMarkerLayer(Projection proj, MapPos markerLocation) {
         
         // ** Add simple marker to map. 
         // define marker style (image, size, color)
@@ -143,15 +163,15 @@ public class AdvancedMapActivity extends Activity {
         // define label what is shown when you click on marker
         Label markerLabel = new DefaultLabel("San Francisco", "Here is a marker");
         
-        // define location of the marker, it must be converted to base map coordinate system
-        MapPos markerLocation = proj.fromWgs84(-122.416667f, 37.766667f);
 
         // create layer and add object to the layer, finally add layer to the map. 
         // All overlay layers must be same projection as base layer, so we reuse it
         MarkerLayer markerLayer = new MarkerLayer(proj);
         markerLayer.add(new Marker(markerLocation, markerLabel, markerStyle, null));
         mapView.getLayers().addLayer(markerLayer);
+    }
 
+    private void addOsmPolygonLayer(Projection proj){
         // ** OSM 3D building layer, visible from zoom 15 
         Polygon3DStyle polygon3DStyle = Polygon3DStyle.builder().setColor(Color.BLACK | 0x40ffffff).build();
         StyleSet<Polygon3DStyle> polygon3DStyleSet = new StyleSet<Polygon3DStyle>(null);
@@ -160,7 +180,10 @@ public class AdvancedMapActivity extends Activity {
         // ** 3D OpenStreetMap house "shoebox" layer
 //        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.500f, 200, polygon3DStyleSet);
 //        mapView.getLayers().addLayer(osm3dLayer);
-
+    }
+    
+     private void add3dModelLayer(Projection proj){
+           
         // define style for 3D to define minimum zoom = 0 
         ModelStyle modelStyle = ModelStyle.builder().build();
         StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(modelStyle);
@@ -171,11 +194,12 @@ public class AdvancedMapActivity extends Activity {
         
         mapView.getLayers().addLayer(modelLayer);
         
+     }
+     
+     private void addSpatialiteLayer(Projection proj, String dbPath){
         
         // ** Spatialite
-        // pick just first geotable from the database and add as layer
-        // load metadata for picking first table
-        String dbPath = Environment.getExternalStorageDirectory().getPath()+"/mapxt/romania_sp3857.sqlite";
+        // print out list of tables first
         int minZoom = 10;
         
         SpatialLiteDb spatialLite = new SpatialLiteDb(dbPath);
@@ -186,8 +210,10 @@ public class AdvancedMapActivity extends Activity {
         }
         
         // set styles for all 3 object types: point, line and polygon
+        
         StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
-        PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setSize(0.2f).setColor(Color.GREEN).build();
+        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
+        PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(Color.BLACK).build();
         pointStyleSet.setZoomStyle(minZoom,pointStyle);
 
         StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
@@ -219,7 +245,6 @@ public class AdvancedMapActivity extends Activity {
                 "GEOMETRY", new String[]{"name"}, 500, null, null, polygonStyleSet);
         
         mapView.getLayers().addLayer(spatialiteLayerPoly);
-        
         
     }
 

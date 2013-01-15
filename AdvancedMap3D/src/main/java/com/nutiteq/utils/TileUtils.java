@@ -2,6 +2,7 @@ package com.nutiteq.utils;
 
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
+import com.nutiteq.projections.Projection;
 
 public class TileUtils {
     
@@ -62,12 +63,13 @@ public class TileUtils {
     }
     
     /**
-     * Returns bounds of the given tile in EPSG:900913 coordinates
+     * Returns bounds of the given tile in EPSG:900913 (EPSG:3857) coordinates
      * 
      * @param tx
-     * @param ty
+     * @param ty (bottom-top)
      * @param zoom
      * @return
+     * @deprecated use TileBounds with projection instead
      */
     public static Envelope TileBounds(int tx, int ty, int zoom) {
             double[] min = PixelsToMeters(tx * TILESIZE, ty * TILESIZE, zoom);
@@ -78,6 +80,28 @@ public class TileUtils {
             
             return new Envelope( minx, maxx, miny, maxy);
     }
+    
+    /**
+     *  Get bounds of tile
+     * @param tx tile x (left-right)
+     * @param ty tile y (top-bottom)
+     * @param zoom zoom (0 = world)
+     * @param proj
+     * @return bounds, in given projection
+     */
+    public static Envelope TileBounds(int tx, int ty, int zoom, Projection proj) {
+
+        double originShift =  (proj.getBounds().right-proj.getBounds().left) / 2.0;
+
+        double res = (originShift * 2.0) / (TILESIZE * (double) (1<<(zoom))); // 1<<(zoom) is same as power(2;zoom)
+        double minx = ((double) tx) * TILESIZE * res - originShift;
+        double miny = (((double)  (1<<(zoom))-1-ty) * TILESIZE * res) - originShift;
+
+        double maxx = (double)(tx+1) * TILESIZE * res - originShift;
+        double maxy = ((double)( (1<<(zoom))-1-ty + 1) * TILESIZE * res) - originShift;
+        
+        return new Envelope( minx, maxx, miny, maxy);
+}
 
     
     /**

@@ -18,7 +18,7 @@ public class DatasetInfo implements Serializable{
     public final Envelope envelope;
     public final double[][] boundsWgs84;
     
-    DatasetInfo(final String name,final Vector<String> dataSets,final double bestZoom, final int id, final Envelope envelope, final double[][] boundsWgs84){
+    public DatasetInfo(final String name,final Vector<String> dataSets,final double bestZoom, final int id, final Envelope envelope, final double[][] boundsWgs84){
         this.name = name;
         this.dataFile = dataSets;
         this.bestZoom = bestZoom;
