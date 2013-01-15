@@ -139,21 +139,23 @@ public class AdvancedMapActivity extends Activity {
         mapView.startMapping();
 
         // 5. Add layers to map
-//        addGdalayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/natural-earth-2-mercator.tif");
+//        addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/natural-earth-2-mercator.tif");
 
-//        addMarkerLayer(mapLayer.getProjection(),proj.fromWgs84(-122.416667f, 37.766667f));
+        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
         
 //        addSpatialiteLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/romania_sp3857.sqlite");
         
-        addMapsforgeLayer(mapLayer.getProjection(), Environment.getExternalStorageDirectory() + "/mapxt/california.map",
-                Environment.getExternalStorageDirectory() + "/mapxt/osmarender.xml");
+//        addMapsforgeLayer(mapLayer.getProjection(), Environment.getExternalStorageDirectory() + "/mapxt/california.map",
+//                Environment.getExternalStorageDirectory() + "/mapxt/osmarender.xml");
         
         addOsmPolygonLayer(mapLayer.getProjection());
 
+//        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/buildings.sqlite");
+        
     }
 
 
-    private void addGdalayer(Projection proj, String filePath) {
+    private void addGdalLayer(Projection proj, String filePath) {
         //  GDAL raster layer test
         GdalMapLayer gdalLayer;
         try {
@@ -165,10 +167,8 @@ public class AdvancedMapActivity extends Activity {
         }
     }
 
-
+    // ** Add simple marker to map. 
     private void addMarkerLayer(Projection proj, MapPos markerLocation) {
-        
-        // ** Add simple marker to map. 
         // define marker style (image, size, color)
         Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.olmarker);
         MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.5f).setColor(Color.WHITE).build();
@@ -183,26 +183,28 @@ public class AdvancedMapActivity extends Activity {
         mapView.getLayers().addLayer(markerLayer);
     }
 
+    // Load online simple building 3D boxes
     private void addOsmPolygonLayer(Projection proj){
-        // ** OSM 3D building layer, visible from zoom 15 
+        // Set style visible from zoom 15 
         Polygon3DStyle polygon3DStyle = Polygon3DStyle.builder().setColor(Color.BLACK | 0x40ffffff).build();
         StyleSet<Polygon3DStyle> polygon3DStyleSet = new StyleSet<Polygon3DStyle>(null);
         polygon3DStyleSet.setZoomStyle(15, polygon3DStyle);
 
-        // ** 3D OpenStreetMap house "shoebox" layer
         Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.500f, 200, polygon3DStyleSet);
         mapView.getLayers().addLayer(osm3dLayer);
     }
     
-     private void add3dModelLayer(Projection proj){
+    // load 3D models from special database
+     private void add3dModelLayer(Projection proj, String filePath){
            
-        // define style for 3D to define minimum zoom = 0 
+        // define style for 3D to define minimum zoom = 14 
         ModelStyle modelStyle = ModelStyle.builder().build();
-        StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(modelStyle);
+        StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(null);
+        modelStyleSet.setZoomStyle(14, modelStyle);
         
         // ** 3D Model layer
         NMLModelDbLayer modelLayer = new NMLModelDbLayer(new EPSG3857(),
-                "/sdcard/buildings.sqlite", modelStyleSet);
+                filePath, modelStyleSet);
         
         mapView.getLayers().addLayer(modelLayer);
         
