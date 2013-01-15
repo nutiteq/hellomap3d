@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
-	<classpathentry excluding="com/nutiteq/layers/vector/Polygon3DOSMLayer.java|com/nutiteq/layers/raster/GdalFetchTileTask.java|com/nutiteq/layers/raster/GdalMapLayer.java|com/nutiteq/layers/raster/MapsforgeFetchTileTask.java|com/nutiteq/layers/raster/MapsforgeMapLayer.java" kind="src" output="bin/classes" path="src/main/java">
+	<classpathentry kind="src" output="bin/classes" path="src/main/java">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
