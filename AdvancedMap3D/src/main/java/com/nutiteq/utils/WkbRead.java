@@ -116,7 +116,7 @@ private static Geometry[] readMultiPolygon(ByteArrayInputStream is, int dimensio
     Geometry[] polygons = new Geometry[numPolygons]; 
     for(int i = 0; i<numPolygons;i++){
         Geometry[] geometry = readWkb(is, userData);
-        if(!(geometry[0] instanceof Polygon)){
+        if(geometry == null || !(geometry[0] instanceof Polygon)){
             Log.error("MultiPolygon must have only Polygon elements");
         }else{
             polygons[i] = geometry[0];

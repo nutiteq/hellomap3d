@@ -1,7 +1,12 @@
 package com.nutiteq.advancedmap;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
+
+import org.mapsforge.android.maps.mapgenerator.JobTheme;
+import org.mapsforge.android.maps.mapgenerator.databaserenderer.ExternalRenderTheme;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -16,6 +21,8 @@ import com.nutiteq.components.Options;
 import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.GdalMapLayer;
+import com.nutiteq.layers.raster.MapsforgeMapLayer;
+import com.nutiteq.layers.vector.Polygon3DOSMLayer;
 import com.nutiteq.layers.vector.SpatialLiteDb;
 import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
@@ -132,11 +139,16 @@ public class AdvancedMapActivity extends Activity {
         mapView.startMapping();
 
         // 5. Add layers to map
-        addGdalayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/natural-earth-2-mercator.tif");
+//        addGdalayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/natural-earth-2-mercator.tif");
 
 //        addMarkerLayer(mapLayer.getProjection(),proj.fromWgs84(-122.416667f, 37.766667f));
         
 //        addSpatialiteLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/romania_sp3857.sqlite");
+        
+        addMapsforgeLayer(mapLayer.getProjection(), Environment.getExternalStorageDirectory() + "/mapxt/california.map",
+                Environment.getExternalStorageDirectory() + "/mapxt/osmarender.xml");
+        
+        addOsmPolygonLayer(mapLayer.getProjection());
 
     }
 
@@ -178,8 +190,8 @@ public class AdvancedMapActivity extends Activity {
         polygon3DStyleSet.setZoomStyle(15, polygon3DStyle);
 
         // ** 3D OpenStreetMap house "shoebox" layer
-//        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.500f, 200, polygon3DStyleSet);
-//        mapView.getLayers().addLayer(osm3dLayer);
+        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.500f, 200, polygon3DStyleSet);
+        mapView.getLayers().addLayer(osm3dLayer);
     }
     
      private void add3dModelLayer(Projection proj){
@@ -247,6 +259,21 @@ public class AdvancedMapActivity extends Activity {
         mapView.getLayers().addLayer(spatialiteLayerPoly);
         
     }
+     
+     private void addMapsforgeLayer(Projection proj, String mapFile, String renderThemeFile){
+       try {
+       JobTheme renderTheme = new ExternalRenderTheme(new File(renderThemeFile));
+
+        MapsforgeMapLayer mapLayer = new MapsforgeMapLayer(new EPSG3857(), 0, 20, 1004,
+                 mapFile,renderTheme);
+         
+         mapView.getLayers().setBaseLayer(mapLayer);
+         
+     } catch (FileNotFoundException e) {
+         e.printStackTrace();
+     }
+
+     }
 
 }
 

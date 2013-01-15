@@ -1,13 +1,16 @@
 package com.nutiteq.layers.vector;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import android.net.ParseException;
 import android.net.Uri;
@@ -22,6 +25,7 @@ import com.nutiteq.projections.Projection;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.DefaultLabel;
+import com.nutiteq.utils.WkbRead;
 import com.nutiteq.vectorlayers.Polygon3DLayer;
 
 public class Polygon3DOSMLayer extends Polygon3DLayer {
@@ -69,7 +73,7 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 	@Override
 	public void calculateVisibleElements(Envelope envelope, int zoom) {
 		if (zoom < minZoom) {
-			visibleElementsList = null; 
+		    setVisibleElementsList(null);
 			return;
 		}
 		
@@ -78,61 +82,28 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 		MapPos bottomLeft = projection.fromInternal((float) envelope.getMinX(), (float) envelope.getMinY());
 		MapPos topRight = projection.fromInternal((float) envelope.getMaxX(), (float) envelope.getMaxY());
 
-		List<String> names = new LinkedList<String>();
-		List<String> heights = new LinkedList<String>();
-		List<String> types = new LinkedList<String>();
-		List<String> addresses = new LinkedList<String>();
-		
 		List<Polygon> visibleElementslist = loadGeom(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y, maxObjects,
-				baseUrl, names, heights, types, addresses);
+				baseUrl);
 
 		long start = System.currentTimeMillis();
 		List<Polygon3D> newVisibleElementsList = new LinkedList<Polygon3D>();
 		int j = 0;
 		for (Polygon geometry : visibleElementslist) {
-		    ArrayList<MapPos> mapPoses = new ArrayList<MapPos>();
-			LineString outerRing = ((Polygon) geometry.norm()).getExteriorRing();
-			
-			for (Coordinate coordinate : outerRing.getCoordinates()) {
-				mapPoses.add(new MapPos((float) coordinate.x, (float) coordinate.y));
-			}
-
-			ArrayList<List<MapPos>> mapPosesHoles = new ArrayList<List<MapPos>>();
-
-			for (int i = 0; i < geometry.getNumInteriorRing(); i++) {
-			    List<MapPos> mapPosHole = new ArrayList<MapPos>();
-				LineString holeRing = ((Polygon) geometry.norm()).getInteriorRingN(i);
-				holeRing.normalize();
-				for (Coordinate coordinate : holeRing.getCoordinates()) {
-					mapPosHole.add(new MapPos((float) coordinate.x, (float) coordinate.y));
-				}
-				mapPosesHoles.add(mapPosHole);
-			}
 
 			// parse address and name for label
-			String name = null;
-			String type = null;
-			String address = null;
+		    final Map<String, String> userData = (Map<String, String>) geometry.userData;
+			String name = userData.get("name");
+			String type = userData.get("type");
+			String address = userData.get("address");
 			
-			if (names.get(j) != null && !names.get(j).equals("")) {
-				name = names.get(j);
-			}
 			float h = this.height;
 			
-			// type for future use
-            if (types.get(j) != null && !types.get(j).equals("")) {
-                type = types.get(j);
-            }
-			
-            if (addresses.get(j) != null && !addresses.get(j).equals("")) {
-                address = addresses.get(j);
-            }
-            
-            if (heights.get(j) != null && !heights.get(j).equals("")) {
-                String heightStr = null;
-                try {
-                    heightStr = heights.get(j);
+            String heightStr = null;
+            try {
+                heightStr = userData.get("height");
+                if(heightStr != null && !heightStr.equals("")){
                     float hVal;
+                    // change unit if needed
                     if(heightStr.contains(" ")){
                         String[] parts = heightStr.split(" ");
                         hVal = Float.parseFloat(parts[0]);
@@ -141,31 +112,29 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
                         hVal = Float.parseFloat(heightStr);
                     }
                     h = HEIGHT_ADJUST * hVal;
-                            
                     Log.debug("found real height ="+h+" from "+height);
-                } catch (NumberFormatException e) {
-                    Log.error("could not parse " + heightStr);
                 }
-
+            } catch (NumberFormatException e) {
+                Log.error("could not parse height value " + heightStr);
             }
             
 			// Log.debug("name = '" + name + "' address = '" + address + "'");
 			DefaultLabel label = null;
-			if (name == null && address != null) {
+			if (name == null && address != null && address.length()>0) {
 				label = new DefaultLabel(address);
 			}
-			if (name != null && address == null) {
+			if (name != null && address == null && name.length()>0) {
 				label = new DefaultLabel(name);
 			}
-			if (name != null && address != null) {
+			if (name != null && address != null && address.length()>0 && name.length()>0) {
 				label = new DefaultLabel(name, address);
 			}
 
-			// create polygon
-			Polygon3D polygon3D = new Polygon3D(mapPoses, mapPosesHoles, h, label, styleSet, null);
+			// create 3Dpolygon
+			Polygon3D polygon3D = new Polygon3D(((Polygon)geometry).getVertexList(), geometry.getHolePolygonList(), h, label, styleSet, userData);
 			++j;
 			try {
-				polygon3D.calculateInternalPos(projection);
+			    polygon3D.attachToLayer(this);
 			}
 			catch (RuntimeException e) {
 				Log.error("Polygon3DOSMLayer: Failed to triangulate! " + e.getMessage());
@@ -175,8 +144,7 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 			newVisibleElementsList.add(polygon3D);
 		}
 		Log.debug("Triangulation time: " + (System.currentTimeMillis() - start));
-
-		visibleElementsList = newVisibleElementsList;
+		setVisibleElementsList(newVisibleElementsList);
 	}
 
 	private float convertToMeters(float hVal, String unit) {
@@ -195,8 +163,7 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
     /**
      * Helper method to load geometries from the server
      */
-    private List<Polygon> loadGeom(double x, double y, double x2, double y2, int maxObjects2, String baseUrl2,
-			List<String> names, List<String> heights, List<String> types, List<String> addresses) {
+    private List<Polygon> loadGeom(double x, double y, double x2, double y2, int maxObjects2, String baseUrl2) {
 		List<Polygon> objects = new LinkedList<Polygon>();
 		// URL request format: http://kaart.maakaart.ee/poiexport/buildings2.php?bbox=xmin,ymin,xmax,ymax&output=wkb
 		try {
@@ -212,35 +179,22 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 			Log.debug("polygons:" + n);
 
 			for (int i = 0; i < n; i++) {
-				String name = data.readUTF();
-				String height = data.readUTF();
-				String type = data.readUTF();
-				String address = data.readUTF();
-				// Log.debug("name:" + name);
-				// Log.debug("tags:" + tags);
+			    final Map<String, String> userData = new HashMap<String, String>();
+			    userData.put("name", data.readUTF());
+			    userData.put("height", data.readUTF());
+			    userData.put("type", data.readUTF());
+			    userData.put("address", data.readUTF());
+			    
 				int len = data.readInt();
 				byte[] wkb = new byte[len];
 				data.read(wkb);
-				Geometry geom = new WKBReader().read(wkb);
-				Polygon poly = null;
-                if (geom instanceof MultiPolygon){
-                    for (int j=0; j<((MultiPolygon) geom).getNumGeometries();j++){
-                        poly = (Polygon) geom.getGeometryN(j);
-                        objects.add(poly);
-                        names.add(name);
-                        heights.add(height);
-                        types.add(type);
-                        addresses.add(address);
-                    }
-				    
-				}else if(geom instanceof Polygon)
-                    poly = (Polygon) geom;
-                    objects.add(poly);
-                    names.add(name);
-                    heights.add(height);
-                    types.add(type);
-                    addresses.add(address);
-
+				Geometry[] geoms = WkbRead.readWkb(new ByteArrayInputStream(wkb), userData);
+				for(Geometry geom : geoms){
+				    if(geom instanceof Polygon)
+				        objects.add((Polygon) geom);
+				    else
+				        Log.error("loaded object not a polygon");
+				}
 			}
 
 		}

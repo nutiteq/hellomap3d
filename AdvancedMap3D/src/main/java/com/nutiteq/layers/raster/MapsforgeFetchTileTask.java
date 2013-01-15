@@ -43,6 +43,7 @@ public class MapsforgeFetchTileTask extends FetchTileTask {
   @Override
   public void run() {
     super.run();
+    Log.debug("MapsforgeLayer: Start loading " + " zoom=" + z + " x=" + x + " y=" + y);
 
     MapGeneratorJob mapGeneratorJob = new MapGeneratorJob(new Tile(x, y,
         (byte) z), "1", new JobParameters(theme, DEFAULT_TEXT_SCALE),
