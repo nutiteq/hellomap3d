@@ -12,7 +12,8 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
+import android.view.View;
+import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.components.Components;
@@ -139,8 +140,27 @@ public class AdvancedMapActivity extends Activity {
 
         // 4. Start the map - mandatory
         mapView.startMapping();
+        
+        
+        // 5. zoom buttons using Android widgets - optional
+        // get the zoomcontrols that was defined in main.xml
+        ZoomControls zoomControls = (ZoomControls)findViewById(R.id.zoomcontrols);
+        // set zoomcontrols listeners to enable zooming
+        zoomControls.setOnZoomInClickListener(new View.OnClickListener() {
+            public void onClick(final View v) {
+                mapView.zoomIn();
+            }
+        });
+        zoomControls.setOnZoomOutClickListener(new View.OnClickListener() {
+            public void onClick(final View v) {
+                mapView.zoomOut();
+            }
+        });
+        
 
-        // 5. Add layers to map
+        // 5. Add various layers to map - optional
+        //    comment in needed ones, make sure that data file(s) exists in given folder
+        
         // from http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W.zip
       //  addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/NE2_HR_LC_SR_W.tif");
 
@@ -161,7 +181,7 @@ public class AdvancedMapActivity extends Activity {
 
 
     private void addGdalLayer(Projection proj, String filePath) {
-        //  GDAL raster layer test
+        //  GDAL raster layer test. It is set Base layer, not overlay
         GdalMapLayer gdalLayer;
         try {
             gdalLayer = new GdalMapLayer(proj, 0, 18, 9991, filePath, mapView, true);
@@ -284,6 +304,7 @@ public class AdvancedMapActivity extends Activity {
      
      private void addWmsLayer(Projection proj, String url, String layers, Projection dataProjection){
        WmsLayer wmsLayer = new WmsLayer(proj, 0, 19, 1012, url, "", layers, "image/png", dataProjection);
+       wmsLayer.setFetchPriority(-5);
        mapView.getLayers().addLayer(wmsLayer);
      }
 
