@@ -152,7 +152,7 @@ private static Geometry[] readPolygon(ByteArrayInputStream is, int dimensions, B
     
     List<List<MapPos>> innerRings = null;
     
-    if(numRings > 0){
+    if(numRings > 1){
         innerRings = new LinkedList<List<MapPos>>();
         for (int i = 0; i < numRings; i++){
             int innerSize = is.read();
