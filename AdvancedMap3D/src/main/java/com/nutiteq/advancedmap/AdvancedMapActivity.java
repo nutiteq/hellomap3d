@@ -12,6 +12,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.view.Window;
 import android.widget.ZoomControls;
@@ -25,6 +26,7 @@ import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.GdalMapLayer;
 import com.nutiteq.layers.raster.MapsforgeMapLayer;
 import com.nutiteq.layers.raster.WmsLayer;
+import com.nutiteq.layers.vector.OgrLayer;
 import com.nutiteq.layers.vector.Polygon3DOSMLayer;
 import com.nutiteq.layers.vector.SpatialLiteDb;
 import com.nutiteq.layers.vector.SpatialiteLayer;
@@ -51,7 +53,7 @@ public class AdvancedMapActivity extends Activity {
 	private MapView mapView;
 
     
-	// force to load proj library for spatialite
+	// force to load proj library (needed for spatialite)
 	static {
 		try {
 			System.loadLibrary("proj");
@@ -105,12 +107,14 @@ public class AdvancedMapActivity extends Activity {
 		// Location: San Francisco
         mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
 
-		// Romania
-		mapView.setFocusPoint(2901450, 5528971);
+	
+//		mapView.setFocusPoint(2901450, 5528971);    // Romania
+        mapView.setFocusPoint(2915891.5f, 7984571.0f); // valgamaa
+        
 		// rotation - 0 = north-up
 		mapView.setRotation(0f);
 		// zoom - 0 = world, like on most web maps
-		mapView.setZoom(4.0f);
+		mapView.setZoom(14.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
 		mapView.setTilt(90.0f);
 
@@ -172,19 +176,25 @@ public class AdvancedMapActivity extends Activity {
         // from http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W.zip
 		// addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/NE2_HR_LC_SR_W.tif");
 
-        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
+//        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
 
 		// addSpatialiteLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/romania_sp3857.sqlite");
 
 //        addMapsforgeLayer(mapLayer.getProjection(), Environment.getExternalStorageDirectory() + "/mapxt/california.map",
 		// Environment.getExternalStorageDirectory() + "/mapxt/osmarender.xml");
 
-		addOsmPolygonLayer(mapLayer.getProjection());
+//		addOsmPolygonLayer(mapLayer.getProjection());
 
 //        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/buildings.sqlite");
 
-        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
+//        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
 
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/buildings.shp","buildings", Color.DKGRAY);
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/points.shp", "points",Color.CYAN);
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/places.shp", "places",Color.BLACK);
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/roads.shp","roads",Color.YELLOW);
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/railways.shp","railways",Color.GRAY);
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/waterways.shp","waterways",Color.BLUE);
 	}
 
 
@@ -295,6 +305,32 @@ public class AdvancedMapActivity extends Activity {
 
 	}
 
+	   private void addOgrLayer(Projection proj, String dbPath, String table, int color) {
+
+	        // set styles for all 3 object types: point, line and polygon
+	       int minZoom = 10;
+	       
+	        StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
+	        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
+	        PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(color).setPickingSize(0.2f).build();
+	        pointStyleSet.setZoomStyle(minZoom, pointStyle);
+
+	        StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
+	        lineStyleSet.setZoomStyle(minZoom, LineStyle.builder().setWidth(0.05f).setColor(color).build());
+
+	        PolygonStyle polygonStyle = PolygonStyle.builder().setColor(color).build();
+	        StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
+	        polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
+
+	        OgrLayer ogrLayer = new OgrLayer(proj, dbPath, table,
+	                500, pointStyleSet, lineStyleSet, polygonStyleSet);
+
+	        // ogrLayer.printSupportedDrivers();
+	        ogrLayer.printLayerDetails(table);
+	        mapView.getLayers().addLayer(ogrLayer);
+
+	    }
+	
      private void addMapsforgeLayer(Projection proj, String mapFile, String renderThemeFile){
 		try {
        JobTheme renderTheme = new ExternalRenderTheme(new File(renderThemeFile));
