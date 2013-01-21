@@ -16,13 +16,13 @@ import android.graphics.BitmapFactory;
 import com.nutiteq.MapView;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.Envelope;
-import com.nutiteq.components.TileQuadTreeNode;
+import com.nutiteq.components.MapTile;
 import com.nutiteq.log.Log;
 import com.nutiteq.tasks.FetchTileTask;
 
 public class GdalFetchTileTask extends FetchTileTask{
 
-    private TileQuadTreeNode tile;
+    private MapTile tile;
     private long tileIdOffset;
     private Envelope requestedBounds;
     private Dataset hDataset;
@@ -30,7 +30,7 @@ public class GdalFetchTileTask extends FetchTileTask{
     private MapView mapView;
     private static final int TILE_SIZE = 256;
 
-    public GdalFetchTileTask(TileQuadTreeNode tile, Components components,
+    public GdalFetchTileTask(MapTile tile, Components components,
             Envelope requestedBounds, long tileIdOffset,
             Dataset hDataset, Envelope dataBounds, MapView mapView) {
         super(tile, components, tileIdOffset);

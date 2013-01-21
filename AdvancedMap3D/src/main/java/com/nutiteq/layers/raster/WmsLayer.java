@@ -4,9 +4,8 @@ import java.util.Map;
 
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
-import com.nutiteq.components.TileQuadTreeNode;
+import com.nutiteq.components.MapTile;
 import com.nutiteq.log.Log;
-import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
@@ -70,7 +69,7 @@ public class WmsLayer extends RasterLayer {
     }
 
     @Override
-    public void fetchTile(TileQuadTreeNode tile) {
+    public void fetchTile(MapTile tile) {
 
         Log.debug("WmsMap for tile " + tile);
 

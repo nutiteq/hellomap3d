@@ -322,12 +322,17 @@ public class AdvancedMapActivity extends Activity {
 	        StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
 	        polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
 
-	        OgrLayer ogrLayer = new OgrLayer(proj, dbPath, table,
-	                500, pointStyleSet, lineStyleSet, polygonStyleSet);
+	        OgrLayer ogrLayer;
+            try {
+                ogrLayer = new OgrLayer(proj, dbPath, table,
+                        500, pointStyleSet, lineStyleSet, polygonStyleSet);
+                // ogrLayer.printSupportedDrivers();
+                ogrLayer.printLayerDetails(table);
+                mapView.getLayers().addLayer(ogrLayer);
 
-	        // ogrLayer.printSupportedDrivers();
-	        ogrLayer.printLayerDetails(table);
-	        mapView.getLayers().addLayer(ogrLayer);
+            } catch (IOException e) {
+                Log.error(e.getLocalizedMessage());
+            }
 
 	    }
 	

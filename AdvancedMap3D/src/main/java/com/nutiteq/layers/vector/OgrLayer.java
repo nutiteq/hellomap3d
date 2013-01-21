@@ -1,6 +1,7 @@
 package com.nutiteq.layers.vector;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -55,9 +56,10 @@ public class OgrLayer extends GeometryLayer {
 	 * @param pointStyleSet styleset for point objects
 	 * @param lineStyleSet styleset for line objects
 	 * @param polygonStyleSet styleset for polygon objects
+	 * @throws IOException file not found or other problem opening OGR datasource
 	 */
 	public OgrLayer(Projection proj, String fileName, String tableName, int maxObjects,
-			StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet) {
+			StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet) throws IOException {
 		super(proj);
 		this.maxObjects = maxObjects;
 		this.tableName = tableName;
@@ -68,7 +70,7 @@ public class OgrLayer extends GeometryLayer {
 		hDataset = ogr.Open(fileName);
 		if (hDataset == null) {
 			Log.error("OgrLayer: unable to open dataset '"+fileName+"'");
-			return;
+			throw new IOException("OgrLayer: unable to open dataset '"+fileName+"'");
 		}
 		this.fieldNames = getFieldNames(tableName);
 	}

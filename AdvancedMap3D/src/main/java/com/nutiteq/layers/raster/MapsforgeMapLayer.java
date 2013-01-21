@@ -10,7 +10,7 @@ import org.mapsforge.android.maps.mapgenerator.databaserenderer.DatabaseRenderer
 import org.mapsforge.map.reader.MapDatabase;
 import org.mapsforge.map.reader.header.FileOpenResult;
 
-import com.nutiteq.components.TileQuadTreeNode;
+import com.nutiteq.components.MapTile;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
@@ -37,7 +37,7 @@ public class MapsforgeMapLayer extends RasterLayer {
   }
 
   @Override
-  public void fetchTile(TileQuadTreeNode tile) {
+  public void fetchTile(MapTile tile) {
     components.rasterTaskPool.execute(new MapsforgeFetchTileTask(tile, components, tileIdOffset, mapGenerator, theme));
 
   }

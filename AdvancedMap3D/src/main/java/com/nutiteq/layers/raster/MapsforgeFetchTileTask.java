@@ -14,7 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.nutiteq.components.Components;
-import com.nutiteq.components.TileQuadTreeNode;
+import com.nutiteq.components.MapTile;
 import com.nutiteq.log.Log;
 import com.nutiteq.tasks.FetchTileTask;
 
@@ -30,7 +30,7 @@ public class MapsforgeFetchTileTask extends FetchTileTask {
 
   private static final float DEFAULT_TEXT_SCALE = 1;
 
-  public MapsforgeFetchTileTask(TileQuadTreeNode tile, Components components,
+  public MapsforgeFetchTileTask(MapTile tile, Components components,
       long tileIdOffset, MapGenerator mapGenerator, JobTheme theme) {
     super(tile, components, tileIdOffset);
     this.mapGenerator = mapGenerator;

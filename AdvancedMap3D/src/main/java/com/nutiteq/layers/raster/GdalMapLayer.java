@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,10 +31,8 @@ import android.graphics.Color;
 
 import com.nutiteq.MapView;
 import com.nutiteq.components.Envelope;
-import com.nutiteq.components.TileQuadTreeNode;
+import com.nutiteq.components.MapTile;
 import com.nutiteq.db.MbTilesDatabaseHelper;
-import com.nutiteq.layers.raster.DatasetInfo;
-import com.nutiteq.layers.raster.GdalFetchTileTask;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
@@ -377,7 +374,7 @@ public class GdalMapLayer extends RasterLayer {
     }
     
     @Override
-    public void fetchTile(TileQuadTreeNode tile) {
+    public void fetchTile(MapTile tile) {
         Log.debug("GdalMapLayer: Start loading " + " zoom=" + tile.zoom + " x="
                 + tile.x + " y=" + tile.y);
         long timeStart = System.currentTimeMillis();
