@@ -1,4 +1,4 @@
-# UInstall dependency JARs
+# Install dependency JARs
 
  You need dependent JAR files in the project. There are two ways to accomplish this:
 
