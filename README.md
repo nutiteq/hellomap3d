@@ -20,10 +20,13 @@ There are currently following options:
 Third party software licenses for core library:
 * Colt -  MIT-style and LGPL licenses http://acs.lbl.gov/software/colt/license.html
 * JavaProj - Apache License 2.0 http://sourceforge.net/projects/jproj4/ 
-* Java Topology Suite - GNU Library or Lesser General Public License version 2.0 (LGPLv2) http://tsusiatsoftware.net/jts/main.html
-* SLF4J - MIT-style license http://www.slf4j.org/license.html
 * Poly2tri - New BSD License http://code.google.com/p/poly2tri/
 
+Some additional layers use free and open source 3rd party software libraries:
+* Mapsforge - used for respective layer
+* OGR/GDAL and Proj.4 - used for OGR and GDAL layers
+* Google Protobuf library - used for 3D layers
+ 
 The Hello Map 3D application code is free and licensed under MIT license terms:
 
 Copyright (C) 2012 Nutiteq Llc
