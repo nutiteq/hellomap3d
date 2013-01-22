@@ -26,7 +26,10 @@ Some additional layers use free and open source 3rd party software libraries:
 * Mapsforge - used for respective layer
 * OGR/GDAL and Proj.4 - used for OGR and GDAL layers
 * Google Protobuf library - used for 3D layers
- 
+* Spatialite lib - used in Spatialite and 3DPolygon layers. 
+
+All these libraries are free and open source, and non-viral (GPL or LGPL software is not used).
+
 The Hello Map 3D application code is free and licensed under MIT license terms:
 
 Copyright (C) 2012 Nutiteq Llc
