@@ -40,6 +40,7 @@ public class OgrLayer extends GeometryLayer {
 	private StyleSet<PolygonStyle> polygonStyleSet;
 	private DataSource hDataset;
     private String[] fieldNames;
+    private float minZoom = Float.MAX_VALUE;
 
 	static {
 		ogr.RegisterAll();
@@ -73,17 +74,30 @@ public class OgrLayer extends GeometryLayer {
 			throw new IOException("OgrLayer: unable to open dataset '"+fileName+"'");
 		}
 		this.fieldNames = getFieldNames(tableName);
+
+        if (pointStyleSet != null) {
+            minZoom = Math.min(minZoom, pointStyleSet.getFirstNonNullZoomStyleZoom());
+        }
+        if (lineStyleSet != null) {
+            minZoom = Math.min(minZoom, lineStyleSet.getFirstNonNullZoomStyleZoom());
+        }
+        if (polygonStyleSet != null) {
+            minZoom = Math.min(minZoom, polygonStyleSet.getFirstNonNullZoomStyleZoom());
+        }
+        Log.debug("ogrLayer minZoom = "+minZoom);
 	}
 
-	// TODO: finalizer required?
+
+    // TODO: finalizer required?
 	// TODO: check if map data and layer projections are same. If not, need to convert spatial filter rect (from map->data projection) and data objects (data->map projection).
 
     @Override
 	public void calculateVisibleElements(Envelope envelope, int zoom) {
 	    long timeStart = System.currentTimeMillis();
-	    if (hDataset == null) {
+	    if (hDataset == null || zoom < minZoom) {
 			return;
 		}
+	    
 
 		org.gdal.ogr.Layer layer = null;
 		if (tableName == null) {
