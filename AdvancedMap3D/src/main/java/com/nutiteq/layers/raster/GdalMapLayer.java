@@ -62,7 +62,7 @@ public class GdalMapLayer extends RasterLayer {
     private MbTilesDatabaseHelper db;
     private Envelope boundsEnvelope;
     private MapView mapView;
-    Map<Envelope, DatasetInfo> dataSets = new HashMap<Envelope, DatasetInfo>();
+    Map<Envelope, GdalDatasetInfo> dataSets = new HashMap<Envelope, GdalDatasetInfo>();
     Map<Envelope, Dataset> openDataSets = new HashMap<Envelope, Dataset>();
     private int counter=1;
     private boolean showAlways;
@@ -110,7 +110,7 @@ public class GdalMapLayer extends RasterLayer {
                 byte [] indexData = new byte[(int)indexFile.length()];
                 FileInputStream fis = new FileInputStream(indexFile);
                 fis.read(indexData);
-                dataSets = (Map<Envelope, DatasetInfo>) Serializer.deserializeObject(indexData);
+                dataSets = (Map<Envelope, GdalDatasetInfo>) Serializer.deserializeObject(indexData);
                 Log.debug("loaded gdal.index with "+dataSets.size()+" entries");
                 fis.close();
             }else{
@@ -167,7 +167,7 @@ public class GdalMapLayer extends RasterLayer {
         
 //        if(fileName.toUpperCase().endsWith("KAP")){
             Log.debug("Adding "+(this.counter)+". "+fileName);
-            DatasetInfo dataSet = readGdalFileData(fullPath, reproject);
+            GdalDatasetInfo dataSet = readGdalFileData(fullPath, reproject);
             if(dataSet != null){
                 dataSets.put(dataSet.envelope,dataSet);
                 Log.debug("Opened "+(this.counter)+". GDAL file: "+fileName+" bounds: "+dataSet.envelope.minX+" "+dataSet.envelope.minY+" "+dataSet.envelope.maxX+" "+dataSet.envelope.maxY);
@@ -201,7 +201,7 @@ public class GdalMapLayer extends RasterLayer {
     }
     
     // reads GDAL dataset metadata
-    private DatasetInfo readGdalFileData(String gdalSource, boolean reproject) throws IOException {
+    private GdalDatasetInfo readGdalFileData(String gdalSource, boolean reproject) throws IOException {
         
         String datasetName;
         if(gdalSource.toUpperCase().endsWith("KAP")){
@@ -234,7 +234,7 @@ public class GdalMapLayer extends RasterLayer {
         if(bbox == null){
             return null;
         }
-        DatasetInfo datasetInfo = new DatasetInfo(datasetName, (Vector<String>) openData.GetFileList().clone(), bestZoom(bbox.getWidth(),openData.getRasterXSize()), counter++, bbox, originalBounds);
+        GdalDatasetInfo datasetInfo = new GdalDatasetInfo(datasetName, (Vector<String>) openData.GetFileList().clone(), bestZoom(bbox.getWidth(),openData.getRasterXSize()), counter++, bbox, originalBounds);
         
         openData.delete();
         
@@ -384,7 +384,7 @@ public class GdalMapLayer extends RasterLayer {
         
         boolean found = false;
         
-        for(Entry<Envelope, DatasetInfo> entry : dataSets.entrySet()){
+        for(Entry<Envelope, GdalDatasetInfo> entry : dataSets.entrySet()){
             Envelope dataBounds = entry.getKey();
             
             if ((this.showAlways && dataBounds.intersects(requestedTileBounds)) 
@@ -421,7 +421,8 @@ public class GdalMapLayer extends RasterLayer {
     
     // is zoom in given range
     private boolean isSuitableZoom(double bestZoom, int zoom) {
-       return (zoom>=(bestZoom - 3.0) && zoom<=(bestZoom + 1.0));
+        return true;
+       //return (zoom>=(bestZoom - 3.0) && zoom<=(bestZoom + 1.0));
     }
 
     @Override
@@ -1063,7 +1064,7 @@ public class GdalMapLayer extends RasterLayer {
         return new double[]{transPoint[0], transPoint[1]};
     }
 
-    public  Map<Envelope, DatasetInfo> getDatasets() {
+    public  Map<Envelope, GdalDatasetInfo> getDatasets() {
         
         return dataSets;
     }

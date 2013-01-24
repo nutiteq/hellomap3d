@@ -7,7 +7,7 @@ import java.util.Vector;
 import com.nutiteq.components.Envelope;
 
 
-public class DatasetInfo implements Serializable{
+public class GdalDatasetInfo implements Serializable{
 
     private static final long serialVersionUID = -481536974330949149L;
 
@@ -18,7 +18,7 @@ public class DatasetInfo implements Serializable{
     public final Envelope envelope;
     public final double[][] boundsWgs84;
     
-    public DatasetInfo(final String name,final Vector<String> dataSets,final double bestZoom, final int id, final Envelope envelope, final double[][] boundsWgs84){
+    public GdalDatasetInfo(final String name,final Vector<String> dataSets,final double bestZoom, final int id, final Envelope envelope, final double[][] boundsWgs84){
         this.name = name;
         this.dataFile = dataSets;
         this.bestZoom = bestZoom;
