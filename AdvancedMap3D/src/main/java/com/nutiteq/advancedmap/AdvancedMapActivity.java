@@ -25,6 +25,7 @@ import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.GdalMapLayer;
 import com.nutiteq.layers.raster.MapsforgeMapLayer;
+import com.nutiteq.layers.raster.PackagedMapLayer;
 import com.nutiteq.layers.raster.WmsLayer;
 import com.nutiteq.layers.vector.OgrLayer;
 import com.nutiteq.layers.vector.Polygon3DOSMLayer;
@@ -34,7 +35,7 @@ import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.projections.Projection;
-import com.nutiteq.rasterlayers.TMSMapLayer;
+import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.ModelStyle;
@@ -98,7 +99,7 @@ public class AdvancedMapActivity extends Activity {
 		// 3. Define map layer for basemap - mandatory.
 		// Here we use MapQuest open tiles
 		// Almost all online tiled maps use EPSG3857 projection.
-		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
+		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
 				"http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
 
 		mapView.getLayers().setBaseLayer(mapLayer);
@@ -110,11 +111,12 @@ public class AdvancedMapActivity extends Activity {
 	
 //		mapView.setFocusPoint(2901450, 5528971);    // Romania
         mapView.setFocusPoint(2915891.5f, 7984571.0f); // valgamaa
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(2.183333f, 41.383333f)); // barcelona
         
 		// rotation - 0 = north-up
 		mapView.setRotation(0f);
 		// zoom - 0 = world, like on most web maps
-		mapView.setZoom(14.0f);
+		mapView.setZoom(13.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
 		mapView.setTilt(90.0f);
 
@@ -174,7 +176,7 @@ public class AdvancedMapActivity extends Activity {
         //    comment in needed ones, make sure that data file(s) exists in given folder
 
         // from http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W.zip
-		// addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/NE2_HR_LC_SR_W.tif");
+//		 addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/natural-earth-2-mercator.tif");
 
 //        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
 
@@ -185,24 +187,34 @@ public class AdvancedMapActivity extends Activity {
 
 //		addOsmPolygonLayer(mapLayer.getProjection());
 
-//        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/buildings.sqlite");
+        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/mapxt/barca_3dwh_noheight2.nml");
 
 //        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
 
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/buildings.shp","buildings", Color.DKGRAY);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/points.shp", "points",Color.CYAN);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/places.shp", "places",Color.BLACK);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/roads.shp","roads",Color.YELLOW);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/railways.shp","railways",Color.GRAY);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/waterways.shp","waterways",Color.BLUE);
+/*
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/buildings.shp","buildings", Color.DKGRAY);
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/points.shp", "points",Color.CYAN);
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/places.shp", "places",Color.BLACK);
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/roads.shp","roads",Color.YELLOW);
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/railways.shp","railways",Color.GRAY);
+        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/waterways.shp","waterways",Color.BLUE);
+        */
+        
+        addPackagedLayer(mapLayer.getProjection());
 	}
 
 
-	private void addGdalLayer(Projection proj, String filePath) {
+	private void addPackagedLayer(Projection projection) {
+	    PackagedMapLayer packagedMapLayer = new PackagedMapLayer(projection, 0, 4, 13, "t", this);
+	    mapView.getLayers().addLayer(packagedMapLayer);
+    }
+
+
+    private void addGdalLayer(Projection proj, String filePath) {
 		// GDAL raster layer test. It is set Base layer, not overlay
 		GdalMapLayer gdalLayer;
 		try {
-            gdalLayer = new GdalMapLayer(proj, 0, 18, 9991, filePath, mapView, true);
+            gdalLayer = new GdalMapLayer(proj, 0, 18, 9, filePath, mapView, false);
 			mapView.getLayers().setBaseLayer(gdalLayer);
 
 		} catch (IOException e) {
@@ -327,7 +339,7 @@ public class AdvancedMapActivity extends Activity {
                 ogrLayer = new OgrLayer(proj, dbPath, table,
                         500, pointStyleSet, lineStyleSet, polygonStyleSet);
                 // ogrLayer.printSupportedDrivers();
-                ogrLayer.printLayerDetails(table);
+                // ogrLayer.printLayerDetails(table);
                 mapView.getLayers().addLayer(ogrLayer);
 
             } catch (IOException e) {
