@@ -26,6 +26,7 @@ import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.GdalMapLayer;
 import com.nutiteq.layers.raster.MapsforgeMapLayer;
 import com.nutiteq.layers.raster.PackagedMapLayer;
+import com.nutiteq.layers.raster.QuadKeyLayer;
 import com.nutiteq.layers.raster.WmsLayer;
 import com.nutiteq.layers.vector.OgrLayer;
 import com.nutiteq.layers.vector.Polygon3DOSMLayer;
@@ -175,6 +176,8 @@ public class AdvancedMapActivity extends Activity {
 		// 5. Add various layers to map - optional
         //    comment in needed ones, make sure that data file(s) exists in given folder
 
+		addBingBaseLayer(mapLayer.getProjection(),"http://ecn.t3.tiles.virtualearth.net/tiles/r",".png?g=1&mkt=en-US&shading=hill&n=z");
+		
         // from http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W.zip
 //		 addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/natural-earth-2-mercator.tif");
 
@@ -360,7 +363,6 @@ public class AdvancedMapActivity extends Activity {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-
 	}
 
      private void addWmsLayer(Projection proj, String url, String layers, Projection dataProjection){
@@ -369,5 +371,10 @@ public class AdvancedMapActivity extends Activity {
 		mapView.getLayers().addLayer(wmsLayer);
 	}
 
+     private void addBingBaseLayer(Projection proj, String url, String extension){
+         QuadKeyLayer bingMap = new QuadKeyLayer(proj, 0, 19, 1013, url, extension);
+         mapView.getLayers().setBaseLayer(bingMap);
+      }
+     
 }
 
