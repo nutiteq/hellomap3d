@@ -7,5 +7,6 @@ com.nutiteq.log
 com.nutiteq.projections
 com.nutiteq.rasterlayers
 com.nutiteq.style
+com.nutiteq.tasks
 com.nutiteq.ui
 com.nutiteq.vectorlayers
