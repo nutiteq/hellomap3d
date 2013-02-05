@@ -90,8 +90,14 @@ public class AdvancedMapActivity extends Activity {
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
-			mapView.setComponents(new Components());
-		}
+		      Components components = new Components();
+		      // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
+		      // Optional - adjust stereo base. Default 1.0
+		      components.options.setStereoModeStrength(1.0f);
+		      // Set rendering mode to stereo
+		      components.options.setRenderMode(Options.STEREO_RENDERMODE);
+		      mapView.setComponents(components);
+		      }
 
 		// add event listener
 		MapEventListener mapListener = new MapEventListener(this);
@@ -107,25 +113,26 @@ public class AdvancedMapActivity extends Activity {
 
 		// set initial map view camera - optional. "World view" is default
 		// Location: San Francisco
-        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
+//        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
 
 	
 //		mapView.setFocusPoint(2901450, 5528971);    // Romania
-        mapView.setFocusPoint(2915891.5f, 7984571.0f); // valgamaa
-        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(2.183333f, 41.383333f)); // barcelona
+//        mapView.setFocusPoint(2915891.5f, 7984571.0f); // valgamaa
+//        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(2.183333f, 41.383333f)); // barcelona
+        mapView.setFocusPoint(new MapPos(2753791.3f, 8275296.0f)); // Tallinn
         
 		// rotation - 0 = north-up
 		mapView.setRotation(0f);
 		// zoom - 0 = world, like on most web maps
-		mapView.setZoom(13.0f);
+		mapView.setZoom(15.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
 		mapView.setTilt(90.0f);
 
 
 		// Activate some mapview options to make it smoother - optional
-		mapView.getOptions().setPreloading(true);
+		mapView.getOptions().setPreloading(false);
 		mapView.getOptions().setSeamlessHorizontalPan(true);
-		mapView.getOptions().setTileFading(true);
+		mapView.getOptions().setTileFading(false);
 		mapView.getOptions().setKineticPanning(true);
 		mapView.getOptions().setDoubleClickZoomIn(true);
 		mapView.getOptions().setDualClickZoomOut(true);
@@ -145,11 +152,11 @@ public class AdvancedMapActivity extends Activity {
 		mapView.getOptions().setClearColor(Color.WHITE);
 
 		// configure texture caching - optional, suggested
-		mapView.getOptions().setTextureMemoryCacheSize(40 * 1024 * 1024);
+		mapView.getOptions().setTextureMemoryCacheSize(20 * 1024 * 1024);
 		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
 
         // define online map persistent caching - optional, suggested. Default - no caching
-        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
+    //    mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
@@ -177,7 +184,8 @@ public class AdvancedMapActivity extends Activity {
         //    comment in needed ones, make sure that data file(s) exists in given folder
 
 		addBingBaseLayer(mapLayer.getProjection(),"http://ecn.t3.tiles.virtualearth.net/tiles/r",".png?g=1&mkt=en-US&shading=hill&n=z");
-		
+   //     addPackagedBaseLayer(mapLayer.getProjection());
+
         // from http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W.zip
 //		 addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/natural-earth-2-mercator.tif");
 
@@ -190,7 +198,7 @@ public class AdvancedMapActivity extends Activity {
 
 //		addOsmPolygonLayer(mapLayer.getProjection());
 
-        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/mapxt/barca_3dwh_noheight2.nml");
+        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/mapxt/tallinn28.nml");
 
 //        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
 
@@ -203,13 +211,12 @@ public class AdvancedMapActivity extends Activity {
         addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/waterways.shp","waterways",Color.BLUE);
         */
         
-        addPackagedLayer(mapLayer.getProjection());
 	}
 
 
-	private void addPackagedLayer(Projection projection) {
+	private void addPackagedBaseLayer(Projection projection) {
 	    PackagedMapLayer packagedMapLayer = new PackagedMapLayer(projection, 0, 4, 13, "t", this);
-	    mapView.getLayers().addLayer(packagedMapLayer);
+	    mapView.getLayers().setBaseLayer(packagedMapLayer);
     }
 
 
@@ -261,10 +268,14 @@ public class AdvancedMapActivity extends Activity {
 		modelStyleSet.setZoomStyle(14, modelStyle);
 
 		// ** 3D Model layer
-		NMLModelDbLayer modelLayer = new NMLModelDbLayer(new EPSG3857(),
-				filePath, modelStyleSet);
-
-		mapView.getLayers().addLayer(modelLayer);
+        try {
+            NMLModelDbLayer modelLayer = new NMLModelDbLayer(new EPSG3857(),
+            		filePath, modelStyleSet);
+            modelLayer.setMemoryLimit(20*1024*1024);
+            mapView.getLayers().addLayer(modelLayer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 	}
 
@@ -375,6 +386,11 @@ public class AdvancedMapActivity extends Activity {
          QuadKeyLayer bingMap = new QuadKeyLayer(proj, 0, 19, 1013, url, extension);
          mapView.getLayers().setBaseLayer(bingMap);
       }
+
+
+    public MapView getMapView() {
+        return mapView;
+    }
      
 }
 
