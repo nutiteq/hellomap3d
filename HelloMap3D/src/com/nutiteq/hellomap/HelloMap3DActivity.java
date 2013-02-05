@@ -1,5 +1,6 @@
 package com.nutiteq.hellomap;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -34,6 +35,7 @@ public class HelloMap3DActivity extends Activity {
 
     private MapView mapView;
 
+    @SuppressLint("NewApi")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,8 +52,10 @@ public class HelloMap3DActivity extends Activity {
         // it is saved in onRetainNonConfigurationInstance() below
         Components retainObject = (Components) getLastNonConfigurationInstance();
         if (retainObject != null) {
-            // just restore configuration, skip other initializations
-            mapView.setComponents(retainObject);
+            // just restore configuration and update listener, skip other initializations
+          	mapView.setComponents(retainObject);
+          	MapEventListener mapListener = (MapEventListener) mapView.getOptions().getMapListener();
+          	mapListener.reset(this, mapView);
             mapView.startMapping();
             return;
         } else {
@@ -132,7 +136,7 @@ public class HelloMap3DActivity extends Activity {
         mapView.getLayers().addLayer(markerLayer);
 
         // add event listener
-        MapEventListener mapListener = new MapEventListener(this);
+        MapEventListener mapListener = new MapEventListener(this, mapView);
         mapView.getOptions().setMapListener(mapListener);
    
         // add GPS My Location functionality 

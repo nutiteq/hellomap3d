@@ -5,6 +5,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.app.Activity;
 import android.widget.Toast;
 
+import com.nutiteq.MapView;
 import com.nutiteq.geometry.VectorElement;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.ui.DefaultLabel;
@@ -13,6 +14,7 @@ import com.nutiteq.ui.MapListener;
 public class MapEventListener extends MapListener {
 
     private Activity activity;
+    private MapView mapView;
     private MyLocationCircle locationCircle;
 
     public void setLocationCircle(MyLocationCircle locationCircle) {
@@ -20,10 +22,17 @@ public class MapEventListener extends MapListener {
     }
 
     // activity is often useful to handle click events 
-    public MapEventListener(Activity activity) {
+    public MapEventListener(Activity activity, MapView mapView) {
         this.activity = activity;
+        this.mapView = mapView;
     }
     
+    // Reset activity and map view
+    public void reset(Activity activity, MapView mapView) {
+        this.activity = activity;
+        this.mapView = mapView;
+    }
+
     // Map drawing callbacks for OpenGL manipulations
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
@@ -37,6 +46,10 @@ public class MapEventListener extends MapListener {
     public void onDrawFrameBefore3D(GL10 gl, float zoomPow2) {
         if(this.locationCircle != null){
             this.locationCircle.draw(gl, zoomPow2);
+            
+            // As we want to animate location circle, request new frame to be rendered.
+            // This is really bad for power efficiency, as constant redrawing drains battery.
+            mapView.requestRender();
         }
     }
 
