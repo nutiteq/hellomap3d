@@ -30,7 +30,7 @@ public class GdalFetchTileTask extends FetchTileTask{
     private Envelope dataBounds;
     private MapView mapView;
     private static final int TILE_SIZE = 256;
-    private static final float BRIGHTNESS = 2.0f; // used for grayscale only
+    private static final float BRIGHTNESS = 1.0f; // used for grayscale only
 
     public GdalFetchTileTask(MapTile tile, Components components,
             Envelope requestedBounds, long tileIdOffset,
@@ -181,6 +181,19 @@ public class GdalFetchTileTask extends FetchTileTask{
         
         // copy colortable to Java array for faster access
         int colorType = band.GetRasterColorInterpretation();
+        
+        // quick check if colortype is implemented below
+        if(!(colorType == gdalconst.GCI_PaletteIndex ||
+                colorType == gdalconst.GCI_RedBand ||
+                colorType == gdalconst.GCI_GreenBand ||
+                colorType == gdalconst.GCI_BlueBand ||
+                colorType == gdalconst.GCI_GrayIndex ||
+                colorType == gdalconst.GCI_AlphaBand))
+        {
+            Log.debug("colorType "+colorType+" not implemented, skipping band");
+            break;
+        }
+        
         ColorTable ct = band.GetRasterColorTable();
         int[] colorTable = null;
         int numColors = 0;
@@ -206,14 +219,17 @@ public class GdalFetchTileTask extends FetchTileTask{
         Double[] pass1 = new Double[1], pass2 = new Double[1];
         band.GetMinimum(pass1); // minimum ignored now
         band.GetMaximum(pass2);
-        
-        double bandValueMax = pass2[0];
+        Double bandValueMax = (double) (1<<pixelSizeBits);
+        if(pass2 != null && pass2[0] != null){
+            bandValueMax = pass2[0];
+        }
         
         int val = 0;
         int decoded = 0;
         
         // copy data to tile buffer tileData, and apply color table or combine bands
-        
+        int valMin = Integer.MAX_VALUE;
+        int valMax = Integer.MIN_VALUE;
             for (int y = 0; y < TILE_SIZE; y++) {
                 for (int x = 0; x < TILE_SIZE; x++) {
                     if(x >= xOffsetBuf && y >= yOffsetBuf && x<=xMaxBuf && y<=yMaxBuf){
@@ -230,6 +246,9 @@ public class GdalFetchTileTask extends FetchTileTask{
                             break;
                         }
  
+                        valMin=Math.min(valMin, val);
+                        valMax=Math.max(valMax, val);
+                        
                         // decode color
                         // 1) if indexed color
                         if(colorType == gdalconst.GCI_PaletteIndex && colorTable != null){ 
@@ -241,35 +260,38 @@ public class GdalFetchTileTask extends FetchTileTask{
                               Log.debug("no colortable found for value "+val);
                             }
                             
-                         // 2) ARGB bands to int
-                        }else if (colorType == gdalconst.GCI_AlphaBand){
-                            decoded = (int) val & 0xff << 24;
-                        }else if(colorType == gdalconst.GCI_RedBand){
-                            decoded = ((int) val & 0xff) << 16;
-                        }else if (colorType == gdalconst.GCI_GreenBand){
-                            decoded = ((int) val & 0xff) << 8;
-                        }else if (colorType == gdalconst.GCI_BlueBand){
-                            decoded = (int) val & 0xff;
-                        }else if (colorType == gdalconst.GCI_GrayIndex){
-                            // normalize to single byte first
-                            // apply brightness,  you may want to add pixel value adjustments: histogram modifications, contrast etc here
-                            
-                            val = (int)((val * 255.0f) / bandValueMax * BRIGHTNESS);
-                            decoded = (((int) val & 0xff) << 16 | ((int) val & 0xff) << 8 | (int) val & 0xff);
+                         // 2) ARGB direct color bands to int ARGB
+                        }else{
+
+                            if (colorType == gdalconst.GCI_AlphaBand){
+                                decoded = (int) val & 0xff << 24;
+                            }else if(colorType == gdalconst.GCI_RedBand){
+                                decoded = ((int) val & 0xff) << 16;
+                            }else if (colorType == gdalconst.GCI_GreenBand){
+                                decoded = ((int) val & 0xff) << 8;
+                            }else if (colorType == gdalconst.GCI_BlueBand){
+                                decoded = (int) val & 0xff;
+                            }else if (colorType == gdalconst.GCI_GrayIndex){
+                                // normalize to single byte value range if multibyte
+                                // apply brightness, you may want to add pixel value adjustments: histogram modifications, contrast etc here
+                                if(pixelSizeBits > 8){
+                                   val = (int)((val * 255.0f) / bandValueMax * BRIGHTNESS);
+                                }
+                                decoded = (((int) val & 0xff) << 16 | ((int) val & 0xff) << 8 | (int) val & 0xff);
+                            }
                         }
-                        
-                        // TODO Handle other color schemas: RGB in one band etc. Test data needed
-                       // following forces alpha=FF for the case where alphaband is missing. Better solution needed to support dataset what really has alpha
-                        
-                        tileData[y * TILE_SIZE + x] |=  decoded | 0xFF000000;   
-                        
+                            // TODO Handle other color schemas: RGB in one band etc. Test data needed
+                           // following forces alpha=FF for the case where alphaband is missing. Better solution needed to support dataset what really has alpha
+                            
+                            tileData[y * TILE_SIZE + x] |=  decoded | 0xFF000000;   
+                            
                     }else{
                         // outside of tile bounds. Normally keep transparent, tint green just for debugging 
                         //tileData[y * TILE_SIZE + x] = android.graphics.Color.GREEN & 0x88ffffff;
                     }
                 }
             }
-
+            Log.debug("band "+iBand+". min="+valMin+" max="+valMax);
         } // loop for over bands
 //        Log.debug("gdalfetchtile time  = " + (System.nanoTime() - time)
 //                / 1000000 + " ms");
