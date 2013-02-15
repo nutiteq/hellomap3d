@@ -421,8 +421,8 @@ public class GdalMapLayer extends RasterLayer {
     
     // is zoom in given range
     private boolean isSuitableZoom(double bestZoom, int zoom) {
-        return true;
-       //return (zoom>=(bestZoom - 3.0) && zoom<=(bestZoom + 1.0));
+       // return true;
+       return (zoom>=(bestZoom - 3.0) && zoom<=(bestZoom + 1.0));
     }
 
     @Override

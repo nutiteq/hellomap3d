@@ -113,18 +113,21 @@ public class AdvancedMapActivity extends Activity {
 
 		// set initial map view camera - optional. "World view" is default
 		// Location: San Francisco
-//        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
 
 	
 //		mapView.setFocusPoint(2901450, 5528971);    // Romania
 //        mapView.setFocusPoint(2915891.5f, 7984571.0f); // valgamaa
 //        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(2.183333f, 41.383333f)); // barcelona
-        mapView.setFocusPoint(new MapPos(2753791.3f, 8275296.0f)); // Tallinn
-        
+//        mapView.setFocusPoint(new MapPos(2753791.3f, 8275296.0f)); // Tallinn
+        // bulgaria
+//        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(25.295818066955075f, 42.606913041613375f));
+       // mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(26.483230800000037, 42.550218000000044));
+
 		// rotation - 0 = north-up
 		mapView.setRotation(0f);
 		// zoom - 0 = world, like on most web maps
-		mapView.setZoom(15.0f);
+		mapView.setZoom(12.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
 		mapView.setTilt(90.0f);
 
@@ -156,7 +159,7 @@ public class AdvancedMapActivity extends Activity {
 		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
 
         // define online map persistent caching - optional, suggested. Default - no caching
-    //    mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
+     //   mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
@@ -187,7 +190,8 @@ public class AdvancedMapActivity extends Activity {
    //     addPackagedBaseLayer(mapLayer.getProjection());
 
         // from http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W.zip
-//		 addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/natural-earth-2-mercator.tif");
+//		 addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/faims/07JAN07093204-M2AS-005586301010_01_P001.TIF");
+	       addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/CA_noaa/");
 
 //        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
 
@@ -224,8 +228,8 @@ public class AdvancedMapActivity extends Activity {
 		// GDAL raster layer test. It is set Base layer, not overlay
 		GdalMapLayer gdalLayer;
 		try {
-            gdalLayer = new GdalMapLayer(proj, 0, 18, 9, filePath, mapView, false);
-			mapView.getLayers().setBaseLayer(gdalLayer);
+            gdalLayer = new GdalMapLayer(proj, 0, 18, 9, filePath, mapView, true);
+			mapView.getLayers().addLayer(gdalLayer);
 
 		} catch (IOException e) {
 			e.printStackTrace();
