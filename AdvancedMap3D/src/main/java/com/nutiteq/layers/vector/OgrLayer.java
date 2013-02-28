@@ -165,8 +165,9 @@ public class OgrLayer extends GeometryLayer {
                 newObject.setActiveStyle(zoom);
                 newVisibleElementsList.add(newObject);
                 
-			 feature = layer.GetNextFeature();
             }
+
+            feature = layer.GetNextFeature();
 		}
 		long timeEnd = System.currentTimeMillis();
 		Log.debug("OgrLayer loaded "+tableName+" N:"+ newVisibleElementsList.size()+" time ms:"+(timeEnd-timeStart));
