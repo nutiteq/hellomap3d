@@ -32,7 +32,7 @@ import android.graphics.Color;
 import com.nutiteq.MapView;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapTile;
-import com.nutiteq.db.MbTilesDatabaseHelper;
+import com.nutiteq.layers.vector.db.MbTilesDatabaseHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
@@ -40,9 +40,6 @@ import com.nutiteq.utils.Serializer;
 import com.nutiteq.utils.TileUtils;
 
 public class GdalMapLayer extends RasterLayer {
-    
-    // force Java to load PROJ.4 library. Needed as we don't call it directly, but 
-    // GDAL datasource reading may need it.
     
     private static final double VRT_MAXERROR = 0.125;
     private static final int VRT_RESAMPLER = gdalconst.GRA_NearestNeighbour;
@@ -53,7 +50,9 @@ public class GdalMapLayer extends RasterLayer {
 
     static {
         try {
-          System.loadLibrary("proj");
+            // force Java to load PROJ.4 library. Needed as we don't call it directly, but 
+            // GDAL datasource reading may need it.
+            System.loadLibrary("proj");
         } catch (Throwable t) {
             System.err.println("Unable to load proj: " + t);
         }
@@ -431,7 +430,9 @@ public class GdalMapLayer extends RasterLayer {
     }
 
     public void close() {
-        db.close();
+        for(Entry<Envelope, Dataset> entry : openDataSets.entrySet()){
+            entry.getValue().delete();
+        }
     }
     
     /**

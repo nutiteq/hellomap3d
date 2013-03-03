@@ -24,9 +24,11 @@ import com.nutiteq.components.Options;
 import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.GdalMapLayer;
+import com.nutiteq.layers.raster.MBTilesMapLayer;
 import com.nutiteq.layers.raster.MapsforgeMapLayer;
 import com.nutiteq.layers.raster.PackagedMapLayer;
 import com.nutiteq.layers.raster.QuadKeyLayer;
+import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.layers.raster.WmsLayer;
 import com.nutiteq.layers.vector.OgrLayer;
 import com.nutiteq.layers.vector.Polygon3DOSMLayer;
@@ -34,9 +36,7 @@ import com.nutiteq.layers.vector.SpatialLiteDb;
 import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
-import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.projections.Projection;
-import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.ModelStyle;
@@ -120,6 +120,9 @@ public class AdvancedMapActivity extends Activity {
 //        mapView.setFocusPoint(2915891.5f, 7984571.0f); // valgamaa
 //        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(2.183333f, 41.383333f)); // barcelona
 //        mapView.setFocusPoint(new MapPos(2753791.3f, 8275296.0f)); // Tallinn
+
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(65.548178937072f,57.146960113233f)); // Tyumen
+        
         // bulgaria
 //        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(25.295818066955075f, 42.606913041613375f));
        // mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(26.483230800000037, 42.550218000000044));
@@ -191,7 +194,7 @@ public class AdvancedMapActivity extends Activity {
 
         // from http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W.zip
 //		 addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/faims/07JAN07093204-M2AS-005586301010_01_P001.TIF");
-	       addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/CA_noaa/");
+//	       addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/CA_noaa/");
 
 //        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
 
@@ -202,8 +205,9 @@ public class AdvancedMapActivity extends Activity {
 
 //		addOsmPolygonLayer(mapLayer.getProjection());
 
-        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/mapxt/tallinn28.nml");
+//        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/mapxt/tallinn28.nml");
 
+        addMBTilesLayer(mapLayer.getProjection(), Environment.getExternalStorageDirectory() + "/control-room_8_14_3857.mbtiles", true);
 //        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
 
 /*
@@ -385,6 +389,12 @@ public class AdvancedMapActivity extends Activity {
 		wmsLayer.setFetchPriority(-5);
 		mapView.getLayers().addLayer(wmsLayer);
 	}
+     
+     private void addMBTilesLayer(Projection proj, String db, boolean tmsY){
+         MBTilesMapLayer dbLayer = new MBTilesMapLayer(proj, 0, 19, 1113, db, this);
+         dbLayer.setTmsY(tmsY);
+          mapView.getLayers().addLayer(dbLayer);
+      }
 
      private void addBingBaseLayer(Projection proj, String url, String extension){
          QuadKeyLayer bingMap = new QuadKeyLayer(proj, 0, 19, 1013, url, extension);
