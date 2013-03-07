@@ -1,9 +1,12 @@
 package com.nutiteq.layers.raster;
 
+import java.io.File;
+import java.io.IOException;
+
 import android.content.Context;
 
 import com.nutiteq.components.MapTile;
-import com.nutiteq.layers.vector.db.MbTilesDatabaseHelper;
+import com.nutiteq.layers.raster.db.MbTilesDatabaseHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
@@ -39,11 +42,19 @@ private boolean tmsY;
    *          or can not be opened in read-only mode.
    * @param ctx
    *          Android application context.
+   * @throws IOException 
+   *          exception if file not exists   
    */
-  public MBTilesMapLayer(Projection projection, int minZoom, int maxZoom, int id, String path, Context ctx) {
+  public MBTilesMapLayer(Projection projection, int minZoom, int maxZoom, int id, String path, Context ctx) throws IOException {
     super(projection, minZoom, maxZoom, id, path);
+    
+    if(!(new File(path)).exists()){
+        throw new IOException("not existing file: "+path);
+    }
+    
     db = new MbTilesDatabaseHelper(ctx, path);
     db.open();
+    
   }
 
   @Override

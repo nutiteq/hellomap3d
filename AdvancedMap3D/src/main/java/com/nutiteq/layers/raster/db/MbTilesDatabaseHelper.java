@@ -1,4 +1,4 @@
-package com.nutiteq.layers.vector.db;
+package com.nutiteq.layers.raster.db;
 
 import java.util.HashMap;
 

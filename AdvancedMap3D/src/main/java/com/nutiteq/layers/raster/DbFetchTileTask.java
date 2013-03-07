@@ -2,7 +2,7 @@ package com.nutiteq.layers.raster;
 
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapTile;
-import com.nutiteq.layers.vector.db.MbTilesDatabaseHelper;
+import com.nutiteq.layers.raster.db.MbTilesDatabaseHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.tasks.FetchTileTask;
 

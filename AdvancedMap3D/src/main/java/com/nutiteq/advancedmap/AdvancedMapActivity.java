@@ -391,9 +391,14 @@ public class AdvancedMapActivity extends Activity {
 	}
      
      private void addMBTilesLayer(Projection proj, String db, boolean tmsY){
-         MBTilesMapLayer dbLayer = new MBTilesMapLayer(proj, 0, 19, 1113, db, this);
-         dbLayer.setTmsY(tmsY);
-          mapView.getLayers().addLayer(dbLayer);
+        try {
+            MBTilesMapLayer dbLayer = new MBTilesMapLayer(proj, 0, 19, 1113, db, this);
+            dbLayer.setTmsY(tmsY);
+            mapView.getLayers().addLayer(dbLayer);
+        } catch (IOException e) {
+            Log.error(e.getLocalizedMessage());
+            e.printStackTrace();
+        }
       }
 
      private void addBingBaseLayer(Projection proj, String url, String extension){

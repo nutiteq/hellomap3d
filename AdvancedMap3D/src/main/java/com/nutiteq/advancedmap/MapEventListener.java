@@ -58,6 +58,7 @@ public class MapEventListener extends MapListener {
 		// WGS84
 		Log.d("nm", "onMapClicked " + (new EPSG3857()).toWgs84(x, y).x + " "
 				+ (new EPSG3857()).toWgs84(x, y).y + " longClick: " + longClick);
+		
 	}
 
 	@Override

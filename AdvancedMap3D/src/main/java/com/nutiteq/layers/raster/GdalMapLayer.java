@@ -32,7 +32,7 @@ import android.graphics.Color;
 import com.nutiteq.MapView;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapTile;
-import com.nutiteq.layers.vector.db.MbTilesDatabaseHelper;
+import com.nutiteq.layers.raster.db.MbTilesDatabaseHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
