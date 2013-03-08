@@ -13,6 +13,14 @@
 		</platform.version>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>cloudbees-private-nutiteq</id>
+			<name>Nutiteq SDK repository</name>
+			<url>http://repository-nutiteq.forge.cloudbees.com/release/</url>
+		</repository>
+	</repositories>
+	
 	<dependencies>
 		<dependency>
 			<groupId>com.google.android</groupId>
