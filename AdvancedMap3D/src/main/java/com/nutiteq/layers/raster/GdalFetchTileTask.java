@@ -155,7 +155,7 @@ public class GdalFetchTileTask extends FetchTileTask{
         int[] tileData = new int[TILE_SIZE * TILE_SIZE];
 
         for (int iBand = 0; iBand < hDataset.getRasterCount(); iBand++) {
-        
+            
         Band band = hDataset.GetRasterBand(iBand+1);
 
         // TODO jaak: it could be 8 times (bits2bytes) too large in some(?) cases
@@ -167,7 +167,8 @@ public class GdalFetchTileTask extends FetchTileTask{
               .GetDataTypeSize(band.getDataType()),band.getDataType()));
 
         
-        //  read data to byte array
+        //  read data to byte array 
+        
         int res = band.ReadRaster(pixelsSrcMin[0], pixelsSrcMin[1], xSizeData,
                 ySizeData, xSizeBuf, ySizeBuf, band.getDataType(), byteBuffer);
         

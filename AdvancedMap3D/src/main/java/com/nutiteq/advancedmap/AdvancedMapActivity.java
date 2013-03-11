@@ -37,6 +37,7 @@ import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.rasterlayers.StoredMapLayer;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.ModelStyle;
@@ -124,13 +125,13 @@ public class AdvancedMapActivity extends Activity {
         mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(65.548178937072f,57.146960113233f)); // Tyumen
         
         // bulgaria
-//        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(25.295818066955075f, 42.606913041613375f));
-       // mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(26.483230800000037, 42.550218000000044));
+      //  mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(25.295818066955075f, 42.606913041613375f));
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(26.483230800000037, 42.550218000000044));
 
 		// rotation - 0 = north-up
 		mapView.setRotation(0f);
 		// zoom - 0 = world, like on most web maps
-		mapView.setZoom(12.0f);
+		mapView.setZoom(5.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
 		mapView.setTilt(90.0f);
 
@@ -162,7 +163,7 @@ public class AdvancedMapActivity extends Activity {
 		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
 
         // define online map persistent caching - optional, suggested. Default - no caching
-     //   mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
+        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
@@ -193,9 +194,11 @@ public class AdvancedMapActivity extends Activity {
    //     addPackagedBaseLayer(mapLayer.getProjection());
 
         // from http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W.zip
-//		 addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/faims/07JAN07093204-M2AS-005586301010_01_P001.TIF");
+		 addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/pan_Kaz_East_Clip.tif");
 //	       addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/CA_noaa/");
 
+		// addStoredBaseLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/nutimaps/allimages/");
+		 
 //        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
 
 		// addSpatialiteLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/romania_sp3857.sqlite");
@@ -207,7 +210,7 @@ public class AdvancedMapActivity extends Activity {
 
 //        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/mapxt/tallinn28.nml");
 
-        addMBTilesLayer(mapLayer.getProjection(), Environment.getExternalStorageDirectory() + "/control-room_8_14_3857.mbtiles", true);
+//        addMBTilesLayer(mapLayer.getProjection(), Environment.getExternalStorageDirectory() + "/mapxt/geography-class_344e53.mbtiles.db", false);
 //        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
 
 /*
@@ -227,6 +230,11 @@ public class AdvancedMapActivity extends Activity {
 	    mapView.getLayers().setBaseLayer(packagedMapLayer);
     }
 
+    private void addStoredBaseLayer(Projection projection, String dir) {
+        StoredMapLayer storedMapLayer = new StoredMapLayer(projection, 256, 0,
+                17, 13, "OpenStreetMap", dir);
+        mapView.getLayers().setBaseLayer(storedMapLayer);
+    }
 
     private void addGdalLayer(Projection proj, String filePath) {
 		// GDAL raster layer test. It is set Base layer, not overlay
@@ -394,7 +402,7 @@ public class AdvancedMapActivity extends Activity {
         try {
             MBTilesMapLayer dbLayer = new MBTilesMapLayer(proj, 0, 19, 1113, db, this);
             dbLayer.setTmsY(tmsY);
-            mapView.getLayers().addLayer(dbLayer);
+            mapView.getLayers().setBaseLayer(dbLayer);
         } catch (IOException e) {
             Log.error(e.getLocalizedMessage());
             e.printStackTrace();

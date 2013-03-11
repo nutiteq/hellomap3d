@@ -48,6 +48,11 @@
 			<artifactId>mapsforge-map</artifactId>
 			<version>0.3.0</version>
 		</dependency> 
+		<dependency>
+			<groupId>com.samskivert</groupId>
+			<artifactId>jmustache</artifactId>
+			<version>1.5</version>
+		</dependency> 
 	</dependencies>
 
 	<build>
