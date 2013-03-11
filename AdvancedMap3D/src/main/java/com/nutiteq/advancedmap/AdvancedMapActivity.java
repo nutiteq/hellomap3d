@@ -18,6 +18,7 @@ import android.view.Window;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.maplisteners.MapEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
@@ -51,6 +52,12 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 import com.nutiteq.vectorlayers.NMLModelDbLayer;
 
+/**
+ * This sample has a set of different layers. 
+ * 
+ * @author jaak
+ *
+ */
 public class AdvancedMapActivity extends Activity {
 
 	private MapView mapView;

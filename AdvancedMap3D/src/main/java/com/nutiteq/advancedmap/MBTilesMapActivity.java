@@ -18,6 +18,7 @@ import android.view.Window;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.maplisteners.MBTileMapEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
