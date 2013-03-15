@@ -56,7 +56,7 @@ public class WkbRead {
 
 		int srid = 0;
 		if (hasSRID){
-			srid = is.read(); // read SRID
+			srid = readInt(is,endian); // read SRID
 			Log.debug("SRID ignored in WKB: "+srid);
 		}
 
