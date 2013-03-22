@@ -262,10 +262,8 @@ public class CartoDbVectorLayer extends GeometryLayer {
                         newObject.attachToLayer(this);
                         newObject.setActiveStyle(zoom);
                         newVisibleElementsList.add(newObject);
-                    
                     }
                 }
-
             }
             catch (ParseException e) {
                 Log.error( "Error parsing data " + e.toString());

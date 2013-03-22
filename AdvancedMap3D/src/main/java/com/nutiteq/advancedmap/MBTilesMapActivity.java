@@ -1,6 +1,7 @@
 package com.nutiteq.advancedmap;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
@@ -23,6 +24,7 @@ import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.db.DBLayer;
+import com.nutiteq.filepicker.FilePickerActivity;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.GdalMapLayer;
 import com.nutiteq.layers.raster.MBTilesMapLayer;
@@ -52,10 +54,10 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 import com.nutiteq.vectorlayers.NMLModelDbLayer;
 
-public class MBTilesMapActivity extends Activity {
+public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 
 	private MapView mapView;
-    
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -87,11 +89,15 @@ public class MBTilesMapActivity extends Activity {
 		MBTileMapEventListener mapListener = new MBTileMapEventListener(this);
 		mapView.getOptions().setMapListener(mapListener);
 
-		// 3. Define map layer for basemap - mandatory.
-		// Almost all online tiled maps use EPSG3857 projection.
+		// 3. Define map layer for basemap - mandatory
+		// MBTiles supports only EPSG3857 projection
 
         try {
-            MBTilesMapLayer dbLayer = new MBTilesMapLayer(new EPSG3857(), 0, 19, 1113, Environment.getExternalStorageDirectory() + "/mapxt/geography-class_344e53.mbtiles.db", this);
+            
+            // read filename from extras
+            Bundle b = getIntent().getExtras();
+            String file = b.getString("selectedFile");
+            MBTilesMapLayer dbLayer = new MBTilesMapLayer(new EPSG3857(), 0, 19, file.hashCode(), file, this);
             mapView.getLayers().setBaseLayer(dbLayer);
         } catch (IOException e) {
             Log.error(e.getLocalizedMessage());
@@ -167,6 +173,36 @@ public class MBTilesMapActivity extends Activity {
 
     public MapView getMapView() {
         return mapView;
+    }
+
+
+    @Override
+    public String getFileSelectMessage() {
+        return "Select a MBTiles (.db, .sqlite or .mbtiles) file";
+    }
+
+
+    @Override
+    public FileFilter getFileFilter() {
+        return new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                // accept only readable files
+                if (file.canRead()) {
+                    if (file.isDirectory()) {
+                        // accept all directories
+                        return true;
+                    } else if (file.isFile()
+                            && (file.getName().endsWith(".db")
+                                    || file.getName().endsWith(".sqlite") || file
+                                    .getName().endsWith(".mbtiles"))) {
+                        // accept files with given extension
+                        return true;
+                    }
+                }
+                return false;
+            };
+        };
     }
      
 }
