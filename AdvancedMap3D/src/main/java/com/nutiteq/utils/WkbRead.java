@@ -57,7 +57,7 @@ public class WkbRead {
 		int srid = 0;
 		if (hasSRID){
 			srid = readInt(is,endian); // read SRID
-			Log.debug("SRID ignored in WKB: "+srid);
+			//Log.debug("SRID ignored in WKB: "+srid);
 		}
 
 		Geometry[] result = null;

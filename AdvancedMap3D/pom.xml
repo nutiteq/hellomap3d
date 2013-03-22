@@ -15,9 +15,14 @@
 
 	<repositories>
 		<repository>
-			<id>cloudbees-private-nutiteq</id>
-			<name>Nutiteq SDK repository</name>
+			<id>cloudbees-nutiteq-release</id>
+			<name>Nutiteq SDK release repository</name>
 			<url>http://repository-nutiteq.forge.cloudbees.com/release/</url>
+		</repository>
+		<repository>
+			<id>cloudbees-nutiteq-snapshot</id>
+			<name>Nutiteq SDK snapshot repository</name>
+			<url>http://repository-nutiteq.forge.cloudbees.com/snapshot/</url>
 		</repository>
 	</repositories>
 	
@@ -31,7 +36,7 @@
 		<dependency>
 			<groupId>com.nutiteq</groupId>
 			<artifactId>nutiteq-3d-sdk</artifactId>
-			<version>1.0.1</version>
+			<version>snapshot</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jhlabs</groupId>
@@ -83,5 +88,14 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<extensions>
+            <!-- Extension required to deploy a snapshot or a release to the CloudBees remote maven repository using Webdav -->
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-webdav</artifactId>
+                <version>1.0-beta-2</version>
+            </extension>
+        </extensions>
+		
 	</build>
 </project>

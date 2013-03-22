@@ -13,7 +13,8 @@ public class LauncherList extends ListActivity{
             AdvancedMapActivity.class,
             MBTilesMapActivity.class,
             BasicMapActivity.class,
-            OgrMapActivity.class
+            OgrMapActivity.class,
+            CartoDbVectorMapActivity.class
     };
     
     @Override
