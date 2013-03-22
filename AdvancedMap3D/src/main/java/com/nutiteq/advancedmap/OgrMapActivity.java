@@ -1,6 +1,7 @@
 package com.nutiteq.advancedmap;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
@@ -13,15 +14,19 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
+import android.widget.Toast;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.components.Components;
+import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.db.DBLayer;
+import com.nutiteq.filepicker.FilePickerActivity;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.GdalMapLayer;
 import com.nutiteq.layers.raster.MBTilesMapLayer;
@@ -51,7 +56,7 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 import com.nutiteq.vectorlayers.NMLModelDbLayer;
 
-public class OgrMapActivity extends Activity {
+public class OgrMapActivity extends Activity implements FilePickerActivity {
 
 	private MapView mapView;
 
@@ -103,7 +108,7 @@ public class OgrMapActivity extends Activity {
 		// rotation - 0 = north-up
 		mapView.setRotation(0f);
 		// zoom - 0 = world, like on most web maps
-		mapView.setZoom(5.0f);
+		mapView.setZoom(10.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
 		mapView.setTilt(90.0f);
 
@@ -158,20 +163,27 @@ public class OgrMapActivity extends Activity {
 		});
 
 
-		// 5. Add set of OGR vector layers to map 
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/buildings.shp","buildings", Color.DKGRAY);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/points.shp", "points",Color.CYAN);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/places.shp", "places",Color.BLACK);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/roads.shp","roads",Color.YELLOW);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/railways.shp","railways",Color.GRAY);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/waterways.shp","waterways",Color.BLUE);
+		
+		 // read filename from extras
+        Bundle b = getIntent().getExtras();
+        String file = b.getString("selectedFile");
+        
+        addOgrLayer(mapLayer.getProjection(), file, null, Color.BLUE);
+        
+     // 5. Add set of static OGR vector layers to map
+//        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/buildings.shp","buildings", Color.DKGRAY);
+//        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/points.shp", "points",Color.CYAN);
+//        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/places.shp", "places",Color.BLACK);
+//        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/roads.shp","roads",Color.YELLOW);
+//        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/railways.shp","railways",Color.GRAY);
+//        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/waterways.shp","waterways",Color.BLUE);
         
 	}
 
 	   private void addOgrLayer(Projection proj, String dbPath, String table, int color) {
 
 	        // set styles for all 3 object types: point, line and polygon
-	       int minZoom = 10;
+	       int minZoom = 5;
 	       
 	        StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
 	        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
@@ -179,28 +191,61 @@ public class OgrMapActivity extends Activity {
 	        pointStyleSet.setZoomStyle(minZoom, pointStyle);
 
 	        StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
-	        lineStyleSet.setZoomStyle(minZoom, LineStyle.builder().setWidth(0.05f).setColor(color).build());
+	        LineStyle lineStyle = LineStyle.builder().setWidth(0.05f).setColor(color).build();
+	        lineStyleSet.setZoomStyle(minZoom, lineStyle);
 
-	        PolygonStyle polygonStyle = PolygonStyle.builder().setColor(color).build();
+	        PolygonStyle polygonStyle = PolygonStyle.builder().setColor(color & 0x80FFFFFF).setLineStyle(lineStyle).build();
 	        StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
 	        polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
 
 	        OgrLayer ogrLayer;
             try {
                 ogrLayer = new OgrLayer(proj, dbPath, table,
-                        500, pointStyleSet, lineStyleSet, polygonStyleSet);
-                // ogrLayer.printSupportedDrivers();
-                // ogrLayer.printLayerDetails(table);
+                        3000, pointStyleSet, lineStyleSet, polygonStyleSet);
+                ogrLayer.printSupportedDrivers();
+                ogrLayer.printLayerDetails(table);
                 mapView.getLayers().addLayer(ogrLayer);
+ 
+                Envelope extent = ogrLayer.getDataExtent(table);
+                DisplayMetrics metrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(metrics);   
+                int screenHeight = metrics.heightPixels;
+                int screenWidth = metrics.widthPixels;
 
+                double zoom = Math.log((screenWidth * (Math.PI * 6378137.0f * 2.0f)) 
+                        / ((extent.maxX-extent.minX) * 256.0)) / Math.log(2);
+                
+                MapPos centerPoint = new MapPos((extent.maxX+extent.minX)/2,(extent.maxY+extent.minY)/2);
+                Log.debug("found extent "+extent+", zoom "+zoom+", centerPoint "+centerPoint);
+                
+                mapView.setZoom((float) zoom);
+                mapView.setFocusPoint(centerPoint); 
+                
             } catch (IOException e) {
                 Log.error(e.getLocalizedMessage());
+                Toast.makeText(this, "ERROR "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             }
 
 	    }
 	
     public MapView getMapView() {
         return mapView;
+    }
+
+    @Override
+    public String getFileSelectMessage() {
+        return "Select vector data file (.shp, .kml etc)";
+    }
+
+    @Override
+    public FileFilter getFileFilter() {
+        return new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                // accept any file and directory
+                return true; 
+            }
+        };
     }
      
 }

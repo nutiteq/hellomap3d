@@ -10,7 +10,6 @@ import com.nutiteq.MapView;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.Options;
 import com.nutiteq.layers.raster.TMSMapLayer;
-import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 
@@ -93,7 +92,7 @@ public class BasicMapActivity extends Activity {
 		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
 
         // define online map persistent caching - optional, suggested. Default - no caching
-        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
+      //  mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 

@@ -75,6 +75,7 @@
 						<platform>8</platform>
 					</sdk>
 					<undeployBeforeDeploy>true</undeployBeforeDeploy>
+					<downloadJavadocs>true</downloadJavadocs>
 				</configuration>
 				<extensions>true</extensions>
 			</plugin>

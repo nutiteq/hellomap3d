@@ -21,12 +21,14 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
+import com.nutiteq.layers.vector.CartoDbVectorLayer.LoadCartoDataTask;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
+import com.nutiteq.tasks.Task;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.utils.WkbRead;
@@ -46,6 +48,30 @@ public class OgrLayer extends GeometryLayer {
 		ogr.RegisterAll();
 	}
 
+	   protected class LoadOgrDataTask implements Task {
+	        final Envelope envelope;
+	        final int zoom;
+	        
+	        LoadOgrDataTask(Envelope envelope, int zoom) {
+	          this.envelope = envelope;
+	          this.zoom = zoom;
+	        }
+	        
+	        @Override
+	        public void run() {
+	          loadData(envelope, zoom);
+	        }
+
+	        @Override
+	        public boolean isCancelable() {
+	          return true;
+	        }
+
+	        @Override
+	        public void cancel() {
+	        }
+	      }
+	
 	/**
 	 * Open OGR datasource. Datasource properties depend on particular data type, e.g. for Shapefile just give file name
 	 * This sample tries to read whole layer, you probably need adjustments to optimize reading depending on data specifics
@@ -73,6 +99,7 @@ public class OgrLayer extends GeometryLayer {
 			Log.error("OgrLayer: unable to open dataset '"+fileName+"'");
 			throw new IOException("OgrLayer: unable to open dataset '"+fileName+"'");
 		}
+		
 		this.fieldNames = getFieldNames(tableName);
 
         if (pointStyleSet != null) {
@@ -93,49 +120,56 @@ public class OgrLayer extends GeometryLayer {
 
     @Override
 	public void calculateVisibleElements(Envelope envelope, int zoom) {
-	    long timeStart = System.currentTimeMillis();
 	    if (hDataset == null || zoom < minZoom) {
 			return;
 		}
-	    
+	    executeVisibilityCalculationTask(new LoadOgrDataTask(envelope,zoom));
+	}
 
-		org.gdal.ogr.Layer layer = null;
-		if (tableName == null) {
-			layer = hDataset.GetLayer(0);
-		}
-		else {
-//			layer = hDataset.ExecuteSQL("SELECT * FROM " + tableName);
-		    layer = hDataset.GetLayerByName(tableName);
-		}
-		if (layer == null) {
-			Log.error("OgrLayer: could not find layer '"+tableName+"'");
-			return;
-		}
 
-		MapPos minPos = projection.fromInternal(envelope.getMinX(), envelope.getMinY());
-		MapPos maxPos = projection.fromInternal(envelope.getMaxX(), envelope.getMaxY());
-		
-		layer.SetSpatialFilterRect(
-			Math.min(minPos.x, maxPos.x), Math.min(minPos.y, maxPos.y),
-			Math.max(minPos.x, maxPos.x), Math.max(minPos.y, maxPos.y)
-		);
+    
+    private void loadData(Envelope envelope, int zoom) {
+        long timeStart = System.currentTimeMillis();
 
-		List<com.nutiteq.geometry.Geometry> newVisibleElementsList = new LinkedList<com.nutiteq.geometry.Geometry>();
+        org.gdal.ogr.Layer layer = null;
+        if (tableName == null) {
+            layer = hDataset.GetLayer(0);
+        }
+        else {
+//          layer = hDataset.ExecuteSQL("SELECT * FROM " + tableName);
+            layer = hDataset.GetLayerByName(tableName);
+        }
+        if (layer == null) {
+            Log.error("OgrLayer: could not find layer '"+tableName+"'");
+            return;
+        }
 
-		layer.ResetReading();
-		Feature feature = layer.GetNextFeature();
-		Geometry poSrcGeom;
+        MapPos minPos = projection.fromInternal(envelope.getMinX(), envelope.getMinY());
+        MapPos maxPos = projection.fromInternal(envelope.getMaxX(), envelope.getMaxY());
+        
+        
+        // FIXME: jaakl: reprojection support to be added: first to filter, and then to all returned objects
+        layer.SetSpatialFilterRect(
+            Math.min(minPos.x, maxPos.x), Math.min(minPos.y, maxPos.y),
+            Math.max(minPos.x, maxPos.x), Math.max(minPos.y, maxPos.y)
+        );
 
-		
-		
-		for (int n = 0; feature != null && n < maxObjects; n++) {
+        List<com.nutiteq.geometry.Geometry> newVisibleElementsList = new LinkedList<com.nutiteq.geometry.Geometry>();
 
-		    poSrcGeom = feature.GetGeometryRef();
-			int eType = poSrcGeom.GetGeometryType();
-			if (eType == ogr.wkbUnknown) {
-			    Log.error("unknown object type "+eType);
-				continue;
-			}
+        layer.ResetReading();
+        Feature feature = layer.GetNextFeature();
+        Geometry poSrcGeom;
+
+        
+        
+        for (int n = 0; feature != null && n < maxObjects; n++) {
+
+            poSrcGeom = feature.GetGeometryRef();
+            int eType = poSrcGeom.GetGeometryType();
+            if (eType == ogr.wkbUnknown) {
+                Log.error("unknown object type "+eType);
+                continue;
+            }
 
             final Map<String, String> userData = new HashMap<String, String>();
 
@@ -168,13 +202,15 @@ public class OgrLayer extends GeometryLayer {
             }
 
             feature = layer.GetNextFeature();
-		}
-		long timeEnd = System.currentTimeMillis();
-		Log.debug("OgrLayer loaded "+tableName+" N:"+ newVisibleElementsList.size()+" time ms:"+(timeEnd-timeStart));
-		setVisibleElementsList(newVisibleElementsList);
-	}
+        }
+        long timeEnd = System.currentTimeMillis();
+        Log.debug("OgrLayer loaded "+tableName+" N:"+ newVisibleElementsList.size()+" time ms:"+(timeEnd-timeStart));
+        setVisibleElementsList(newVisibleElementsList);
+        
+    }
 
-	protected Label createLabel(Map<String, String> userData) {
+
+    protected Label createLabel(Map<String, String> userData) {
 	    StringBuffer labelTxt = new StringBuffer();
 	    for(Map.Entry<String, String> entry : userData.entrySet()){
 	        labelTxt.append(entry.getKey() + ": " + entry.getValue()+"\n");
@@ -186,6 +222,7 @@ public class OgrLayer extends GeometryLayer {
 	
     private String[] getFieldNames(String table) {
         Layer poLayer;
+        
         if(tableName != null){
             poLayer = hDataset.GetLayerByName(tableName);
         }else{
@@ -261,6 +298,28 @@ public class OgrLayer extends GeometryLayer {
         {
             Log.debug( "  -> " + ogr.GetDriver(iDriver).GetName() );
         }
+    }
+
+
+    public Envelope getDataExtent(String table) {
+        Layer poLayer;
+        if(tableName != null){
+            poLayer = hDataset.GetLayerByName(table);
+        }else{
+            poLayer = hDataset.GetLayer(0);
+        }
+        
+        double oExt[] = poLayer.GetExtent(true);
+        if (oExt != null){
+            Log.debug("Extent: (" + oExt[0] + ", " + oExt[2] + ") - ("
+                    + oExt[1] + ", " + oExt[3] + ")");
+
+            return new Envelope(oExt[0], oExt[1], oExt[2], oExt[3]);
+        }
+
+        
+        
+        return null;
     }
 
 }

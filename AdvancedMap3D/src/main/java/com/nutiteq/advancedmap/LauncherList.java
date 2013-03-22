@@ -13,11 +13,11 @@ import com.nutiteq.filepicker.FilePickerActivity;
 public class LauncherList extends ListActivity{
 
     private Object[][] samples={
-            {AdvancedMapActivity.class,null},
-            {MBTilesMapActivity.class,FilePicker.class},
             {BasicMapActivity.class,null},
-            {OgrMapActivity.class,null},
-            {CartoDbVectorMapActivity.class,null}
+            {CartoDbVectorMapActivity.class,null},
+            {MBTilesMapActivity.class,FilePicker.class},
+            {OgrMapActivity.class,FilePicker.class},
+            {AdvancedMapActivity.class,null}
     };
 
     @Override
