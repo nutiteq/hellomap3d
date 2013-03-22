@@ -171,7 +171,7 @@ public class WkbRead {
 		if(numRings > 1){
 			innerRings = new LinkedList<List<MapPos>>();
 			for (int i = 1; i < numRings; i++){
-				int innerSize = is.read();
+				int innerSize = readInt(is, endian);
 				List<MapPos> innerRing = readCoordinateList(is, dimensions, innerSize, endian);
 				innerRings.add(innerRing);
 			}
