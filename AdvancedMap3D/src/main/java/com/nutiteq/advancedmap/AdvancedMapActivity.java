@@ -37,6 +37,7 @@ import com.nutiteq.layers.vector.SpatialLiteDb;
 import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
+import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.StoredMapLayer;
 import com.nutiteq.style.LineStyle;
@@ -201,7 +202,7 @@ public class AdvancedMapActivity extends Activity {
    //     addPackagedBaseLayer(mapLayer.getProjection());
 
         // from http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W.zip
-		 addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/pan_Kaz_East_Clip.tif");
+		// addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/pan_Kaz_East_Clip.tif");
 //	       addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/CA_noaa/");
 
 		// addStoredBaseLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/nutimaps/allimages/");
@@ -218,7 +219,7 @@ public class AdvancedMapActivity extends Activity {
 //        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/mapxt/tallinn28.nml");
 
 //        addMBTilesLayer(mapLayer.getProjection(), Environment.getExternalStorageDirectory() + "/mapxt/geography-class_344e53.mbtiles.db", false);
-//        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
+        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
 
 /*
         addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/buildings.shp","buildings", Color.DKGRAY);

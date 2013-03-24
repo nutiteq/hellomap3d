@@ -15,6 +15,7 @@ public class LauncherList extends ListActivity{
     private Object[][] samples={
             {BasicMapActivity.class,null},
             {CartoDbVectorMapActivity.class,null},
+            {MapBoxMapActivity.class,null},
             {MBTilesMapActivity.class,FilePicker.class},
             {OgrMapActivity.class,FilePicker.class},
             {AdvancedMapActivity.class,null}

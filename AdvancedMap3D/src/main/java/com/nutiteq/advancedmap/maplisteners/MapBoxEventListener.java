@@ -8,22 +8,24 @@ import android.app.Activity;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.nutiteq.advancedmap.MBTilesMapActivity;
+import com.nutiteq.advancedmap.MapBoxMapActivity;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.VectorElement;
-import com.nutiteq.layers.raster.MBTilesMapLayer;
+import com.nutiteq.layers.raster.MapBoxMapLayer;
 import com.nutiteq.layers.raster.db.MbTilesDatabaseHelper;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.ui.MapListener;
 import com.nutiteq.utils.UtfGridHelper;
 
-public class MBTileMapEventListener extends MapListener {
+public class MapBoxEventListener extends MapListener {
 
 	private Activity activity;
+    private MapBoxMapLayer layer;
 
 	// activity is often useful to handle click events
-	public MBTileMapEventListener(Activity activity) {
+	public MapBoxEventListener(Activity activity, MapBoxMapLayer mapLayer) {
 		this.activity = activity;
+		this.layer = mapLayer;
 	}
 
 	// Map drawing callbacks for OpenGL manipulations
@@ -59,9 +61,9 @@ public class MBTileMapEventListener extends MapListener {
 		Log.d("nm", "onMapClicked " + (new EPSG3857()).toWgs84(x, y).x + " "
 				+ (new EPSG3857()).toWgs84(x, y).y + " longClick: " + longClick);
 
-		if(((MBTilesMapActivity) activity).getMapView().getLayers().getBaseLayer() instanceof MBTilesMapLayer){
-		    MbTilesDatabaseHelper db = ((MBTilesMapLayer) ((MBTilesMapActivity) activity).getMapView().getLayers().getBaseLayer()).getDatabase();
-		    Map<String, String> toolTips = db.getUtfGridTooltips(new MapPos(x,y), ((MBTilesMapActivity) activity).getMapView().getZoom());
+		if(layer instanceof MapBoxMapLayer){
+		    Map<String, String> toolTips =  layer.getUtfGridTooltips(new MapPos(x,y), ((MapBoxMapActivity) activity).getMapView().getZoom());
+
 		    if(toolTips == null){
 		        return;
 		    }

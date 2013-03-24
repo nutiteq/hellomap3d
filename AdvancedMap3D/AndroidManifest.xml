@@ -17,6 +17,7 @@
     <activity android:name="BasicMapActivity"></activity>
     <activity android:name="OgrMapActivity"></activity>
     <activity android:name="CartoDbVectorMapActivity"></activity>
+    <activity android:name="MapBoxMapActivity"></activity>
     <activity android:name="com.nutiteq.filepicker.FilePicker"></activity>
   </application>
 

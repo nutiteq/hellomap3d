@@ -20,6 +20,8 @@ import android.util.Log;
 
 import com.nutiteq.components.MapPos;
 import com.nutiteq.utils.TileUtils;
+import com.nutiteq.utils.UtfGridHelper;
+import com.nutiteq.utils.UtfGridHelper.MBTileUTFGrid;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
 
@@ -29,9 +31,6 @@ import com.samskivert.mustache.Template;
  * @author jaak
  */
 public class MbTilesDatabaseHelper {
-  public static final String TEMPLATED_FULL_KEY = "templated_full";
-  public static final String TEMPLATED_TEASER_KEY = "templated_teaser";
-  public static final String TEMPLATED_LOCATION_KEY = "templated_location";
 
   private static final int DATABASE_VERSION = 1;
   
@@ -76,10 +75,7 @@ public class MbTilesDatabaseHelper {
     }
   }
 
-  public class MBTileUTFGrid {
-      public String[] grid = null;
-      public String[] keys = null;
-    }
+
   
   /**
    * Construct database helper with own tile table format.
@@ -278,7 +274,7 @@ public Map<String, String> getUtfGridTooltips(MapPos p, float zoom) {
           return null;
       }
 
-      int id = utfGridCode(tileSize, clickedX, clickedY, grid);
+      int id = UtfGridHelper.utfGridCode(tileSize, clickedX, clickedY, grid);
 
       String gridDataJson = getUTFGridValue(tileX, tileY, (int)zoom, grid.keys[id], UTFGRID_RADIUS);
       if(gridDataJson == null){
@@ -327,9 +323,9 @@ public Map<String, String> getUtfGridTooltips(MapPos p, float zoom) {
               Log.d(LOG_TAG,"location:"+location);
               
 
-              data.put(TEMPLATED_TEASER_KEY,teaser);
-              data.put(TEMPLATED_FULL_KEY,fullToolTip);
-              data.put(TEMPLATED_LOCATION_KEY,location);
+              data.put(UtfGridHelper.TEMPLATED_TEASER_KEY,teaser);
+              data.put(UtfGridHelper.TEMPLATED_FULL_KEY,fullToolTip);
+              data.put(UtfGridHelper.TEMPLATED_LOCATION_KEY,location);
           }
   
       } catch (JSONException e) {
@@ -338,29 +334,7 @@ public Map<String, String> getUtfGridTooltips(MapPos p, float zoom) {
     return data;
   }
 
-  /**
-   * get clicked UTFgrid code within the tile. 
-   * from https://github.com/mapbox/mbtiles-spec/blob/master/1.1/utfgrid.md "Mapping an ID to a key"
-   * @param tileSize usually 256
-   * @param clickedX 
-   * @param clickedY
-   * @param grid
-   * @return
-   */
-  private int utfGridCode(int tileSize, int clickedX, int clickedY,
-          MBTileUTFGrid grid) {
-      
-      double factor = tileSize / grid.grid.length;
-      int row = (int) (clickedY / factor);
-      int col = (int) (clickedX / factor);
-      int id = grid.grid[row].codePointAt(col);
-      
-      // decode id
-      if(id >= 93) --id;
-      if(id >= 35) --id;
-      id -= 32;
-      return id;
-  }
+
   
   private MBTileUTFGrid getUTFGrid(int zoom, int x, int y) {
 //      for (AndroidTileDatabaseHelper db : databases) {
@@ -369,45 +343,21 @@ public Map<String, String> getUtfGridTooltips(MapPos p, float zoom) {
                   Log.d(LOG_TAG,"no grid for "+zoom+"/"+x+"/"+y);
                   return null;
               }
-              InflaterInputStream in = new InflaterInputStream(
-                      new ByteArrayInputStream(gridBytes));
-              ByteArrayOutputStream inflatedOut = new ByteArrayOutputStream();
-              int readLength;
-              byte[] block = new byte[1024];
-              try {
-                  while ((readLength = in.read(block)) != -1)
-                      inflatedOut.write(block, 0, readLength);
-                  inflatedOut.flush();
+        try {
+            return UtfGridHelper.decodeUtfGrid(gridBytes);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "cannot inflate utfgrid data " + e.getMessage());
+            e.printStackTrace();
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "JSON parser exception " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return null;
 
-                  String gridJSON =  new String(inflatedOut.toByteArray());
-                  MBTileUTFGrid grid = new MBTileUTFGrid();
-                  JSONObject root = new JSONObject(gridJSON);
-                  JSONArray gridA = root.getJSONArray("grid");
-                  JSONArray keysA = root.getJSONArray("keys");
-                  grid.grid = new String[gridA.length()];
-                  
-                  for(int i=0;i<gridA.length();i++){
-                      grid.grid[i]=gridA.getString(i);
-                  }
-                  grid.keys = new String[keysA.length()];
-                  for(int i=0;i<keysA.length();i++){
-                      grid.keys[i]=keysA.getString(i);
-                  }
-
-                  return grid;
-              
-              } catch (IOException e) {
-                  Log.e(LOG_TAG,"cannot inflate utfgrid data "+e.getMessage());
-                  e.printStackTrace();
-                  return null;
-              } catch (JSONException e) {
-                  Log.e(LOG_TAG,"JSON parser exception "+ e.getMessage());
-                  e.printStackTrace();
-              }
-              
 //      }
-      return null;
   }
+
 
   private String getUTFGridValue(int x, int y, int zoom, String string, int radius) {
    //   for (AndroidTileDatabaseHelper db: databases){

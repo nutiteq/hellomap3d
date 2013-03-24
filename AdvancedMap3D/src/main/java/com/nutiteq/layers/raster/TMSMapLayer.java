@@ -102,8 +102,6 @@ public class TMSMapLayer extends RasterLayer {
     }
     url.append(format);
     String urlString = url.toString();
-//    Log.debug("components null? "+(components == null));
-//    Log.debug("rasterTaskPool null? "+(components.rasterTaskPool == null));
     executeFetchTask(new NetFetchTileTask(tile, components, tileIdOffset, urlString, this.httpHeaders));
   }
 
