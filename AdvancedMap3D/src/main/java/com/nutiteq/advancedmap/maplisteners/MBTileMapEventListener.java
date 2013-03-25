@@ -5,8 +5,9 @@ import java.util.Map;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.webkit.WebView;
-import android.widget.Toast;
 
 import com.nutiteq.advancedmap.MBTilesMapActivity;
 import com.nutiteq.components.MapPos;
@@ -16,10 +17,8 @@ import com.nutiteq.layers.raster.MBTilesMapLayer;
 import com.nutiteq.layers.raster.db.MbTilesDatabaseHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
-import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.MapListener;
 import com.nutiteq.ui.ViewLabel;
-
 import com.nutiteq.utils.UtfGridHelper;
 
 public class MBTileMapEventListener extends MapListener {
@@ -49,6 +48,21 @@ public class MBTileMapEventListener extends MapListener {
 	// Vector element (touch) handlers
 	@Override
 	public void onLabelClicked(VectorElement vectorElement, boolean longClick) {
+	    Log.debug("clicked on label");
+	    if(vectorElement.userData != null){
+	        Map<String, String> toolTipData = (Map<String, String>) vectorElement.userData;
+	        if(toolTipData.containsKey(UtfGridHelper.TEMPLATED_LOCATION_KEY)){
+//              String strippedTeaser = android.text.Html.fromHtml(toolTips.get(UtfGridHelper.TEMPLATED_TEASER_KEY).replaceAll("\\<.*?>","")).toString().replaceAll("\\p{C}", "").trim();
+//              Toast.makeText(activity, strippedTeaser, Toast.LENGTH_SHORT).show();
+//                Log.debug("show label ")
+                String url = toolTipData.get(UtfGridHelper.TEMPLATED_LOCATION_KEY);
+                Log.debug("open url  "+url);
+                
+                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                activity.startActivity(i);
+                
+	        }
+	    }
 	}
 
 	@Override
@@ -73,30 +87,35 @@ public class MBTileMapEventListener extends MapListener {
 		        return;
 		    }
 		    Log.debug("utfGrid tooltip values: "+toolTips.size());
-		    if(toolTips.containsKey(UtfGridHelper.TEMPLATED_TEASER_KEY)){
-	            String strippedTeaser = android.text.Html.fromHtml(toolTips.get(UtfGridHelper.TEMPLATED_TEASER_KEY).replaceAll("\\<.*?>","")).toString().replaceAll("\\p{C}", "").trim();
-	            Toast.makeText(activity, strippedTeaser, Toast.LENGTH_SHORT).show();
-	            updateMarker(new MapPos(x,y),toolTips.get(UtfGridHelper.TEMPLATED_TEASER_KEY));
-		    }else{
-		        // a static key, ADMIN is used in geography-class sample in TileMill
-		        if(toolTips.containsKey("ADMIN")){
-	                  Toast.makeText(activity, toolTips.get("ADMIN"), Toast.LENGTH_SHORT).show();
-		        }
-		    }
-		    
+		    updateMarker(new MapPos(x,y), toolTips);
 		}
 		
 	}
 
-	private void updateMarker(MapPos pos, String text) {
+	private void updateMarker(MapPos pos, Map<String, String> toolTips) {
 	    
 	    if(clickMarker != null){
+	        
+	        String text = "";
+            if(toolTips.containsKey(UtfGridHelper.TEMPLATED_TEASER_KEY)){
+//              String strippedTeaser = android.text.Html.fromHtml(toolTips.get(UtfGridHelper.TEMPLATED_TEASER_KEY).replaceAll("\\<.*?>","")).toString().replaceAll("\\p{C}", "").trim();
+//              Toast.makeText(activity, strippedTeaser, Toast.LENGTH_SHORT).show();
+//                Log.debug("show label ")
+	            text  = toolTips.get(UtfGridHelper.TEMPLATED_TEASER_KEY);
+	        }else if(toolTips.containsKey("ADMIN")){
+	            text = toolTips.get("ADMIN");
+	        }
+	        
 	        clickMarker.setMapPos(pos);
+	        ((MBTilesMapActivity) activity).getMapView().selectVectorElement(clickMarker);
 	        WebView webView = ((WebView)((ViewLabel)clickMarker.getLabel()).getView());
 	       // clickMarker.setLabel(new DefaultLabel(text));
 	        //webView.loadUrl("http://www.android.com");
 	        Log.debug("showing html: "+text);
 	        webView.loadDataWithBaseURL("file:///android_asset/",MBTilesMapActivity.HTML_HEAD+text+MBTilesMapActivity.HTML_FOOT, "text/html", "UTF-8",null);
+	        
+	        clickMarker.userData = toolTips;
+	        
 	    }
     }
 

@@ -111,9 +111,9 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
         }
 
         // add a layer and marker for click labels
-        //   define marker style (image, size, color)
-        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.olmarker);
-        MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.5f).setColor(Color.WHITE).build();
+        // define small invisible Marker, as Label requires some Marker 
+        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
+        MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.01f).setColor(0).build();
 
         //  define label as WebView to show HTML
         WebView labelView = new WebView(this); 
