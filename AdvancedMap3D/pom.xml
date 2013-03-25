@@ -20,6 +20,10 @@
 			<url>http://repository-nutiteq.forge.cloudbees.com/release/</url>
 		</repository>
 		<repository>
+		    <snapshots>
+        		<enabled>true</enabled>
+        		<updatePolicy>always</updatePolicy>
+    		</snapshots>
 			<id>cloudbees-nutiteq-snapshot</id>
 			<name>Nutiteq SDK snapshot repository</name>
 			<url>http://repository-nutiteq.forge.cloudbees.com/snapshot/</url>
@@ -36,7 +40,7 @@
 		<dependency>
 			<groupId>com.nutiteq</groupId>
 			<artifactId>nutiteq-3d-sdk</artifactId>
-			<version>snapshot</version>
+			<version>SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jhlabs</groupId>
