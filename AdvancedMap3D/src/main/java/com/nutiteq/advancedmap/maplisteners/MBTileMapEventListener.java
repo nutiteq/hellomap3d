@@ -56,10 +56,13 @@ public class MBTileMapEventListener extends MapListener {
 //              Toast.makeText(activity, strippedTeaser, Toast.LENGTH_SHORT).show();
 //                Log.debug("show label ")
                 String url = toolTipData.get(UtfGridHelper.TEMPLATED_LOCATION_KEY);
-                Log.debug("open url  "+url);
-                
-                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                activity.startActivity(i);
+                Log.debug("open url "+url);
+                if(!url.equals("")){
+                    Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    activity.startActivity(i);
+                }else{
+                    Log.debug("empty url/location");    
+                }
                 
 	        }
 	    }
