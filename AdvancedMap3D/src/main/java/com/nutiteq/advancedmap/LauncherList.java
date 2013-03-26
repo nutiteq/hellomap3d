@@ -18,7 +18,8 @@ public class LauncherList extends ListActivity{
             {MapBoxMapActivity.class,null},
             {MBTilesMapActivity.class,FilePicker.class},
             {OgrMapActivity.class,FilePicker.class},
-            {AdvancedMapActivity.class,null}
+            {AdvancedMapActivity.class,null},
+            {MapsForgeMapActivity.class,FilePicker.class}
     };
 
     @Override

@@ -1,18 +1,12 @@
 package com.nutiteq.advancedmap;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
-
-import org.mapsforge.android.maps.mapgenerator.JobTheme;
-import org.mapsforge.android.maps.mapgenerator.databaserenderer.ExternalRenderTheme;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.view.Window;
 import android.widget.ZoomControls;
@@ -26,7 +20,6 @@ import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.GdalMapLayer;
 import com.nutiteq.layers.raster.MBTilesMapLayer;
-import com.nutiteq.layers.raster.MapsforgeMapLayer;
 import com.nutiteq.layers.raster.PackagedMapLayer;
 import com.nutiteq.layers.raster.QuadKeyLayer;
 import com.nutiteq.layers.raster.TMSMapLayer;
@@ -211,8 +204,6 @@ public class AdvancedMapActivity extends Activity {
 
 		// addSpatialiteLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/romania_sp3857.sqlite");
 
-//        addMapsforgeLayer(mapLayer.getProjection(), Environment.getExternalStorageDirectory() + "/mapxt/california.map",
-		// Environment.getExternalStorageDirectory() + "/mapxt/osmarender.xml");
 
 //		addOsmPolygonLayer(mapLayer.getProjection());
 
@@ -386,19 +377,7 @@ public class AdvancedMapActivity extends Activity {
 
 	    }
 	
-     private void addMapsforgeLayer(Projection proj, String mapFile, String renderThemeFile){
-		try {
-       JobTheme renderTheme = new ExternalRenderTheme(new File(renderThemeFile));
 
-        MapsforgeMapLayer mapLayer = new MapsforgeMapLayer(new EPSG3857(), 0, 20, 1004,
-                 mapFile,renderTheme);
-
-			mapView.getLayers().setBaseLayer(mapLayer);
-
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
 
      private void addWmsLayer(Projection proj, String url, String layers, Projection dataProjection){
        WmsLayer wmsLayer = new WmsLayer(proj, 0, 19, 1012, url, "", layers, "image/png", dataProjection);
