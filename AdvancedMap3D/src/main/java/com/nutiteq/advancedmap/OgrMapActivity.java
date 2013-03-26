@@ -247,6 +247,13 @@ public class OgrMapActivity extends Activity implements FilePickerActivity {
             }
         };
     }
+    
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.stopMapping();
+    }
+
      
 }
 

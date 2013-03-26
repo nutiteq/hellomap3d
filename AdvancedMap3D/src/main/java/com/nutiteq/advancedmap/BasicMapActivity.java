@@ -92,7 +92,7 @@ public class BasicMapActivity extends Activity {
 		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
 
         // define online map persistent caching - optional, suggested. Default - no caching
-      //  mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
+        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
@@ -121,6 +121,13 @@ public class BasicMapActivity extends Activity {
     public MapView getMapView() {
         return mapView;
     }
+    
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.stopMapping();
+    }
+
      
 }
 

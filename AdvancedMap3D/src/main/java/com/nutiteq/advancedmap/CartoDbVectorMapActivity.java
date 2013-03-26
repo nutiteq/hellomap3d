@@ -159,5 +159,11 @@ public class CartoDbVectorMapActivity extends Activity {
         return mapView;
     }
      
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.stopMapping();
+    }
+
 }
 

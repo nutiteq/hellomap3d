@@ -17,7 +17,7 @@ import android.widget.RelativeLayout;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
-import com.nutiteq.advancedmap.maplisteners.MBTileMapEventListener;
+import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
@@ -29,6 +29,7 @@ import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.ui.Label;
 import com.nutiteq.ui.ViewLabel;
+import com.nutiteq.utils.UiUtils;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
@@ -36,9 +37,6 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 
 	private MapView mapView;
     private Marker clickMarker;
-    private static final String HTML_CSS = "@font-face {font-family: classic_arial_font; src: url('arial.ttf');} body {font-family: 'classic_arial_font';}";
-    public static final String HTML_HEAD = "<html><head><style type=\"text/css\">"+HTML_CSS+"</style></head><body bgcolor=\"transparent\" style=\"background-color:transparent;\" onClick=\"Android.openWebPageData()\">";
-    public static final String HTML_FOOT = "</body></html>";
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -81,8 +79,9 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
             HashMap<String, String> dbMetaData = dbLayer.getDatabase().getMetadata();
             String legend = dbMetaData.get("legend");
             if(legend != null && !legend.equals("")){
-                addWebView(legend);
+                UiUtils.addWebView((RelativeLayout) findViewById(R.id.mainView), this, legend);
             }
+            
             String center = dbMetaData.get("center");
             String bounds = dbMetaData.get("bounds");
             if(center != null){
@@ -105,32 +104,31 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 
             }
             
+            // add a layer and marker for click labels
+            // define small invisible Marker, as Label requires some Marker 
+            Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
+            MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.01f).setColor(0).build();
+    
+            //  define label as WebView to show HTML
+            WebView labelView = new WebView(this); 
+            // It is important to set size, exception will come otherwise
+            labelView.layout(0, 0, 150, 150);
+            Label label = new ViewLabel("", labelView, new Handler());
+            
+            clickMarker = new Marker(new MapPos(0,0), label, markerStyle, null);
+            
+            MarkerLayer clickMarkerLayer = new MarkerLayer(new EPSG3857());
+            clickMarkerLayer.add(clickMarker);
+            mapView.getLayers().addLayer(clickMarkerLayer);
+            
+            // add event listener for clicks
+            UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, dbLayer, clickMarker);
+            mapView.getOptions().setMapListener(mapListener);
+            
         } catch (IOException e) {
             Log.error(e.getLocalizedMessage());
             e.printStackTrace();
         }
-
-        // add a layer and marker for click labels
-        // define small invisible Marker, as Label requires some Marker 
-        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
-        MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.01f).setColor(0).build();
-
-        //  define label as WebView to show HTML
-        WebView labelView = new WebView(this); 
-        // It is important to set size, exception will come otherwise
-        labelView.layout(0, 0, 150, 150);
-        Label label = new ViewLabel("", labelView, new Handler());
-        
-        clickMarker = new Marker(new MapPos(0,0), label, markerStyle, null);
-        
-        MarkerLayer clickMarkerLayer = new MarkerLayer(new EPSG3857());
-        clickMarkerLayer.add(clickMarker);
-        mapView.getLayers().addLayer(clickMarkerLayer);
-        
-        // add event listener for clicks
-        MBTileMapEventListener mapListener = new MBTileMapEventListener(this, clickMarker);
-        mapView.getOptions().setMapListener(mapListener);
-        
         
 		// set initial map view camera - optional. "World view" is default
         		// rotation - 0 = north-up
@@ -185,35 +183,7 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 	}
      
 
-	void addWebView(String html){
-	       // define WebView for the map legend
-        RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.mainView);
 
-        // first container layout
-        RelativeLayout legendLayout = new RelativeLayout(this);
-        RelativeLayout.LayoutParams legendLayoutparams = 
-                new RelativeLayout.LayoutParams(320, 300);
-        legendLayoutparams.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-        legendLayoutparams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-        legendLayoutparams.setMargins(15, 15, 0, 0);
-        legendLayout.setLayoutParams(legendLayoutparams);
-        
-        // now create the webview itself, and add to legendView
-        WebView webView = new WebView(this);
-        webView.getSettings().setJavaScriptEnabled(true);
-        // force to open any URLs in native browser instead of WebView 
-        webView.setWebViewClient(new WebViewClient() {
-              @Override
-              public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                 return super.shouldOverrideUrlLoading(view, url);
-              }
-          });
-        webView.layout(0, 0, 320, 300);
-        webView.loadDataWithBaseURL("file:///android_asset/",HTML_HEAD+html+HTML_FOOT, "text/html", "UTF-8",null);
-        legendLayout.addView(webView);
-        
-        mainLayout.addView(legendLayout);
-	}
 	
     public MapView getMapView() {
         return mapView;
@@ -248,6 +218,13 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
             };
         };
     }
+    
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.stopMapping();
+    }
+
      
 }
 

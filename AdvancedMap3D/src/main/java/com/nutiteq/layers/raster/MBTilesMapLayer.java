@@ -2,9 +2,11 @@ package com.nutiteq.layers.raster;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import android.content.Context;
 
+import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MapTile;
 import com.nutiteq.layers.raster.db.MbTilesDatabaseHelper;
 import com.nutiteq.log.Log;
@@ -19,7 +21,7 @@ import com.nutiteq.rasterlayers.RasterLayer;
  * <i>zoom_level</i> (zoom level of the tile), <i>tile_column</i>,
  * <i>tile_row</i>, <i>tile_data</i> (compressed tile bitmap)
  */
-public class MBTilesMapLayer extends RasterLayer {
+public class MBTilesMapLayer extends RasterLayer implements UtfGridLayerInterface{
 
     private MbTilesDatabaseHelper db;
     private boolean tmsY;
@@ -101,5 +103,12 @@ public class MBTilesMapLayer extends RasterLayer {
 
     public MbTilesDatabaseHelper getDatabase() {
         return this.db;
+    }
+
+    @Override
+    public Map<String, String> getUtfGridTooltips(MapPos p, float zoom,
+            String template) {
+        // template will be loaded in database request
+        return db.getUtfGridTooltips(p, zoom);
     }
 }

@@ -5,12 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.http.HttpResponse;
@@ -30,7 +28,6 @@ import com.nutiteq.components.MapTile;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.tasks.NetFetchTileTask;
-import com.nutiteq.tasks.Task;
 import com.nutiteq.utils.TileUtils;
 import com.nutiteq.utils.UtfGridHelper;
 import com.nutiteq.utils.UtfGridHelper.MBTileUTFGrid;
@@ -41,7 +38,7 @@ import com.samskivert.mustache.Template;
  * A raster layer class for reading map tiles from MapBox online tile storage.
  * Reads also UTFGrids for interactivity
  */
-public class MapBoxMapLayer extends TMSMapLayer {
+public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface{
 
     private String account;
     private String map;
@@ -130,6 +127,7 @@ public class MapBoxMapLayer extends TMSMapLayer {
                 tileIdOffset, url));
     }
 
+    @Override
     public Map<String, String> getUtfGridTooltips(MapPos p, float zoom, String template) {
         Map<String, String> data = new HashMap<String, String>();
 
@@ -150,9 +148,9 @@ public class MapBoxMapLayer extends TMSMapLayer {
 
         // get UTFGrid data for the tile
         MBTileUTFGrid grid = utfGrids.get(new MapPos(tileX, (1 << ((int)zoom)) - 1 - tileY, (int)zoom));
-
+        
         if(grid == null){ // no grid found
-            Log.debug("no UTFgrid loaded for "+zoom+"/"+tileX+"/"+tileY);
+            Log.debug("no UTFgrid loaded for "+(int)zoom+"/"+tileX+"/"+tileY);
             return null;
         }
 

@@ -385,16 +385,6 @@ public class AdvancedMapActivity extends Activity {
 		mapView.getLayers().addLayer(wmsLayer);
 	}
      
-     private void addMBTilesLayer(Projection proj, String db, boolean tmsY){
-        try {
-            MBTilesMapLayer dbLayer = new MBTilesMapLayer(proj, 0, 19, 1113, db, this);
-            dbLayer.setTmsY(tmsY);
-            mapView.getLayers().setBaseLayer(dbLayer);
-        } catch (IOException e) {
-            Log.error(e.getLocalizedMessage());
-            e.printStackTrace();
-        }
-      }
 
      private void addBingBaseLayer(Projection proj, String url, String extension){
          QuadKeyLayer bingMap = new QuadKeyLayer(proj, 0, 19, 1013, url, extension);
@@ -405,6 +395,13 @@ public class AdvancedMapActivity extends Activity {
     public MapView getMapView() {
         return mapView;
     }
+    
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.stopMapping();
+    }
+
      
 }
 

@@ -172,6 +172,13 @@ public class MapsForgeMapActivity extends Activity implements FilePickerActivity
         return "Select MapsForge .map file";
     }
 
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.stopMapping();
+    }
+
      
 }
 

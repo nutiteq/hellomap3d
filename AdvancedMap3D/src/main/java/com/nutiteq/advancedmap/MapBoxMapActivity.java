@@ -6,25 +6,28 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
+import android.webkit.WebView;
+import android.widget.RelativeLayout;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
-import com.nutiteq.advancedmap.maplisteners.MBTileMapEventListener;
-import com.nutiteq.advancedmap.maplisteners.MapBoxEventListener;
+import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
+import com.nutiteq.components.Range;
+import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.MapBoxMapLayer;
-import com.nutiteq.layers.raster.TMSMapLayer;
-import com.nutiteq.layers.vector.CartoDbVectorLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
-import com.nutiteq.style.LineStyle;
-import com.nutiteq.style.PointStyle;
-import com.nutiteq.style.PolygonStyle;
-import com.nutiteq.style.StyleSet;
+import com.nutiteq.style.MarkerStyle;
+import com.nutiteq.ui.Label;
+import com.nutiteq.ui.ViewLabel;
+import com.nutiteq.utils.UiUtils;
 import com.nutiteq.utils.UnscaledBitmapLoader;
+import com.nutiteq.vectorlayers.MarkerLayer;
 
 public class MapBoxMapActivity extends Activity {
 
@@ -67,14 +70,41 @@ public class MapBoxMapActivity extends Activity {
 
 		mapView.getLayers().setBaseLayer(mapLayer);
 
-	      // add event listener
-		MapBoxEventListener mapListener = new MapBoxEventListener(this, mapLayer);
+        // add a layer and marker for click labels
+        // define small invisible Marker, as Label requires some Marker 
+        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
+        MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.01f).setColor(0).build();
+
+        //  define label as WebView to show HTML
+        WebView labelView = new WebView(this); 
+        // It is important to set size, exception will come otherwise
+        labelView.layout(0, 0, 150, 150);
+        Label label = new ViewLabel("", labelView, new Handler());
+        
+        Marker clickMarker = new Marker(new MapPos(0,0), label, markerStyle, null);
+        
+        MarkerLayer clickMarkerLayer = new MarkerLayer(new EPSG3857());
+        clickMarkerLayer.add(clickMarker);
+        mapView.getLayers().addLayer(clickMarkerLayer);
+		
+        // add event listener
+		UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, mapLayer, clickMarker);
         mapView.getOptions().setMapListener(mapListener);
 
-		// TODO: put following to separate background task
-        JSONObject metaData = mapLayer.downloadMetadata();
-        String template = metaData.optString("template");
-        mapListener.setTemplate(template);
+		// TODO: put following to separate background task, downloadMetadata is network request
+        {
+            JSONObject metaData = mapLayer.downloadMetadata();
+            String template = metaData.optString("template");
+            mapListener.setTemplate(template);
+            
+            String legend = metaData.optString("legend");
+            if(legend != null && !legend.equals("")){
+                Log.debug("legend: "+legend);
+                UiUtils.addWebView((RelativeLayout) findViewById(R.id.mainView), this, legend);
+            }else{
+                Log.debug("no legend found");
+            }
+        }
         
 		// set initial map view camera - optional. "World view" is default
 		// Location: Estonia
@@ -96,6 +126,8 @@ public class MapBoxMapActivity extends Activity {
 		mapView.getOptions().setDoubleClickZoomIn(true);
 		mapView.getOptions().setDualClickZoomOut(true);
 
+		mapView.getConstraints().setTiltRange(new Range(90,90));
+		
 		// set sky bitmap - optional, default - white
 		mapView.getOptions().setSkyDrawMode(Options.DRAW_BITMAP);
 		mapView.getOptions().setSkyOffset(4.86f);
@@ -114,6 +146,11 @@ public class MapBoxMapActivity extends Activity {
 		mapView.getOptions().setTextureMemoryCacheSize(20 * 1024 * 1024);
 		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
 
+        // define online map persistent caching - optional, suggested. Default - no caching
+//        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
+        // set persistent raster cache limit to 100MB
+        mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
+		
 		// 4. Start the map - mandatory
 		mapView.startMapping();
         
@@ -138,5 +175,11 @@ public class MapBoxMapActivity extends Activity {
         return mapView;
     }
      
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.stopMapping();
+    }
+
 }
 
