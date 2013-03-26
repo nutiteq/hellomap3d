@@ -1,5 +1,7 @@
 package com.nutiteq.advancedmap;
 
+import org.json.JSONObject;
+
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -69,7 +71,11 @@ public class MapBoxMapActivity extends Activity {
 		MapBoxEventListener mapListener = new MapBoxEventListener(this, mapLayer);
         mapView.getOptions().setMapListener(mapListener);
 
-		
+		// TODO: put following to separate background task
+        JSONObject metaData = mapLayer.downloadMetadata();
+        String template = metaData.optString("template");
+        mapListener.setTemplate(template);
+        
 		// set initial map view camera - optional. "World view" is default
 		// Location: Estonia
         //mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.5f, 58.3f));

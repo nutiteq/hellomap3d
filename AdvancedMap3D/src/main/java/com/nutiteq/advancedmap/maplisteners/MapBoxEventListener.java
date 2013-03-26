@@ -12,7 +12,6 @@ import com.nutiteq.advancedmap.MapBoxMapActivity;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.VectorElement;
 import com.nutiteq.layers.raster.MapBoxMapLayer;
-import com.nutiteq.layers.raster.db.MbTilesDatabaseHelper;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.ui.MapListener;
 import com.nutiteq.utils.UtfGridHelper;
@@ -21,6 +20,7 @@ public class MapBoxEventListener extends MapListener {
 
 	private Activity activity;
     private MapBoxMapLayer layer;
+    private String template;
 
 	// activity is often useful to handle click events
 	public MapBoxEventListener(Activity activity, MapBoxMapLayer mapLayer) {
@@ -62,7 +62,9 @@ public class MapBoxEventListener extends MapListener {
 				+ (new EPSG3857()).toWgs84(x, y).y + " longClick: " + longClick);
 
 		if(layer instanceof MapBoxMapLayer){
-		    Map<String, String> toolTips =  layer.getUtfGridTooltips(new MapPos(x,y), ((MapBoxMapActivity) activity).getMapView().getZoom());
+		    
+		    
+		    Map<String, String> toolTips =  layer.getUtfGridTooltips(new MapPos(x,y), ((MapBoxMapActivity) activity).getMapView().getZoom(), this.template);
 
 		    if(toolTips == null){
 		        return;
@@ -85,5 +87,9 @@ public class MapBoxEventListener extends MapListener {
 	@Override
 	public void onMapMoved() {
 	}
+
+    public void setTemplate(String template) {
+        this.template = template;
+    }
 
 }

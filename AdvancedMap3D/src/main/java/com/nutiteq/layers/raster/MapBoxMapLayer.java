@@ -46,7 +46,6 @@ public class MapBoxMapLayer extends TMSMapLayer {
     private String account;
     private String map;
     private Map<MapPos, MBTileUTFGrid> utfGrids;
-    private JSONObject metaData;
     
     /**
      * Requests UTFGrid for all loaded tiles
@@ -86,70 +85,6 @@ public class MapBoxMapLayer extends TMSMapLayer {
             }
         }
     }
-    
-    private class NetFetchJsonTask implements Task{
-
-        private String url;
-        private JSONObject result;
-
-        public NetFetchJsonTask(String url, JSONObject result) {
-            this.url = url;
-            this.result = result;
-        }
-
-        @Override
-        public void run() {
-            try {
-                HttpClient client = new DefaultHttpClient();
-                HttpGet request = new HttpGet();
-                request.setURI(new URI(url));
-                AndroidHttpClient.modifyRequestToAcceptGzipResponse(request);
-
-                HttpResponse response = client.execute(request);
-                InputStream ips  = AndroidHttpClient
-                        .getUngzippedContent(response.getEntity());
-                BufferedReader buf = new BufferedReader(new InputStreamReader(ips,"UTF-8"));
-
-                StringBuilder sb = new StringBuilder();
-                String s;
-                while(true )
-                {
-                    s = buf.readLine();
-                    if(s==null || s.length()==0)
-                        break;
-                    sb.append(s);
-
-                }
-                buf.close();
-                ips.close();
-                //result = new JSONObject(sb.toString());
-                metaData = new JSONObject(sb.toString());
-                Log.debug("metadata loaded: "+metaData.toString());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                } catch (ClientProtocolException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } 
-            
-        }
-
-        @Override
-        public void cancel() {
-            
-        }
-
-        @Override
-        public boolean isCancelable() {
-            // TODO Auto-generated method stub
-            return false;
-        }
-
-
-    }
         
     /**
      * Default constructor.
@@ -175,7 +110,6 @@ public class MapBoxMapLayer extends TMSMapLayer {
         this.map = map;
         this.utfGrids = new HashMap<MapPos, MBTileUTFGrid>();
 
-        executeFetchTask(new NetFetchJsonTask("http://api.tiles.mapbox.com/v3/"+account+"."+map+".json",this.metaData));
     }
 
     @Override
@@ -196,7 +130,7 @@ public class MapBoxMapLayer extends TMSMapLayer {
                 tileIdOffset, url));
     }
 
-    public Map<String, String> getUtfGridTooltips(MapPos p, float zoom) {
+    public Map<String, String> getUtfGridTooltips(MapPos p, float zoom, String template) {
         Map<String, String> data = new HashMap<String, String>();
 
         // what is current tile in clicked location, and specific pixel of this
@@ -248,12 +182,10 @@ public class MapBoxMapLayer extends TMSMapLayer {
             
             // resolve Mustache template using https://github.com/samskivert/jmustache lib
             
-            if(metaData != null && metaData.optString("template") != null){
+            if(template != null){
 
-                String templateString = metaData.optString("template");
-                
                 // use jMustache templating
-                Template tmpl = Mustache.compiler().compile(templateString);
+                Template tmpl = Mustache.compiler().compile(template);
 
                 // add one more element to activate "teaser" section
                 // options: __teaser__, __full__, __location__
@@ -287,6 +219,51 @@ public class MapBoxMapLayer extends TMSMapLayer {
            Log.error("UTFGrid JSON parsing error "+e.getMessage());
         }
       return data;
-
     }
+    
+    /**
+     * Load metadata as JSON. Suggested to be called from non-UI thread.
+     * @return 
+     */
+    public JSONObject downloadMetadata() {
+        try {
+            HttpClient client = new DefaultHttpClient();
+            HttpGet request = new HttpGet();
+            request.setURI(new URI("http://api.tiles.mapbox.com/v3/"+this.account+"."+this.map+".json"));
+            AndroidHttpClient.modifyRequestToAcceptGzipResponse(request);
+
+            HttpResponse response = client.execute(request);
+            InputStream ips  = AndroidHttpClient
+                    .getUngzippedContent(response.getEntity());
+            BufferedReader buf = new BufferedReader(new InputStreamReader(ips,"UTF-8"));
+
+            StringBuilder sb = new StringBuilder();
+            String s;
+            while(true)
+            {
+                s = buf.readLine();
+                if(s==null || s.length()==0)
+                    break;
+                sb.append(s);
+            }
+            
+            buf.close();
+            ips.close();
+            JSONObject metaData = new JSONObject(sb.toString());
+            Log.debug("metadata loaded: "+metaData.toString());
+            return metaData;
+            
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            } catch (ClientProtocolException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        return null;
+    }
+
+    
 }
