@@ -6,8 +6,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -45,6 +47,7 @@ public class GdalMapLayer extends RasterLayer {
     
     private static final String EPSG_3785_WKT = "PROJCS[\"Google Maps Global Mercator\",    GEOGCS[\"WGS 84\",        DATUM[\"WGS_1984\",            SPHEROID[\"WGS 84\",6378137,298.257223563,                AUTHORITY[\"EPSG\",\"7030\"]],            AUTHORITY[\"EPSG\",\"6326\"]],        PRIMEM[\"Greenwich\",0,            AUTHORITY[\"EPSG\",\"8901\"]],        UNIT[\"degree\",0.01745329251994328,            AUTHORITY[\"EPSG\",\"9122\"]],        AUTHORITY[\"EPSG\",\"4326\"]],    PROJECTION[\"Mercator_2SP\"],    PARAMETER[\"standard_parallel_1\",0],    PARAMETER[\"latitude_of_origin\",0],    PARAMETER[\"central_meridian\",0],    PARAMETER[\"false_easting\",0],    PARAMETER[\"false_northing\",0],    UNIT[\"Meter\",1],    EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs\"],    AUTHORITY[\"EPSG\",\"3785\"]]";
     private static final double WORLD_WIDTH = 20037508.3428; // width of EPSG:3785
+    private static Vector<String> exts;
     SpatialReference layerProjection = new SpatialReference(EPSG_3785_WKT);
 
     static {
@@ -166,6 +169,7 @@ public class GdalMapLayer extends RasterLayer {
             Log.debug("Adding "+(this.counter)+". "+fileName);
             GdalDatasetInfo dataSet = readGdalFileData(fullPath, reproject);
             if(dataSet != null){
+               
                 dataSets.put(dataSet.envelope,dataSet);
                 Log.debug("Opened "+(this.counter)+". GDAL file: "+fileName+" bounds: "+dataSet.envelope.minX+" "+dataSet.envelope.minY+" "+dataSet.envelope.maxX+" "+dataSet.envelope.maxY);
             }
@@ -210,6 +214,9 @@ public class GdalMapLayer extends RasterLayer {
         Dataset originalData = gdal.Open(gdalSource, gdalconstConstants.GA_ReadOnly);
         if (originalData == null)
             return null;
+        
+        fullGdalInfo(originalData);
+        
         Dataset openData = null;
         
         // get original bounds in Wgs84
@@ -220,7 +227,7 @@ public class GdalMapLayer extends RasterLayer {
             // on the fly reprojection - slower reading, but fast open and less memory
             openData = gdal.AutoCreateWarpedVRT(originalData,null, layerProjection.ExportToWkt(),VRT_RESAMPLER, VRT_MAXERROR);
 
-   //         fullGdalInfo(openData);
+            fullGdalInfo(openData);
             originalData.delete();
             
         }else{
@@ -334,8 +341,26 @@ public class GdalMapLayer extends RasterLayer {
     private void listDrivers() {
         for (int i=0;i<gdal.GetDriverCount();i++){
             Driver driver = gdal.GetDriver(i);
+            Hashtable metaData = driver.GetMetadata_Dict();
             Log.info("driver " + driver.getShortName()+" ("+driver.getLongName()+")");
+            Log.info("extension: " + metaData.get("DMD_EXTENSION"));
+            Log.info(Arrays.toString(driver.GetMetadata_Dict().entrySet().toArray()));
         }
+    }
+    
+    public static Vector<String> getExtensions(){
+        gdal.AllRegister();
+        if(exts == null){
+            exts = new Vector<String>();
+            for (int i=0;i<gdal.GetDriverCount();i++){
+                exts.add((String) gdal.GetDriver(i).GetMetadata_Dict().get("DMD_EXTENSION"));
+            }
+            // some extensions are known to be missing from GDAL
+            exts.add("kap");
+            exts.add("geotiff");
+            
+        }
+        return exts;
     }
 
 
@@ -416,10 +441,10 @@ public class GdalMapLayer extends RasterLayer {
         return Math.log(((pixWidth * WORLD_WIDTH) / (boundWidth * 256.0))) / (Math.log(2));
     }
     
-    // is zoom in given range
+    // is zoom in reasonable range from the native resolution
     private boolean isSuitableZoom(double bestZoom, int zoom) {
        // return true;
-       return (zoom>=(bestZoom - 3.0) && zoom<=(bestZoom + 1.0));
+       return (zoom>=(bestZoom - 5.0) && zoom<=(bestZoom + 1.0));
     }
 
     @Override
@@ -1075,7 +1100,5 @@ public class GdalMapLayer extends RasterLayer {
     public void setShowAlways(boolean showAlways) {
         this.showAlways = showAlways;
     }
-    
- 
     
 }

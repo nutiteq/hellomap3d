@@ -56,7 +56,7 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 import com.nutiteq.vectorlayers.NMLModelDbLayer;
 
-public class OgrMapActivity extends Activity implements FilePickerActivity {
+public class VectorFileMapActivity extends Activity implements FilePickerActivity {
 
 	private MapView mapView;
 
@@ -201,7 +201,7 @@ public class OgrMapActivity extends Activity implements FilePickerActivity {
 	        OgrLayer ogrLayer;
             try {
                 ogrLayer = new OgrLayer(proj, dbPath, table,
-                        3000, pointStyleSet, lineStyleSet, polygonStyleSet);
+                        2000, pointStyleSet, lineStyleSet, polygonStyleSet);
                 ogrLayer.printSupportedDrivers();
                 ogrLayer.printLayerDetails(table);
                 mapView.getLayers().addLayer(ogrLayer);
@@ -241,9 +241,8 @@ public class OgrMapActivity extends Activity implements FilePickerActivity {
     public FileFilter getFileFilter() {
         return new FileFilter() {
             @Override
-            public boolean accept(File file) {
-                // accept any file and directory
-                return true; 
+            public boolean accept(File file) {                
+                return  (file.isDirectory() || OgrLayer.canOpen(file));
             }
         };
     }

@@ -15,10 +15,11 @@
     <activity android:name="AdvancedMapActivity"></activity>
     <activity android:name="MBTilesMapActivity"></activity>
     <activity android:name="BasicMapActivity"></activity>
-    <activity android:name="OgrMapActivity"></activity>
+    <activity android:name="com.nutiteq.advancedmap.VectorFileMapActivity"></activity>
     <activity android:name="CartoDbVectorMapActivity"></activity>
     <activity android:name="MapBoxMapActivity"></activity>
     <activity android:name="MapsForgeMapActivity"></activity>
+     <activity android:name="com.nutiteq.advancedmap.RasterFileMapActivity"></activity>
     <activity android:name="com.nutiteq.filepicker.FilePicker"></activity>
   </application>
 

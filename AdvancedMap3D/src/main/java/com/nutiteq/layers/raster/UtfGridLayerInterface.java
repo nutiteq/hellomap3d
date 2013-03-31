@@ -2,7 +2,6 @@ package com.nutiteq.layers.raster;
 
 import java.util.Map;
 
-import com.nutiteq.MapView;
 import com.nutiteq.components.MapPos;
 
 public interface UtfGridLayerInterface {

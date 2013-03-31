@@ -194,10 +194,6 @@ public class AdvancedMapActivity extends Activity {
 		addBingBaseLayer(mapLayer.getProjection(),"http://ecn.t3.tiles.virtualearth.net/tiles/r",".png?g=1&mkt=en-US&shading=hill&n=z");
    //     addPackagedBaseLayer(mapLayer.getProjection());
 
-        // from http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W.zip
-		// addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/pan_Kaz_East_Clip.tif");
-//	       addGdalLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/CA_noaa/");
-
 		// addStoredBaseLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/nutimaps/allimages/");
 		 
 //        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
@@ -234,18 +230,6 @@ public class AdvancedMapActivity extends Activity {
                 17, 13, "OpenStreetMap", dir);
         mapView.getLayers().setBaseLayer(storedMapLayer);
     }
-
-    private void addGdalLayer(Projection proj, String filePath) {
-		// GDAL raster layer test. It is set Base layer, not overlay
-		GdalMapLayer gdalLayer;
-		try {
-            gdalLayer = new GdalMapLayer(proj, 0, 18, 9, filePath, mapView, true);
-			mapView.getLayers().addLayer(gdalLayer);
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 
 	// ** Add simple marker to map.
 	private void addMarkerLayer(Projection proj, MapPos markerLocation) {

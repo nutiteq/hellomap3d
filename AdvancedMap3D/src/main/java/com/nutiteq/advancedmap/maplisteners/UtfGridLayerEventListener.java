@@ -7,10 +7,10 @@ import javax.microedition.khronos.opengles.GL10;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.view.View;
 import android.webkit.WebView;
 
 import com.nutiteq.MapView;
-import com.nutiteq.advancedmap.MBTilesMapActivity;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.geometry.VectorElement;
@@ -90,7 +90,7 @@ public class UtfGridLayerEventListener extends MapListener {
 				+ (new EPSG3857()).toWgs84(x, y).y + " longClick: " + longClick);
 
 		if(layer instanceof UtfGridLayerInterface){
-		    
+
 		    Map<String, String> toolTips =  layer.getUtfGridTooltips(new MapPos(x,y), mapView.getZoom(), this.template);
 
 		    if(toolTips == null){

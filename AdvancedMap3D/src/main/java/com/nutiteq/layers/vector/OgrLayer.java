@@ -1,12 +1,13 @@
 package com.nutiteq.layers.vector;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Feature;
@@ -21,7 +22,6 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
-import com.nutiteq.layers.vector.CartoDbVectorLayer.LoadCartoDataTask;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LineStyle;
@@ -35,7 +35,8 @@ import com.nutiteq.utils.WkbRead;
 import com.nutiteq.vectorlayers.GeometryLayer;
 
 public class OgrLayer extends GeometryLayer {
-	private int maxObjects;
+	private static Vector<String> knownExtensions = new Vector<String>();
+    private int maxObjects;
 	private String tableName;
 	private StyleSet<PointStyle> pointStyleSet;
 	private StyleSet<LineStyle> lineStyleSet;
@@ -134,6 +135,7 @@ public class OgrLayer extends GeometryLayer {
         org.gdal.ogr.Layer layer = null;
         if (tableName == null) {
             layer = hDataset.GetLayer(0);
+            tableName = layer.GetName();
         }
         else {
 //          layer = hDataset.ExecuteSQL("SELECT * FROM " + tableName);
@@ -216,7 +218,7 @@ public class OgrLayer extends GeometryLayer {
 	        labelTxt.append(entry.getKey() + ": " + entry.getValue()+"\n");
 	    }
 	    
-		return new DefaultLabel(labelTxt.toString());
+		return new DefaultLabel(tableName, labelTxt.toString());
 	}
 	
 	
@@ -320,6 +322,30 @@ public class OgrLayer extends GeometryLayer {
         
         
         return null;
+    }
+
+
+    public static boolean canOpen(File file) {
+
+        String fileExtension = file.getName().substring(file.getName().lastIndexOf(".")+1).toLowerCase();
+        
+        // use cached list of known extensions
+        if (knownExtensions != null && knownExtensions.contains(fileExtension)){
+            return true;
+        }
+        
+        // not found in known list, try to open
+        if(ogr.GetDriverCount() == 0){
+            ogr.RegisterAll();
+        }
+        
+        if(ogr.Open(file.getAbsolutePath()) != null){
+            // was able to open, lets cache extensions
+            knownExtensions.add(fileExtension);
+            return true;
+        }
+
+        return false;
     }
 
 }

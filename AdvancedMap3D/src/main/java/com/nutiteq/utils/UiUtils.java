@@ -5,7 +5,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 
-
 public class UiUtils {
     private static final String HTML_CSS = "@font-face {font-family: classic_arial_font; src: url('arial.ttf');} body {font-family: 'classic_arial_font';}";
     public static final String HTML_HEAD = "<html><head><style type=\"text/css\">"+HTML_CSS+"</style></head><body bgcolor=\"transparent\" style=\"background-color:transparent;\" onClick=\"Android.openWebPageData()\">";

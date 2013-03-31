@@ -12,12 +12,16 @@ import com.nutiteq.filepicker.FilePickerActivity;
 
 public class LauncherList extends ListActivity{
 
+    // list of demos: MapActivity, ParameterSelectorActivity (can be null)
+    // if parameter selector is given, then this is launched first to get a parameter (file path)
+    
     private Object[][] samples={
             {BasicMapActivity.class,null},
             {CartoDbVectorMapActivity.class,null},
             {MapBoxMapActivity.class,null},
             {MBTilesMapActivity.class,FilePicker.class},
-            {OgrMapActivity.class,FilePicker.class},
+            {VectorFileMapActivity.class,FilePicker.class},
+            {RasterFileMapActivity.class,FilePicker.class},
             {AdvancedMapActivity.class,null},
             {MapsForgeMapActivity.class,FilePicker.class}
     };

@@ -111,6 +111,18 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
     
             //  define label as WebView to show HTML
             WebView labelView = new WebView(this); 
+            
+            // force to recalculate size
+            labelView.setWebViewClient(new WebViewClient() {
+
+                @Override
+                public void onPageFinished(final WebView view, final String url) {
+                    super.onPageFinished(view, url);
+                    view.invalidate();
+                }
+            });
+            
+            
             // It is important to set size, exception will come otherwise
             labelView.layout(0, 0, 150, 150);
             Label label = new ViewLabel("", labelView, new Handler());
