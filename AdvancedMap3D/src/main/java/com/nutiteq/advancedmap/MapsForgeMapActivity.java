@@ -67,19 +67,13 @@ public class MapsForgeMapActivity extends Activity implements FilePickerActivity
        String mapFile = b.getString("selectedFile");
        
         JobTheme renderTheme = MapsforgeMapLayer.InternalRenderTheme.OSMARENDER;
-        try {
-            InputStream is = renderTheme.getRenderThemeAsStream();
-            
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+
         MapsforgeMapLayer mapLayer = new MapsforgeMapLayer(new EPSG3857(),
                 0, 20, 1044, mapFile, renderTheme);
 
         mapView.getLayers().setBaseLayer(mapLayer);
 
-        		// set initial map view camera from database
+        // set initial map view camera from database
         MapPos mapCenter = new MapPos(mapLayer.getMapDatabase().getMapFileInfo().mapCenter.getLongitude(), mapLayer.getMapDatabase().getMapFileInfo().mapCenter.getLatitude(),mapLayer.getMapDatabase().getMapFileInfo().startZoomLevel);
         Log.debug("center: "+mapCenter);
         mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(mapCenter.x,mapCenter.y));

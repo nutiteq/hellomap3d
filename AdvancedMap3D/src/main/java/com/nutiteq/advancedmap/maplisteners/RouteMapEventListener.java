@@ -2,19 +2,21 @@ package com.nutiteq.advancedmap.maplisteners;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import android.util.Log;
-
-import com.nutiteq.advancedmap.AdvancedMapActivity;
+import com.nutiteq.advancedmap.RouteActivity;
+import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.VectorElement;
+import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.ui.MapListener;
 
-public class MapEventListener extends MapListener {
+public class RouteMapEventListener extends MapListener {
 
-	private AdvancedMapActivity activity;
+	private RouteActivity activity;
+    private MapPos startPos;
+    private MapPos stopPos;
 
 	// activity is often useful to handle click events
-	public MapEventListener(AdvancedMapActivity activity) {
+	public RouteMapEventListener(RouteActivity activity) {
 		this.activity = activity;
 	}
 
@@ -54,33 +56,30 @@ public class MapEventListener extends MapListener {
 			final boolean longClick) {
 		// x and y are in base map projection, we convert them to the familiar
 		// WGS84
-		Log.d("nm", "onMapClicked " + (new EPSG3857()).toWgs84(x, y).x + " "
+		Log.debug("onMapClicked " + (new EPSG3857()).toWgs84(x, y).x + " "
 				+ (new EPSG3857()).toWgs84(x, y).y + " longClick: " + longClick);
+		
+		if(startPos == null){
+		    // set start, or start again
+		    startPos = (new EPSG3857()).toWgs84(x,y);
+		    activity.setStartmarker(new MapPos(x,y));
+		}else if(stopPos == null){
+		    // set stop and calculate
+		    stopPos = (new EPSG3857()).toWgs84(x,y);
+	        activity.showRoute(startPos.y, startPos.x, stopPos.y, stopPos.x);
+		 
+	        // restart to force new route next time
+	        startPos = null;
+	        stopPos = null;
+		}
+		
+		
+		
 
 	}
 
 	@Override
 	public void onMapMoved() {
-		// this method is also called from non-UI thread
-	}
-
-	// Progress indication handlers
-	@Override
-	public void onBackgroundTasksStarted() {
-		// This method is called when mapping library is performing relatively
-		// long lasting operations.
-		// This is good place to show some progress indicator.
-		// NOTE: in order to make title progress bar work, place
-		// requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS)
-		// just before setContentView call in your Activity's onCreate method.
-		activity.setProgressBarIndeterminateVisibility(true);
-	}
-
-	@Override
-	public void onBackgroundTasksFinished() {
-		// This method is called when mapping library has finished all long
-		// lasting operations.
-		activity.setProgressBarIndeterminateVisibility(false);
 	}
 
 }

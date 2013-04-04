@@ -21,6 +21,7 @@
     <activity android:name="MapsForgeMapActivity"></activity>
      <activity android:name="com.nutiteq.advancedmap.RasterFileMapActivity"></activity>
     <activity android:name="com.nutiteq.filepicker.FilePicker"></activity>
+    <activity android:name="GraphhopperRouteActivity"></activity>
   </application>
 
 </manifest>
