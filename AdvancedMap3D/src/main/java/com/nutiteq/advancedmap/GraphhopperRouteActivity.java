@@ -2,7 +2,6 @@ package com.nutiteq.advancedmap;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,25 +30,20 @@ import com.nutiteq.advancedmap.maplisteners.RouteMapEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
-import com.nutiteq.components.Vector;
 import com.nutiteq.filepicker.FilePickerActivity;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Marker;
-import com.nutiteq.geometry.NMLModel;
 import com.nutiteq.layers.raster.MapsforgeMapLayer;
 import com.nutiteq.log.Log;
-import com.nutiteq.nmlpackage.NMLPackage;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
-import com.nutiteq.style.ModelStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.GeometryLayer;
 import com.nutiteq.vectorlayers.MarkerLayer;
-import com.nutiteq.vectorlayers.NMLModelLayer;
 
 /**
  * Uses https://github.com/graphhopper/graphhopper-android to calculate offline routes
