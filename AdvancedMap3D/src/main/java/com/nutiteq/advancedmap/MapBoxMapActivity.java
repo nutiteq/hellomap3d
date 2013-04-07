@@ -91,7 +91,7 @@ public class MapBoxMapActivity extends Activity {
 		UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, mapLayer, clickMarker);
         mapView.getOptions().setMapListener(mapListener);
 
-		// TODO: put following to separate background task, downloadMetadata is network request
+		// TODO: better put following to separate background task, downloadMetadata is network request
         {
             JSONObject metaData = mapLayer.downloadMetadata();
             String template = metaData.optString("template");

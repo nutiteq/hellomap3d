@@ -18,13 +18,10 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Marker;
-import com.nutiteq.layers.raster.GdalMapLayer;
-import com.nutiteq.layers.raster.MBTilesMapLayer;
 import com.nutiteq.layers.raster.PackagedMapLayer;
 import com.nutiteq.layers.raster.QuadKeyLayer;
 import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.layers.raster.WmsLayer;
-import com.nutiteq.layers.vector.OgrLayer;
 import com.nutiteq.layers.vector.Polygon3DOSMLayer;
 import com.nutiteq.layers.vector.SpatialLiteDb;
 import com.nutiteq.layers.vector.SpatialiteLayer;
@@ -123,18 +120,17 @@ public class AdvancedMapActivity extends Activity {
 //        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(2.183333f, 41.383333f)); // barcelona
 //        mapView.setFocusPoint(new MapPos(2753791.3f, 8275296.0f)); // Tallinn
 
-        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(65.548178937072f,57.146960113233f)); // Tyumen
+//        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(65.548178937072f,57.146960113233f)); // Tyumen
         
         // bulgaria
-      //  mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(25.295818066955075f, 42.606913041613375f));
-        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(26.483230800000037, 42.550218000000044));
+//        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(26.483230800000037, 42.550218000000044));
 
 		// rotation - 0 = north-up
 		mapView.setRotation(0f);
 		// zoom - 0 = world, like on most web maps
-		mapView.setZoom(5.0f);
+		mapView.setZoom(16.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
-		mapView.setTilt(90.0f);
+		mapView.setTilt(55.0f);
 
 
 		// Activate some mapview options to make it smoother - optional
@@ -192,31 +188,24 @@ public class AdvancedMapActivity extends Activity {
         //    comment in needed ones, make sure that data file(s) exists in given folder
 
 		addBingBaseLayer(mapLayer.getProjection(),"http://ecn.t3.tiles.virtualearth.net/tiles/r",".png?g=1&mkt=en-US&shading=hill&n=z");
-   //     addPackagedBaseLayer(mapLayer.getProjection());
+        //addPackagedBaseLayer(mapLayer.getProjection());
 
 		// addStoredBaseLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/nutimaps/allimages/");
 		 
-//        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
+        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
 
 		// addSpatialiteLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/romania_sp3857.sqlite");
 
-
-//		addOsmPolygonLayer(mapLayer.getProjection());
+        // Overlay layer from http://toolserver.org/~cmarqu/hill/$%7Bz%7D/$%7Bx%7D/$%7By%7D.png
+        TMSMapLayer hillsLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
+                "http://toolserver.org/~cmarqu/hill/", "/", ".png");
+        mapView.getLayers().addLayer(hillsLayer);
+        
+		addOsmPolygonLayer(mapLayer.getProjection());
 
 //        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/mapxt/tallinn28.nml");
-
-//        addMBTilesLayer(mapLayer.getProjection(), Environment.getExternalStorageDirectory() + "/mapxt/geography-class_344e53.mbtiles.db", false);
-        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
-
-/*
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/buildings.shp","buildings", Color.DKGRAY);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/points.shp", "points",Color.CYAN);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/places.shp", "places",Color.BLACK);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/roads.shp","roads",Color.YELLOW);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/railways.shp","railways",Color.GRAY);
-        addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti_shp/waterways.shp","waterways",Color.BLUE);
-        */
-        
+//        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
+		
 	}
 
 
@@ -329,39 +318,6 @@ public class AdvancedMapActivity extends Activity {
 		mapView.getLayers().addLayer(spatialiteLayerPoly);
 
 	}
-
-	   private void addOgrLayer(Projection proj, String dbPath, String table, int color) {
-
-	        // set styles for all 3 object types: point, line and polygon
-	       int minZoom = 10;
-	       
-	        StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
-	        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
-	        PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(color).setPickingSize(0.2f).build();
-	        pointStyleSet.setZoomStyle(minZoom, pointStyle);
-
-	        StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
-	        lineStyleSet.setZoomStyle(minZoom, LineStyle.builder().setWidth(0.05f).setColor(color).build());
-
-	        PolygonStyle polygonStyle = PolygonStyle.builder().setColor(color).build();
-	        StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
-	        polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
-
-	        OgrLayer ogrLayer;
-            try {
-                ogrLayer = new OgrLayer(proj, dbPath, table,
-                        500, pointStyleSet, lineStyleSet, polygonStyleSet);
-                // ogrLayer.printSupportedDrivers();
-                // ogrLayer.printLayerDetails(table);
-                mapView.getLayers().addLayer(ogrLayer);
-
-            } catch (IOException e) {
-                Log.error(e.getLocalizedMessage());
-            }
-
-	    }
-	
-
 
      private void addWmsLayer(Projection proj, String url, String layers, Projection dataProjection){
        WmsLayer wmsLayer = new WmsLayer(proj, 0, 19, 1012, url, "", layers, "image/png", dataProjection);

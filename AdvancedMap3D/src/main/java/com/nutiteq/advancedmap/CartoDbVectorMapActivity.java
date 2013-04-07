@@ -144,15 +144,21 @@ public class CartoDbVectorMapActivity extends Activity {
         StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
         polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
 
+        StyleSet<LineStyle> roadLineStyleSet = new StyleSet<LineStyle>(LineStyle.builder().setWidth(0.07f).setColor(0xFFAAAAAA).build());
+        
         //  5.2 Define layer and add to map
         String account = "nutiteq";
         String table = "kihelkonnad_1897"; // kihelkonnad_1897, maakond_20120701
-        String columns = "kihelkond, the_geom_webmercator"; // NB! always include the_geom_webmercator
+        String columns = "kihelkond, "+CartoDbVectorLayer.TAG_WEBMERCATOR; // NB! always include the_geom_webmercator
         int limit = 5000; // max number of objects
         String sql = "SELECT "+columns+" FROM "+table+" WHERE "+CartoDbVectorLayer.TAG_WEBMERCATOR +" && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT "+limit;
         
 		CartoDbVectorLayer cartoLayer = new CartoDbVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), account, sql, pointStyleSet, lineStyleSet, polygonStyleSet);
 		mapView.getLayers().addLayer(cartoLayer);
+
+		String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads where type in ('trunk','primary') AND the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
+	    CartoDbVectorLayer cartoLayerTrunk = new CartoDbVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), account, sql2, null, roadLineStyleSet, null);
+	    mapView.getLayers().addLayer(cartoLayerTrunk);
 	}
 
     public MapView getMapView() {

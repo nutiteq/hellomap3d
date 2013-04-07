@@ -137,7 +137,7 @@ public class CartoDbVectorLayer extends GeometryLayer {
 	        labelTxt.append(entry.getKey() + ": " + entry.getValue()+"\n");
 	    }
 	    
-		return new DefaultLabel(labelTxt.toString());
+		return new DefaultLabel("Data:",labelTxt.toString());
 	}
 	
 	
