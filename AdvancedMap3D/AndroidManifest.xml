@@ -19,9 +19,10 @@
     <activity android:name="CartoDbVectorMapActivity"></activity>
     <activity android:name="MapBoxMapActivity"></activity>
     <activity android:name="MapsForgeMapActivity"></activity>
-     <activity android:name="com.nutiteq.advancedmap.RasterFileMapActivity"></activity>
+    <activity android:name="com.nutiteq.advancedmap.RasterFileMapActivity"></activity>
     <activity android:name="com.nutiteq.filepicker.FilePicker"></activity>
     <activity android:name="GraphhopperRouteActivity"></activity>
+    <activity android:name="Offline3DMapActivity"></activity>
   </application>
 
 </manifest>
