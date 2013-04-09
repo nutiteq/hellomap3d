@@ -1,0 +1,90 @@
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700);
+
+$primaryFontFamily: "Open Sans", Helvetica, Arial, sans-serif;
+$secondaryFontFamily: serif;
+
+$base: 12px;
+$rowWidth: 960px;
+$columnGutter: 0;
+$totalColumns: 24;
+$colWidth: $rowWidth / $totalColumns;
+// $mobileTotalColumns: 8;
+// $blockGridElements: 24; // Highest number of block grid elements, Maximum of 24 supported
+
+$fontSize: $base + 2;
+$lineHeight: $base * 2.5;
+
+$light: 300;
+$normal: 400;
+$semibold: 600;
+$bold: 700;
+
+$white: #fff;
+$black: #222;
+
+$grayLightest: hsl(0, 0, 93);
+$grayLighter: hsl(0, 0, 90);
+$grayLight: hsl(0, 0, 82);
+$gray: hsl(0, 0, 50);
+$grayDark: hsl(0, 0, 35);
+$grayDarker: hsl(0, 0, 12);
+
+$color: #00b483;
+$colorDark: darken($color, 10%);
+$colorDarker: darken($color, 13%);
+$accent: #ff7a48;
+$accentDark: darken($accent, 10%);
+$accentDarker: darken($accent, 17%);
+
+
+$textColor: $black;
+$linkColor: #08C;
+$highlightColor: #FFF2A1;
+
+$borderRadius: 2px;
+
+
+
+*, *:before, *:after {
+	@include borderbox;
+}
+
+body {
+	color: $textColor;
+	font-family: $primaryFontFamily;
+	font-size: $fontSize;
+	font-weight: $normal;
+	-webkit-font-smoothing: antialiased; /* Antialiased font for great smoothing */
+	-moz-font-smoothing: antialiased;
+	-o-font-smoothing: antialiased;
+	font-smoothing: antialiased;
+	line-height: $lineHeight;
+	text-rendering: optimizeLegibility; /* Optimise legibility for some CSS3 kerning */
+	background: $grayLightest;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: $primaryFontFamily;
+	font-weight: $normal;
+	line-height: 1.2;
+}
+.title-page {
+	color: $accent;
+	font-weight: $light;
+	font-size: $base * 2.5;
+}
+
+a {
+	color: $linkColor;
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+/* Custom Selection Styles */
+::selection {background: $highlightColor; color: $textColor; text-shadow: none;}
+::-webkit-selection {background: $highlightColor; color: $textColor; text-shadow: none;}
+::-moz-selection {background: $highlightColor; color: $textColor; text-shadow: none;}
+
+/* Input focus styles */
+input:focus {outline:0;border:1px solid #0091BD;} /* Gets rid of blue glow on field focus, adds border color instead */

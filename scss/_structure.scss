@@ -1,0 +1,121 @@
+.master-wrapper {
+	background: $grayLightest url(../img/bg.gif) 50% -150px no-repeat;
+	.home & {
+		background-image: url(../img/bg-home.gif);
+	}
+}
+.wrapper {
+	width: $rowWidth;
+	margin: 0 auto;
+}
+
+.masthead {
+	.title {
+		color: $white;
+		font-size: $base * 3.5;
+		font-weight: $light;
+		text-align: center;
+		display: block;
+		padding: $base * 3.5 0 $base;
+	}
+	.subtitle {
+		color: darken($colorDark, 5%);
+		text-align: center;
+		padding-bottom: $base * 4;
+	}
+	.github {
+		@include hide-text;
+		position: absolute;
+		right: 0px;
+		top: 0;
+		width: 135px;
+		height: 135px;
+		background: url(../img/github.png) no-repeat;
+		z-index: 100;
+	}
+}
+
+.button {
+	@include border-radius($borderRadius);
+	color: $white;
+	font-size: $base - 1px;
+	font-weight: $bold;
+	line-height: 1;
+	text-align: center;
+	text-transform: uppercase;
+	display: inline-block;
+	min-width: $base * 14;
+	margin-right: $base;
+	padding: ($base) ($base * 3) ($base + 1);
+	text-shadow: 0 1px 2px darken($color, 10%);
+	background: $color;
+	box-shadow: 0 2px 2px rgba(0,0,0,.05);
+	&:hover {
+		text-decoration: none;
+		background: darken($color, 3%);
+	}
+}
+
+.content {
+	margin-bottom: $base * 8;
+}
+
+.demo-phone {
+	height: 100%;
+	background: url(../img/phone.png) no-repeat;
+}
+
+.content-area {
+	overflow: hidden;
+	padding: ($base * 5) ($base * 8);
+	background: $white;
+	.demo-phone {
+		float: right;
+		position: relative;
+		width: 769px;
+		height: 432px;
+		margin: ($base * 2) -350px 100px ($base * 4);
+		z-index: 1;
+	}
+	h3 {
+		color: $accent;
+		font-size: 24px;
+		margin: ($base * 5) 0 ($base * 2);
+	}
+	.bigger {
+		font-size: 16px;
+		line-height: 32px;
+	}
+	p {
+		margin: ($base * 1) 0;		
+	}
+	ul {
+		list-style-type: none;
+		margin-top: $base * 2;
+		margin-bottom: $base * 3;
+		li {
+			position: relative;
+			padding-left: $base * 2;
+			line-height: $base * 2;
+			margin-bottom: $base;
+			&:before {
+				content: "";
+				position: absolute;
+				left: 0;
+				top: 9px;
+				width: 5px;
+				height: 5px;
+
+				background: $accent;
+			}
+		}
+	}	
+}
+
+.terms {
+	color: $gray;
+	font-size: 13px;
+	border-top: 3px solid $grayLight;
+	padding: ($base * 4) ($base * 8);
+	background: $grayLighter;
+}
