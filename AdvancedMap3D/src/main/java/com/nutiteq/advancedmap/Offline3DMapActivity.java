@@ -179,7 +179,8 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
                     } else if (file.isFile()
                             && (file.getName().endsWith(".db") ||
                                     file.getName().endsWith(".nml") ||
-                                    file.getName().endsWith(".nmldb"))) {
+                                    file.getName().endsWith(".nmldb")||
+                                    file.getName().endsWith(".sqlite"))) {
                         // accept files with given extension
                         return true;
                     }

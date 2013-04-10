@@ -20,15 +20,24 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.net.http.AndroidHttpClient;
+import android.os.AsyncTask;
+import android.widget.RelativeLayout;
 
+import com.nutiteq.advancedmap.R;
+import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MapTile;
+import com.nutiteq.components.MutableMapPos;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.tasks.NetFetchTileTask;
+import com.nutiteq.ui.MapListener;
+import com.nutiteq.utils.NetUtils;
 import com.nutiteq.utils.TileUtils;
+import com.nutiteq.utils.UiUtils;
 import com.nutiteq.utils.UtfGridHelper;
 import com.nutiteq.utils.UtfGridHelper.MBTileUTFGrid;
 import com.samskivert.mustache.Mustache;
@@ -128,33 +137,30 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
     }
 
     @Override
-    public Map<String, String> getUtfGridTooltips(MapPos p, float zoom, String template) {
+    public Map<String, String> getUtfGridTooltips(MapTile clickedTile, MutableMapPos tilePos, String template) {
         Map<String, String> data = new HashMap<String, String>();
 
-        // what is current tile in clicked location, and specific pixel of this
-        int tileSize = 256;
-        
-        int[] clickedPixel = TileUtils.MetersToPixels(p.x, p.y, (int) zoom);
+        int zoom = clickedTile.zoom;
         
         // what was clicked tile?
-        int tileX = (int) clickedPixel[0] / tileSize;
-        int tileY = (int) clickedPixel[1] / tileSize;
+        int tileX = clickedTile.x;
+        int tileY = clickedTile.y;
         
         // point on clicked tile
-        int clickedX = (int) clickedPixel[0] % tileSize;
-        int clickedY = 256 - (int) clickedPixel[1] % tileSize;
+        int clickedX = (int) (tilePos.x * 256);
+        int clickedY = 256 - (int) (tilePos.y * 256);
 
-       // Log.debug("clicked on tile "+zoom+"/"+tileX+"/"+tileY+" point:"+clickedX+":"+clickedY);
+        Log.debug("clicked on tile "+zoom+"/"+tileX+"/"+tileY+" point:"+clickedX+":"+clickedY);
 
         // get UTFGrid data for the tile
-        MBTileUTFGrid grid = utfGrids.get(new MapPos(tileX, (1 << ((int)zoom)) - 1 - tileY, (int)zoom));
+        MBTileUTFGrid grid = utfGrids.get(new MapPos(tileX, tileY, (int)zoom));
         
         if(grid == null){ // no grid found
             Log.debug("no UTFgrid loaded for "+(int)zoom+"/"+tileX+"/"+tileY);
             return null;
         }
 
-        int id = UtfGridHelper.utfGridCode(tileSize, clickedX, clickedY, grid);
+        int id = UtfGridHelper.utfGridCode(256, clickedX, clickedY, grid);
         if(grid.keys[id].equals("")){
             Log.debug("no utfGrid data here");
             return null;
@@ -219,45 +225,60 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
       return data;
     }
     
+    
+    public static class LoadMetadataTask extends AsyncTask<Void, Void, JSONObject> {
+
+        private Activity activity;
+        private UtfGridLayerEventListener mapListener;
+        private String account;
+        private String map;
+
+        public LoadMetadataTask(Activity activity, UtfGridLayerEventListener mapListener, String account, String map){
+            this.activity=activity;
+            this.mapListener = mapListener;
+            this.account = account;
+            this.map = map;
+        }
+        
+        protected JSONObject doInBackground(Void... v) {
+            JSONObject metaData = downloadMetadata(account, map);
+            
+            return metaData;
+        }
+
+        protected void onPostExecute(JSONObject metaData) {
+            if(metaData == null){
+                Log.error("no metadata found");
+                return;
+            }
+            String template = metaData.optString("template");
+            this.mapListener.setTemplate(template);
+            
+            String legend = metaData.optString("legend");
+            if(legend != null && !legend.equals("")){
+                Log.debug("legend: "+legend);
+                UiUtils.addWebView((RelativeLayout) this.activity.findViewById(R.id.mainView), this.activity, legend);
+            }else{
+                Log.debug("no legend found");
+            }
+            
+        }
+    }
+    
     /**
      * Load metadata as JSON. Suggested to be called from non-UI thread.
      * @return 
      */
-    public JSONObject downloadMetadata() {
+    public static JSONObject downloadMetadata(String account, String map) {
         try {
-            HttpClient client = new DefaultHttpClient();
-            HttpGet request = new HttpGet();
-            request.setURI(new URI("http://api.tiles.mapbox.com/v3/"+this.account+"."+this.map+".json"));
-            AndroidHttpClient.modifyRequestToAcceptGzipResponse(request);
-
-            HttpResponse response = client.execute(request);
-            InputStream ips  = AndroidHttpClient
-                    .getUngzippedContent(response.getEntity());
-            BufferedReader buf = new BufferedReader(new InputStreamReader(ips,"UTF-8"));
-
-            StringBuilder sb = new StringBuilder();
-            String s;
-            while(true)
-            {
-                s = buf.readLine();
-                if(s==null || s.length()==0)
-                    break;
-                sb.append(s);
-            }
+            String url = "http://api.tiles.mapbox.com/v3/"+account+"."+map+".json";
+            String json = NetUtils.downloadUrl(url, null, true);
             
-            buf.close();
-            ips.close();
-            JSONObject metaData = new JSONObject(sb.toString());
+            JSONObject metaData = new JSONObject(json);
             Log.debug("metadata loaded: "+metaData.toString());
             return metaData;
             
             } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            } catch (ClientProtocolException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
                 e.printStackTrace();
             }
         return null;

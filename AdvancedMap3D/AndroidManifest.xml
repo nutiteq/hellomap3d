@@ -23,6 +23,7 @@
     <activity android:name="com.nutiteq.filepicker.FilePicker"></activity>
     <activity android:name="GraphhopperRouteActivity"></activity>
     <activity android:name="Offline3DMapActivity"></activity>
+    <activity android:name="WmsMapActivity"></activity>
   </application>
 
 </manifest>

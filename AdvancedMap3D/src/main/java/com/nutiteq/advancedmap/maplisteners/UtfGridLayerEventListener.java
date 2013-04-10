@@ -12,6 +12,8 @@ import android.webkit.WebView;
 
 import com.nutiteq.MapView;
 import com.nutiteq.components.MapPos;
+import com.nutiteq.components.MapTile;
+import com.nutiteq.components.MutableMapPos;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.geometry.VectorElement;
 import com.nutiteq.layers.raster.UtfGridLayerInterface;
@@ -88,10 +90,15 @@ public class UtfGridLayerEventListener extends MapListener {
 		// WGS84
 		Log.debug("onMapClicked " + (new EPSG3857()).toWgs84(x, y).x + " "
 				+ (new EPSG3857()).toWgs84(x, y).y + " longClick: " + longClick);
+		
+		MutableMapPos tilePos = new MutableMapPos();
+		MapTile clickedTile = mapView.worldToMapTile(x, y, tilePos);
 
+		Log.debug("clicked tile "+clickedTile+" pos:"+tilePos);
+		
 		if(layer instanceof UtfGridLayerInterface){
 
-		    Map<String, String> toolTips =  layer.getUtfGridTooltips(new MapPos(x,y), mapView.getZoom(), this.template);
+		    Map<String, String> toolTips =  layer.getUtfGridTooltips(clickedTile, tilePos, this.template);
 
 		    if(toolTips == null){
 		        return;
@@ -110,6 +117,7 @@ public class UtfGridLayerEventListener extends MapListener {
             
             String text = "";
             if(toolTips.containsKey(UtfGridHelper.TEMPLATED_TEASER_KEY)){
+                // strio HTML from the teaser, so it can be shown in normal 
 //              String strippedTeaser = android.text.Html.fromHtml(toolTips.get(UtfGridHelper.TEMPLATED_TEASER_KEY).replaceAll("\\<.*?>","")).toString().replaceAll("\\p{C}", "").trim();
 //              Toast.makeText(activity, strippedTeaser, Toast.LENGTH_SHORT).show();
 //                Log.debug("show label ")
@@ -121,8 +129,6 @@ public class UtfGridLayerEventListener extends MapListener {
             clickMarker.setMapPos(pos);
             mapView.selectVectorElement(clickMarker);
             WebView webView = ((WebView)((ViewLabel)clickMarker.getLabel()).getView());
-           // clickMarker.setLabel(new DefaultLabel(text));
-            //webView.loadUrl("http://www.android.com");
             Log.debug("showing html: "+text);
             webView.loadDataWithBaseURL("file:///android_asset/",UiUtils.HTML_HEAD+text+UiUtils.HTML_FOOT, "text/html", "UTF-8",null);
             

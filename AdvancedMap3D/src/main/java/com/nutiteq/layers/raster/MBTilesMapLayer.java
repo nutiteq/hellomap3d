@@ -8,6 +8,7 @@ import android.content.Context;
 
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MapTile;
+import com.nutiteq.components.MutableMapPos;
 import com.nutiteq.layers.raster.db.MbTilesDatabaseHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
@@ -106,9 +107,8 @@ public class MBTilesMapLayer extends RasterLayer implements UtfGridLayerInterfac
     }
 
     @Override
-    public Map<String, String> getUtfGridTooltips(MapPos p, float zoom,
-            String template) {
-        // template will be loaded in database request
-        return db.getUtfGridTooltips(p, zoom);
+    public Map<String, String> getUtfGridTooltips(MapTile clickedTile, MutableMapPos tilePos, String template) {
+        // template will be loaded in database request, ignored here
+        return db.getUtfGridTooltips(clickedTile, tilePos);
     }
 }

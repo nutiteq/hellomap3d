@@ -1,15 +1,35 @@
 package com.nutiteq.layers.raster;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.net.http.AndroidHttpClient;
 
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MapTile;
+import com.nutiteq.components.MutableMapPos;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.tasks.NetFetchTileTask;
+import com.nutiteq.utils.NetUtils;
 import com.nutiteq.utils.TileUtils;
 import com.nutiteq.utils.Utils;
 
@@ -71,17 +91,37 @@ public class WmsLayer extends RasterLayer {
     @Override
     public void fetchTile(MapTile tile) {
 
-        Log.debug("WmsMap for tile " + tile);
+        Log.debug("Wms GetMap for tile " + tile);
 
-        int tileX = tile.x;
-        int tileY = tile.y;
-        int tileZoom = tile.zoom ;
-        
-        if (tileZoom < minZoom || tileZoom > maxZoom) {
+        if (tile.zoom < minZoom || tile.zoom > maxZoom) {
             return;
         }
 
-        Envelope envelope = TileUtils.TileBounds(tileX, tileY, tileZoom, projection);
+        String bbox = getTileBbox(tile);
+
+        StringBuffer url = new StringBuffer(
+                Utils.prepareForParameters(location));
+        url.append("LAYERS=").append(Utils.urlEncode(layer));
+        url.append("&FORMAT=").append(Utils.urlEncode(format));
+        url.append("&SERVICE=WMS&VERSION=1.1.0");
+        url.append("&REQUEST=GetMap");
+        url.append("&STYLES=").append(Utils.urlEncode(style));
+        url.append("&EXCEPTIONS=").append(
+                Utils.urlEncode("application/vnd.ogc.se_inimage"));
+        url.append("&SRS=").append(Utils.urlEncode(dataProjection.name()));
+        url.append("&WIDTH=256&HEIGHT=256");
+        url.append("&BBOX=").append(Utils.urlEncode(bbox));
+        String urlString = url.toString();
+        Log.info("WmsLayer: Start loading " + urlString);
+        
+        // finally you need to add a task with download URL to the raster tile download pool
+        components.rasterTaskPool.execute(new NetFetchTileTask(tile,
+                components, tileIdOffset, urlString, httpHeaders));
+    }
+
+    private String getTileBbox(MapTile tile) {
+        
+        Envelope envelope = TileUtils.TileBounds(tile.x, tile.y, tile.zoom, projection);
         
         String bbox = "" + envelope.getMinX() + "," + envelope.getMinY() + ","
                 + envelope.getMaxX() + "," + envelope.getMaxY();
@@ -110,28 +150,51 @@ public class WmsLayer extends RasterLayer {
         } else {
             Log.debug("wmsmap keeps original bbox " + bbox);
         }
-
-        StringBuffer url = new StringBuffer(
-                Utils.prepareForParameters(location));
-        url.append("LAYERS=").append(Utils.urlEncode(layer));
-        url.append("&FORMAT=").append(Utils.urlEncode(format));
-        url.append("&SERVICE=WMS&VERSION=1.1.0");
-        url.append("&REQUEST=GetMap");
-        url.append("&STYLES=").append(Utils.urlEncode(style));
-        url.append("&EXCEPTIONS=").append(
-                Utils.urlEncode("application/vnd.ogc.se_inimage"));
-        url.append("&SRS=").append(Utils.urlEncode(dataProjection.name()));
-        url.append("&WIDTH=256&HEIGHT=256");
-        url.append("&BBOX=").append(Utils.urlEncode(bbox));
-        String urlString = url.toString();
-        Log.info("WmsLayer: Start loading " + urlString);
-        
-        // finally you need to add a task with download URL to the raster tile download pool
-        components.rasterTaskPool.execute(new NetFetchTileTask(tile,
-                components, tileIdOffset, urlString, httpHeaders));
+        return bbox;
     }
+
 
     @Override
     public void flush() {
     }
+
+
+    // implements GetFeatureInfo WMS request
+    // Uses hardcoded values for several parameters
+    
+    public String getFeatureInfo(MapTile clickedTile, MutableMapPos tilePos) {
+        
+        String bbox = getTileBbox(clickedTile);
+
+        StringBuffer url = new StringBuffer(
+                Utils.prepareForParameters(location));
+        
+        // repeat basic WMS getMap parameters
+        url.append("LAYERS=").append(Utils.urlEncode(layer));
+        url.append("&FORMAT=").append(Utils.urlEncode(format));
+        url.append("&SERVICE=WMS&VERSION=1.1.1");
+        url.append("&STYLES=").append(Utils.urlEncode(style));
+        url.append("&SRS=").append(Utils.urlEncode(dataProjection.name()));
+        url.append("&WIDTH=256&HEIGHT=256");
+        url.append("&BBOX=").append(Utils.urlEncode(bbox));
+        
+        // add featureinfo-specific parameters
+        url.append("&REQUEST=GetFeatureInfo");
+        url.append("&QUERY_LAYERS=").append(Utils.urlEncode(layer));
+        url.append("&INFO_FORMAT=").append(Utils.urlEncode("text/html"));
+        url.append("&FEATURE_COUNT=10");
+        url.append("&X=").append((int) (256 * tilePos.x));
+        url.append("&Y=").append(256 - (int) (256 * tilePos.y));
+        url.append("&EXCEPTIONS=").append(
+                Utils.urlEncode("application/vnd.ogc.se_xml"));
+        
+        String urlString = url.toString();
+        Log.info("WmsLayer: GetFeatureInfo " + urlString);
+        
+        return NetUtils.downloadUrl(urlString, this.httpHeaders, true);
+    }
+    
+
+
+    
 }

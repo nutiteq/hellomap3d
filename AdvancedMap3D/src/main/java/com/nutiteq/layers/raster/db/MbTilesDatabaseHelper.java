@@ -19,6 +19,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.nutiteq.components.MapPos;
+import com.nutiteq.components.MapTile;
+import com.nutiteq.components.MutableMapPos;
 import com.nutiteq.utils.TileUtils;
 import com.nutiteq.utils.UtfGridHelper;
 import com.nutiteq.utils.UtfGridHelper.MBTileUTFGrid;
@@ -247,27 +249,21 @@ public class MbTilesDatabaseHelper {
  * @param zoom current map zoom
  * @return KV map with data from JSON. If template is given then templated_teaser and templated_full values are added with HTML
  */
-public Map<String, String> getUtfGridTooltips(MapPos p, float zoom) {
+public Map<String, String> getUtfGridTooltips(MapTile clickedTile, MutableMapPos tilePos) {
       
     Map<String, String> data = new HashMap<String, String>();
 
       // what is current tile in clicked location, and specific pixel of this
       int tileSize = 256;
+      int zoom = clickedTile.zoom;
       
-      int[] clickedPixel = TileUtils.MetersToPixels(p.x, p.y, (int) zoom);
+      int clickedX = (int) (tilePos.x * 256);
+      int clickedY = 256 - (int) (tilePos.y * 256);
       
-      // what was clicked tile?
-      int tileX = (int) clickedPixel[0] / tileSize;
-      int tileY = (int) clickedPixel[1] / tileSize;
-      
-      // point on clicked tile
-      int clickedX = (int) clickedPixel[0] % tileSize;
-      int clickedY = 256 - (int) clickedPixel[1] % tileSize;
-
-     // Log.debug("clicked on tile "+zoom+"/"+tileX+"/"+tileY+" point:"+clickedX+":"+clickedY);
+      //Log.debug("clicked on tile "+zoom+"/"+clickedTile.x+"/"+clickedTile.y+" point:"+clickedX+":"+clickedY);
 
       // get UTFGrid data for the tile
-      MBTileUTFGrid grid = getUTFGrid((int)zoom, tileX, tileY);
+      MBTileUTFGrid grid = getUTFGrid((int)zoom, clickedTile.x, (1 << (zoom)) - 1 - clickedTile.y);
 
       if(grid == null){ // no grid found
           Log.d(LOG_TAG,"no UTFgrid in the MBTiles database");
@@ -276,9 +272,9 @@ public Map<String, String> getUtfGridTooltips(MapPos p, float zoom) {
 
       int id = UtfGridHelper.utfGridCode(tileSize, clickedX, clickedY, grid);
 
-      String gridDataJson = getUTFGridValue(tileX, tileY, (int)zoom, grid.keys[id], UTFGRID_RADIUS);
+      String gridDataJson = getUTFGridValue(clickedTile.x, clickedTile.y, (int)zoom, grid.keys[id], UTFGRID_RADIUS);
       if(gridDataJson == null){
-          Log.d(LOG_TAG, "no gridDataJson value for "+id+ " in "+Arrays.toString(grid.keys)+ " tile:"+tileX +" "+ tileY);
+          Log.d(LOG_TAG, "no gridDataJson value for "+id+ " in "+Arrays.toString(grid.keys)+ " tile:"+clickedTile.x +" "+ clickedTile.y);
           return null;
       }
       try {

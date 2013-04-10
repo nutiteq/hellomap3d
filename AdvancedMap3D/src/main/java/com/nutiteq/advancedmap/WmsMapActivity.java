@@ -1,40 +1,35 @@
 package com.nutiteq.advancedmap;
 
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.webkit.WebView;
-import android.widget.RelativeLayout;
-import android.widget.Toast;
 import android.widget.ZoomControls;
 
-import com.graphhopper.GHRequest;
-import com.graphhopper.GHResponse;
-import com.graphhopper.util.StopWatch;
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
+import com.nutiteq.advancedmap.maplisteners.WmsLayerClickListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.MapBoxMapLayer;
 import com.nutiteq.layers.raster.MapBoxMapLayer.LoadMetadataTask;
+import com.nutiteq.layers.raster.TMSMapLayer;
+import com.nutiteq.layers.raster.WmsLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
+import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.ui.Label;
 import com.nutiteq.ui.ViewLabel;
-import com.nutiteq.utils.UiUtils;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
-public class MapBoxMapActivity extends Activity {
+public class WmsMapActivity extends Activity {
 
 	private MapView mapView;
 
@@ -70,10 +65,9 @@ public class MapBoxMapActivity extends Activity {
 
 		// 3. Define map layer for basemap - mandatory.
 
-		final MapBoxMapLayer mapLayer = new MapBoxMapLayer(new EPSG3857(), 0, 8, 31,
-				"nutiteq", "geography-class");
-
-		mapView.getLayers().setBaseLayer(mapLayer);
+        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
+                "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
+        mapView.getLayers().setBaseLayer(mapLayer);
 
         // add a layer and marker for click labels
         // define small invisible Marker, as Label requires some Marker 
@@ -92,15 +86,22 @@ public class MapBoxMapActivity extends Activity {
         clickMarkerLayer.add(clickMarker);
         mapView.getLayers().addLayer(clickMarkerLayer);
 		
-        // add event listener
-		final UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, mapLayer, clickMarker);
+
+        // add WMS layer as overlay
+        
+        String url = "http://kaart.maakaart.ee/geoserver/wms?transparent=true&"; // "http://192.168.1.102:8080/geoserver/wms?transparent=true&";
+        String layers = "topp:states";
+        
+        // note that data projection is different: WGS84 (EPSG:4326)
+        WmsLayer wmsLayer = new WmsLayer(new EPSG3857(), 0, 19, 1012, url, "", layers, "image/png", new EPSG4326());
+        wmsLayer.setFetchPriority(-5);
+        mapView.getLayers().addLayer(wmsLayer);
+        
+        // add event listener for clicks on WMS map
+		final WmsLayerClickListener mapListener = new WmsLayerClickListener(this, mapView, wmsLayer, clickMarker);
         mapView.getOptions().setMapListener(mapListener);
 
-		// download Metadata, add legend and tooltip listener hooks
 
-        LoadMetadataTask task = new MapBoxMapLayer.LoadMetadataTask(this, mapListener, "nutiteq", "geography-class");
-        task.execute();
-        
         
 		// set initial map view camera - optional. "World view" is default
 		// Location: Estonia
@@ -115,9 +116,9 @@ public class MapBoxMapActivity extends Activity {
 
 
 		// Activate some mapview options to make it smoother - optional
-		mapView.getOptions().setPreloading(false);
+		mapView.getOptions().setPreloading(true);
 		mapView.getOptions().setSeamlessHorizontalPan(true);
-		mapView.getOptions().setTileFading(true);
+		mapView.getOptions().setTileFading(false);
 		mapView.getOptions().setKineticPanning(true);
 		mapView.getOptions().setDoubleClickZoomIn(true);
 		mapView.getOptions().setDualClickZoomOut(true);
@@ -143,7 +144,7 @@ public class MapBoxMapActivity extends Activity {
 		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
 
         // define online map persistent caching - optional, suggested. Default - no caching
-        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache_mapbox").getPath());
+        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache_wms").getPath());
         // set persistent raster cache limit to 100MB
         mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 		
@@ -166,6 +167,7 @@ public class MapBoxMapActivity extends Activity {
 		});
 
 	}
+
 
     public MapView getMapView() {
         return mapView;
