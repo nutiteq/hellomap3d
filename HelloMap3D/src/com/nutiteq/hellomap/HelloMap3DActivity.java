@@ -54,7 +54,7 @@ public class HelloMap3DActivity extends Activity {
         if (retainObject != null) {
             // just restore configuration and update listener, skip other initializations
           	mapView.setComponents(retainObject);
-          	MapEventListener mapListener = (MapEventListener) mapView.getOptions().getMapListener();
+          	MyLocationMapEventListener mapListener = (MyLocationMapEventListener) mapView.getOptions().getMapListener();
           	mapListener.reset(this, mapView);
             mapView.startMapping();
             return;
@@ -136,7 +136,7 @@ public class HelloMap3DActivity extends Activity {
         mapView.getLayers().addLayer(markerLayer);
 
         // add event listener
-        MapEventListener mapListener = new MapEventListener(this, mapView);
+        MyLocationMapEventListener mapListener = new MyLocationMapEventListener(this, mapView);
         mapView.getOptions().setMapListener(mapListener);
    
         // add GPS My Location functionality 
@@ -160,14 +160,21 @@ public class HelloMap3DActivity extends Activity {
                  if (locationCircle != null) {
                      locationCircle.setLocation(proj, location);
                      locationCircle.setVisible(true);
+                     mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(location.getLongitude(), location.getLatitude()));
                  }
             }
 
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+                Log.debug("GPS onStatusChanged "+provider+" to "+status);
+            }
 
-            public void onProviderEnabled(String provider) {}
+            public void onProviderEnabled(String provider) {
+                Log.debug("GPS onProviderEnabled");
+            }
 
-            public void onProviderDisabled(String provider) {}
+            public void onProviderDisabled(String provider) {
+                Log.debug("GPS onProviderDisabled");
+            }
         };
         
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
