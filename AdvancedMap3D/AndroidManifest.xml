@@ -26,6 +26,31 @@
     <activity android:name="Offline3DMapActivity"></activity>
     <activity android:name="WmsMapActivity"></activity>
     <activity android:name="AnimatedLocationActivity"></activity>
+    
+    <activity
+    android:name="com.nutiteq.advancedmap.mapquest.SearchQueryResults"
+    android:exported="false">
+	    <intent-filter>
+	        <action android:name="android.intent.action.SEARCH" />
+	        <category android:name="android.intent.category.DEFAULT" />
+	    </intent-filter>
+	
+	    <meta-data
+	        android:name="android.app.searchable"
+	        android:resource="@xml/searchable" />
+	</activity>
+	<provider
+           android:name="com.nutiteq.advancedmap.mapquest.SearchSuggestionProvider"
+           android:authorities="com.nutiteq.osm"
+	       android:exported="false">
+	</provider>
+    
+	<activity android:name="AddressSearchActivity">
+	                <meta-data
+                android:name="android.app.default_searchable"
+                android:value="com.nutiteq.advancedmap.mapquest.SearchQueryResults" />
+	</activity>
+    
   </application>
 
 </manifest>

@@ -2,4 +2,8 @@
 <resources>
     <string name="hello">Hello AdvancedMap3D!</string>
     <string name="app_name">AdvancedMap3D</string>
+    <string name="search_label">Search</string>
+	<string name="search_hint">Address</string>
+	<string name="search_invoke">Search</string>
+    
 </resources>

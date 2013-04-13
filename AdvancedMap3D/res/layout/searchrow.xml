@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="fill_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical">
+ 
+     <TextView android:id="@+id/text1"
+         android:layout_width="fill_parent"
+         android:layout_height="wrap_content"
+         android:text="Searching..." android:layout_marginLeft="10px" android:textSize="20sp"/>
+ 
+     <TextView android:id="@+id/text2"
+         android:textSize="16sp"
+         android:layout_width="fill_parent"
+         android:layout_height="wrap_content"
+         android:text="Please wait" android:layout_marginLeft="10px"/>
+</LinearLayout>

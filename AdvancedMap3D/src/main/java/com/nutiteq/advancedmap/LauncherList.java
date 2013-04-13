@@ -17,6 +17,7 @@ public class LauncherList extends ListActivity{
     
     private Object[][] samples={
             {BasicMapActivity.class,null},
+            {AddressSearchActivity.class,null},
             {AnimatedLocationActivity.class,null},
             {CartoDbVectorMapActivity.class,null},
             {MapBoxMapActivity.class,null},
