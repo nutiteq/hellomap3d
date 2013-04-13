@@ -6,7 +6,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,6 +14,7 @@ import java.util.Map;
 import android.net.ParseException;
 import android.net.Uri;
 
+import com.nutiteq.utils.WkbRead;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Geometry;
@@ -24,8 +24,8 @@ import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
+import com.nutiteq.tasks.Task;
 import com.nutiteq.ui.DefaultLabel;
-import com.nutiteq.utils.WkbRead;
 import com.nutiteq.vectorlayers.Polygon3DLayer;
 
 public class Polygon3DOSMLayer extends Polygon3DLayer {
@@ -82,69 +82,11 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 		MapPos bottomLeft = projection.fromInternal((float) envelope.getMinX(), (float) envelope.getMinY());
 		MapPos topRight = projection.fromInternal((float) envelope.getMaxX(), (float) envelope.getMaxY());
 
-		List<Polygon> visibleElementslist = loadGeom(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y, maxObjects,
-				baseUrl);
-
-		long start = System.currentTimeMillis();
-		List<Polygon3D> newVisibleElementsList = new LinkedList<Polygon3D>();
-		int j = 0;
-		for (Polygon geometry : visibleElementslist) {
-
-			// parse address and name for label
-		    final Map<String, String> userData = (Map<String, String>) geometry.userData;
-			String name = userData.get("name");
-			String type = userData.get("type");
-			String address = userData.get("address");
-			
-			float h = this.height;
-			
-            String heightStr = null;
-            try {
-                heightStr = userData.get("height");
-                if(heightStr != null && !heightStr.equals("")){
-                    float hVal;
-                    // change unit if needed
-                    if(heightStr.contains(" ")){
-                        String[] parts = heightStr.split(" ");
-                        hVal = Float.parseFloat(parts[0]);
-                        hVal = convertToMeters(hVal,parts[1]);
-                    }else{
-                        hVal = Float.parseFloat(heightStr);
-                    }
-                    h = HEIGHT_ADJUST * hVal;
-                    Log.debug("found real height ="+h+" from "+height);
-                }
-            } catch (NumberFormatException e) {
-                Log.error("could not parse height value " + heightStr);
-            }
-            
-			// Log.debug("name = '" + name + "' address = '" + address + "'");
-			DefaultLabel label = null;
-			if (name == null && address != null && address.length()>0) {
-				label = new DefaultLabel(address);
-			}
-			if (name != null && address == null && name.length()>0) {
-				label = new DefaultLabel(name);
-			}
-			if (name != null && address != null && address.length()>0 && name.length()>0) {
-				label = new DefaultLabel(name, address);
-			}
-
-			// create 3Dpolygon
-			Polygon3D polygon3D = new Polygon3D(((Polygon)geometry).getVertexList(), geometry.getHolePolygonList(), h, label, styleSet, userData);
-			++j;
-			try {
-			    polygon3D.attachToLayer(this);
-			}
-			catch (RuntimeException e) {
-				Log.error("Polygon3DOSMLayer: Failed to triangulate! " + e.getMessage());
-				continue;
-			}
-			polygon3D.setActiveStyle(zoom);
-			newVisibleElementsList.add(polygon3D);
-		}
-		Log.debug("Triangulation time: " + (System.currentTimeMillis() - start));
-		setVisibleElementsList(newVisibleElementsList);
+        Envelope box = new Envelope(bottomLeft.x, topRight.x, bottomLeft.y, topRight.y);
+		executeVisibilityCalculationTask(new Load3DDataTask(box,zoom, maxObjects,
+                baseUrl));
+		
+		
 	}
 
 	private float convertToMeters(float hVal, String unit) {
@@ -163,12 +105,12 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
     /**
      * Helper method to load geometries from the server
      */
-    private List<Polygon> loadGeom(double x, double y, double x2, double y2, int maxObjects2, String baseUrl2) {
+    private List<Polygon> loadGeom(Envelope box, int maxObjects2, String baseUrl2) {
 		List<Polygon> objects = new LinkedList<Polygon>();
 		// URL request format: http://kaart.maakaart.ee/poiexport/buildings2.php?bbox=xmin,ymin,xmax,ymax&output=wkb
 		try {
 			Uri.Builder uri = Uri.parse(baseUrl2).buildUpon();
-			uri.appendQueryParameter("bbox", (int) x + "," + (int) y + "," + (int) x2 + "," + (int) y2);
+			uri.appendQueryParameter("bbox", (int) box.minX + "," + (int) box.minY + "," + (int) box.maxX + "," + (int) box.maxY);
 			uri.appendQueryParameter("output", "wkb");
 			uri.appendQueryParameter("max", String.valueOf(maxObjects2));
 			Log.debug("url:" + uri.build().toString());
@@ -206,4 +148,99 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 
 		return objects;
 	}
+    
+    protected class Load3DDataTask implements Task {
+        final Envelope envelope;
+        final int maxObjects;
+        final String serverUrl;
+        final int zoom;
+        
+        Load3DDataTask(Envelope envelope, int zoom, int maxObjects, String serverUrl) {
+          this.envelope = envelope;
+          this.maxObjects = maxObjects;
+          this.serverUrl = serverUrl;
+          this.zoom = zoom;
+        }
+        
+        @Override
+        public void run() {
+          List<Polygon> polygons = loadGeom(envelope, maxObjects, serverUrl);
+          List<Polygon3D> newVisibleElementsList = convert3D(polygons, zoom);
+          setVisibleElementsList(newVisibleElementsList); 
+          
+        }
+
+        @Override
+        public boolean isCancelable() {
+          return true;
+        }
+
+        @Override
+        public void cancel() {
+        }
+      }
+
+    public List<Polygon3D> convert3D(List<Polygon> polygons, int zoom) {
+
+        long start = System.currentTimeMillis();
+        List<Polygon3D> newVisibleElementsList = new LinkedList<Polygon3D>();
+        for (Polygon geometry : polygons) {
+
+            // parse address and name for label
+            final Map<String, String> userData = (Map<String, String>) geometry.userData;
+            String name = userData.get("name");
+            String type = userData.get("type");
+            String address = userData.get("address");
+            
+            float h = this.height;
+            
+            String heightStr = null;
+            try {
+                heightStr = userData.get("height");
+                if(heightStr != null && !heightStr.equals("")){
+                    float hVal;
+                    // change unit if needed
+                    if(heightStr.contains(" ")){
+                        String[] parts = heightStr.split(" ");
+                        hVal = Float.parseFloat(parts[0]);
+                        hVal = convertToMeters(hVal,parts[1]);
+                    }else{
+                        hVal = Float.parseFloat(heightStr);
+                    }
+                    h = HEIGHT_ADJUST * hVal;
+                    Log.debug("found real height ="+h+" from "+height);
+                }
+            } catch (NumberFormatException e) {
+                Log.error("could not parse height value " + heightStr);
+            }
+            
+            //Log.debug("name = '" + name + "' address = '" + address + "'");
+
+            DefaultLabel label = null;
+            if ((name == null || name.equals("")) && address != null && address.length()>0) {
+                label = new DefaultLabel(address);
+            }
+            if (name != null && (address == null || address.equals("")) && name.length()>0) {
+                label = new DefaultLabel(name);
+            }
+            if (name != null && address != null && address.length()>0 && name.length()>0) {
+                label = new DefaultLabel(name, address);
+            }
+
+            // create 3Dpolygon
+            Polygon3D polygon3D = new Polygon3D(((Polygon)geometry).getVertexList(), geometry.getHolePolygonList(), h, label, styleSet, userData);
+            try {
+                polygon3D.attachToLayer(this);
+            }
+            catch (RuntimeException e) {
+                Log.error("Polygon3DOSMLayer: Failed to triangulate! " + e.getMessage());
+                continue;
+            }
+            polygon3D.setActiveStyle(zoom);
+            newVisibleElementsList.add(polygon3D);
+        }
+        Log.debug("Triangulation time: " + (System.currentTimeMillis() - start));
+        return newVisibleElementsList;
+    }
+
 }
