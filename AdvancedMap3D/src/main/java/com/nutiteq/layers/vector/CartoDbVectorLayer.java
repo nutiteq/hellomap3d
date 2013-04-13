@@ -219,6 +219,11 @@ public class CartoDbVectorLayer extends GeometryLayer {
 
                 JSONObject jsonData = getJSONFromUrl(uri.build().toString());
 
+                if(jsonData == null){
+                    Log.debug("No CartoDB data");
+                    return;
+                }
+                
                 JSONArray rows = jsonData.getJSONArray(TAG_ROWS);
                 
                 

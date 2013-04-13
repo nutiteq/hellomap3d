@@ -116,7 +116,7 @@ public class MapsforgeFetchTileTask extends NetFetchTileTask {
 
 /**
  * 
- * Using own InternalRenderTheme, as mapsforge bundled (identical one) does not find theme for some reason
+ * Modified InternalRenderTheme, as mapsforge bundled does not find theme path
  * @author jaak
  *
  */

@@ -77,7 +77,7 @@ public class WmsMapActivity extends Activity {
         //  define label as WebView to show HTML
         WebView labelView = new WebView(this); 
         // It is important to set size, exception will come otherwise
-        labelView.layout(0, 0, 150, 150);
+        labelView.layout(0, 0, 300, 150);
         Label label = new ViewLabel("", labelView, new Handler());
         
         Marker clickMarker = new Marker(new MapPos(0,0), label, markerStyle, null);
@@ -89,7 +89,7 @@ public class WmsMapActivity extends Activity {
 
         // add WMS layer as overlay
         
-        String url = "http://kaart.maakaart.ee/geoserver/wms?transparent=true&"; // "http://192.168.1.102:8080/geoserver/wms?transparent=true&";
+        String url = "http://kaart.maakaart.ee/geoserver/wms?transparent=true&";
         String layers = "topp:states";
         
         // note that data projection is different: WGS84 (EPSG:4326)
@@ -104,15 +104,15 @@ public class WmsMapActivity extends Activity {
 
         
 		// set initial map view camera - optional. "World view" is default
-		// Location: Estonia
-        //mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.5f, 58.3f));
-        mapView.setFocusPoint(new MapPos(2745202.3f, 8269676.0f));
+		// Location: USA
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-90f, 35f));
+        
 		// rotation - 0 = north-up
 		mapView.setRotation(0f);
 		// zoom - 0 = world, like on most web maps
 		mapView.setZoom(5.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
-		mapView.setTilt(90.0f);
+		mapView.setTilt(40.0f);
 
 
 		// Activate some mapview options to make it smoother - optional
