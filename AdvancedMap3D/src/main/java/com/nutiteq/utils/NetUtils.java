@@ -9,10 +9,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
@@ -68,4 +70,64 @@ public class NetUtils {
             }
         return null;
     }
+
+
+    /**
+     * HTTP Post data
+     * @param url
+     * @param httpHeaders
+     * @param gzip
+     * @param postData
+     * @return
+     */
+    public static String postUrl(String url, Map<String, String> httpHeaders, boolean gzip, HttpEntity postData ) {
+        try {
+            HttpClient client = new DefaultHttpClient();
+            HttpPost request = new HttpPost();
+            request.setURI(new URI(url));
+            Log.debug("POST to "+url);
+            if(gzip){
+                AndroidHttpClient.modifyRequestToAcceptGzipResponse(request);
+            }
+
+            if(httpHeaders != null){
+                for (Map.Entry<String, String> entry : httpHeaders.entrySet()) {
+                    request.addHeader(entry.getKey(), entry.getValue());
+                }
+              }
+            
+            request.setEntity(postData);
+            
+            HttpResponse response = client.execute(request);
+            InputStream ips;
+            if(gzip){
+                ips  = AndroidHttpClient
+                        .getUngzippedContent(response.getEntity());
+            }else{
+                ips  = new ByteArrayInputStream(EntityUtils.toByteArray(response.getEntity()));
+            }
+            BufferedReader buf = new BufferedReader(new InputStreamReader(ips,"UTF-8"));
+
+            StringBuilder sb = new StringBuilder();
+            String s;
+
+            while ((s = buf.readLine()) != null) {
+                sb.append(s);
+            }
+            
+            buf.close();
+            ips.close();
+            Log.debug("loaded: "+sb.toString());
+            return sb.toString();
+            
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            } catch (ClientProtocolException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        return null;
+    }
+
 }

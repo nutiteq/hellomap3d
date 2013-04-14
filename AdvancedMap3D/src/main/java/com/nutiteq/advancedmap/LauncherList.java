@@ -27,6 +27,7 @@ public class LauncherList extends ListActivity{
             {AdvancedMapActivity.class,null},
             {MapsForgeMapActivity.class,FilePicker.class},
             {GraphhopperRouteActivity.class,FilePicker.class},
+            {CloudMadeRouteActivity.class,null},
             {Offline3DMapActivity.class,FilePicker.class},
             {WmsMapActivity.class, null}
     };

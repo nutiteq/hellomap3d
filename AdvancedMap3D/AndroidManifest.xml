@@ -26,6 +26,7 @@
     <activity android:name="Offline3DMapActivity"></activity>
     <activity android:name="WmsMapActivity"></activity>
     <activity android:name="AnimatedLocationActivity"></activity>
+    <activity android:name="CloudMadeRouteActivity"></activity>
     
     <activity
     android:name="com.nutiteq.advancedmap.mapquest.SearchQueryResults"

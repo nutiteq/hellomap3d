@@ -37,6 +37,7 @@ import com.nutiteq.layers.raster.MapsforgeMapLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.services.routing.Route;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.StyleSet;
@@ -351,9 +352,16 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
     @Override
     public void setStartmarker(MapPos startPos) {
         routeLayer.clear();
-        stopMarker.setMapPos(new MapPos(0,0));
+        stopMarker.setVisible(false);
         startMarker.setMapPos(startPos);
-       
+        startMarker.setVisible(true);
+    }
+
+
+    @Override
+    public void routeResult(Route route) {
+        // TODO Auto-generated method stub
+        
     }
 
      
