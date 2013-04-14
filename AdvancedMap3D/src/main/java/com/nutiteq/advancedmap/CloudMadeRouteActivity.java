@@ -134,15 +134,15 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
         // define images for turns
         // source: http://mapicons.nicolasmollet.com/markers/transportation/directions/directions/
         // TODO: use better structure than plain array for this
-        routeImages[Route.IMAGE_ROUTE_START] = UnscaledBitmapLoader.decodeResource(getResources(),
+        routeImages[CloudMadeDirections.IMAGE_ROUTE_START] = UnscaledBitmapLoader.decodeResource(getResources(),
                 R.drawable.direction_up);
-        routeImages[Route.IMAGE_ROUTE_RIGHT] = UnscaledBitmapLoader.decodeResource(getResources(),
+        routeImages[CloudMadeDirections.IMAGE_ROUTE_RIGHT] = UnscaledBitmapLoader.decodeResource(getResources(),
                 R.drawable.direction_upthenright);
-        routeImages[Route.IMAGE_ROUTE_LEFT] = UnscaledBitmapLoader.decodeResource(getResources(),
+        routeImages[CloudMadeDirections.IMAGE_ROUTE_LEFT] = UnscaledBitmapLoader.decodeResource(getResources(),
                 R.drawable.direction_upthenleft);
-        routeImages[Route.IMAGE_ROUTE_STRAIGHT] = UnscaledBitmapLoader.decodeResource(getResources(),
+        routeImages[CloudMadeDirections.IMAGE_ROUTE_STRAIGHT] = UnscaledBitmapLoader.decodeResource(getResources(),
                 R.drawable.direction_up);
-        routeImages[Route.IMAGE_ROUTE_END] = UnscaledBitmapLoader.decodeResource(getResources(),
+        routeImages[CloudMadeDirections.IMAGE_ROUTE_END] = UnscaledBitmapLoader.decodeResource(getResources(),
                 R.drawable.direction_down);
         
         // rotation - 0 = north-up
@@ -258,8 +258,9 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
         
         routeLayer.clear();
         routeLayer.add(route.getRouteLine());
-        Log.debug("route line: "+route.getRouteLine().toString());
-        markerLayer.addAll(route.getRoutePointMarkers(routeImages, MARKER_SIZE));
+        Log.debug("route line points: "+route.getRouteLine().getVertexList().size());
+//        Log.debug("route line: "+route.getRouteLine().toString());
+        markerLayer.addAll(CloudMadeDirections.getRoutePointMarkers(routeImages, MARKER_SIZE, route.getInstructions()));
         mapView.requestRender();
         Toast.makeText(this, "Route "+route.getRouteSummary(), Toast.LENGTH_LONG).show();
     }

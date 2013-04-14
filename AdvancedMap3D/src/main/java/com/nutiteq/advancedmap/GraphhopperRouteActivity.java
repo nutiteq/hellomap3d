@@ -207,9 +207,6 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
 				mapView.zoomOut();
 			}
 		});
-
-
-		
 	}
 
 	
@@ -366,8 +363,8 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
     
     @Override
     public void routeResult(Route route) {
-        // TODO Auto-generated method stub
-        
+        // not used here, as Graphhopper routing is called from same application, 
+        // without using Route object and separate service class
     }
 
      

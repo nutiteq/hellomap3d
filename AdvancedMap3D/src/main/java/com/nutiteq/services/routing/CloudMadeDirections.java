@@ -3,35 +3,28 @@ package com.nutiteq.services.routing;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Vector;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.os.AsyncTask;
 
 import com.nutiteq.advancedmap.RouteActivity;
-import com.nutiteq.advancedmap.mapquest.SearchQueryResults;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Line;
+import com.nutiteq.geometry.Marker;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LineStyle;
+import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.DefaultLabel;
-import com.nutiteq.utils.IOUtils;
 import com.nutiteq.utils.NetUtils;
-import com.nutiteq.utils.Utils;
-import com.nutiteq.vectorlayers.GeometryLayer;
 
 /**
  * Routing service using CloudMade routing, version 0.3.
@@ -62,13 +55,12 @@ public class CloudMadeDirections  {
   private static final String RESPONSE_TYPE = "gpx";
   private static final String API_VERSION = "0.3";
 
-  private static int IMAGE_ROUTE_START = 0;
-  private static int IMAGE_ROUTE_RIGHT = 1;
-  private static int IMAGE_ROUTE_LEFT = 2;
-  private static int IMAGE_ROUTE_STRAIGHT = 3;
-  private static int IMAGE_ROUTE_END = 4;
+  public static int IMAGE_ROUTE_START = 0;
+  public static int IMAGE_ROUTE_RIGHT = 1;
+  public static int IMAGE_ROUTE_LEFT = 2;
+  public static int IMAGE_ROUTE_STRAIGHT = 3;
+  public static int IMAGE_ROUTE_END = 4;
 
-  
   private final MapPos start;
   private final MapPos end;
   private static String routeType;
@@ -117,7 +109,7 @@ public class CloudMadeDirections  {
           String url = createUrl(mapPos[0],mapPos[1]);
           
           String xml = NetUtils.downloadUrl(url, null, true);
-          Log.debug("route response: "+xml);
+//          Log.debug("route response: "+xml);
           
           final Route route = readRoute(new StringReader(xml));
           return route;
@@ -129,7 +121,6 @@ public class CloudMadeDirections  {
   }
   
 
-  // TODO jaakl: use proper URL builder
   public static String createUrl(MapPos start, MapPos end) {
     final StringBuffer url = new StringBuffer(BASEURL);
     url.append(apiKey).append("/api/").append(API_VERSION).append("/");
@@ -301,4 +292,28 @@ public class CloudMadeDirections  {
         return IMAGE_ROUTE_STRAIGHT;
     }
 
+  /**
+   * Get route markers, that can be shown on map. Images order see IMAGES_ROUTE constants
+   * 
+   * @param routeImages
+   *          images to be used in direction instructions
+   * @return markers that can be shown on map
+   */
+  public static ArrayList<Marker> getRoutePointMarkers(final Bitmap[] routeImages, float imageSize, final RouteInstruction[] instructions) {
+    if (instructions == null || instructions.length == 0) {
+      return new ArrayList<Marker>();
+    }
+
+    final ArrayList<Marker> routePointMarkers = new ArrayList<Marker>(instructions.length);
+    
+    for (int i = 0; i < instructions.length; i++) {
+      final RouteInstruction current = instructions[i];
+      MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(routeImages[current.getInstructionType()]).setSize(imageSize).build();
+      routePointMarkers.add(new Marker(current.getPoint(), new DefaultLabel("Step "+current.getInstructionNumber(),current
+          .getInstruction()), markerStyle, current));
+    }
+
+    return routePointMarkers;
+  }
+  
 }

@@ -21,13 +21,13 @@ public class LauncherList extends ListActivity{
             {AnimatedLocationActivity.class,null},
             {CartoDbVectorMapActivity.class,null},
             {MapBoxMapActivity.class,null},
+            {CloudMadeRouteActivity.class,null},
             {MBTilesMapActivity.class,FilePicker.class},
             {VectorFileMapActivity.class,FilePicker.class},
             {RasterFileMapActivity.class,FilePicker.class},
             {AdvancedMapActivity.class,null},
             {MapsForgeMapActivity.class,FilePicker.class},
             {GraphhopperRouteActivity.class,FilePicker.class},
-            {CloudMadeRouteActivity.class,null},
             {Offline3DMapActivity.class,FilePicker.class},
             {WmsMapActivity.class, null}
     };
