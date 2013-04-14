@@ -350,14 +350,20 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
 
 
     @Override
-    public void setStartmarker(MapPos startPos) {
+    public void setStartMarker(MapPos startPos) {
         routeLayer.clear();
         stopMarker.setVisible(false);
         startMarker.setMapPos(startPos);
         startMarker.setVisible(true);
     }
 
+    @Override
+    public void setStopMarker(MapPos pos) {
+        stopMarker.setMapPos(pos);
+        stopMarker.setVisible(true);
+    }
 
+    
     @Override
     public void routeResult(Route route) {
         // TODO Auto-generated method stub

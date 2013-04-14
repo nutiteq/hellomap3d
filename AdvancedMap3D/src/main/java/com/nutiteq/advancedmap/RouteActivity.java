@@ -19,12 +19,14 @@ public interface RouteActivity {
      * MapListener provides start location of route, first click on map
      * @param startPos
      */
-    public void setStartmarker(MapPos startPos);
+    public void setStartMarker(MapPos startPos);
+    public void setStopMarker(MapPos mapPos);
     
     /**
      * Routing service gives calculated route
      * @param route
      */
     public void routeResult(Route route);
+
     
 }

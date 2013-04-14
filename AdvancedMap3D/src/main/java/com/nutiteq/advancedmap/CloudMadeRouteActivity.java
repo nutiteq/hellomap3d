@@ -1,12 +1,10 @@
 package com.nutiteq.advancedmap;
 
-import java.util.Arrays;
-import java.util.Vector;
-
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Toast;
 import android.widget.ZoomControls;
@@ -22,7 +20,6 @@ import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.services.routing.CloudMadeDirections;
-import com.nutiteq.services.routing.CloudMadeToken;
 import com.nutiteq.services.routing.Route;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.StyleSet;
@@ -41,6 +38,7 @@ import com.nutiteq.vectorlayers.MarkerLayer;
 public class CloudMadeRouteActivity extends Activity implements RouteActivity{
 
 	private static final float MARKER_SIZE = 0.3f;
+    private static final String CLOUDMADE_KEY = "e12f720d5f2b5499946d2e975088dc89";
     private MapView mapView;
     protected boolean errorLoading;
     protected boolean graphLoaded;
@@ -86,9 +84,17 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
 
 		      }
 
-		// FIXME: cloudmade here
+		// use special style for high-density devices
+		DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		String cloudMadeStyle = "997";
+
+		if(metrics.densityDpi == DisplayMetrics.DENSITY_HIGH){
+		    cloudMadeStyle  = "997@2x";
+		}
+		
         TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
-                "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
+                "http://b.tile.cloudmade.com/"+CLOUDMADE_KEY+"/"+cloudMadeStyle+"/256/", "/", ".png");
         mapView.getLayers().setBaseLayer(mapLayer);
         
         // Location: London
@@ -192,6 +198,9 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
 				mapView.zoomOut();
 			}
 		});
+		
+        Toast.makeText(getApplicationContext(), "Click on map to set route start and end", Toast.LENGTH_SHORT).show();
+
 	}
 
 	
@@ -205,7 +214,7 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
         Projection proj = mapView.getLayers().getBaseLayer().getProjection();
         stopMarker.setMapPos(proj.fromWgs84(toLon, toLat));
 
-        CloudMadeDirections directionsService = new CloudMadeDirections(this, new MapPos(fromLon, fromLat), new MapPos(toLon, toLat), CloudMadeDirections.ROUTE_TYPE_CAR, CloudMadeDirections.ROUTE_TYPE_MODIFIER_FASTEST, "e12f720d5f2b5499946d2e975088dc89", proj);
+        CloudMadeDirections directionsService = new CloudMadeDirections(this, new MapPos(fromLon, fromLat), new MapPos(toLon, toLat), CloudMadeDirections.ROUTE_TYPE_CAR, CloudMadeDirections.ROUTE_TYPE_MODIFIER_FASTEST, CLOUDMADE_KEY, proj);
         directionsService.route();
     }
 
@@ -221,7 +230,7 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
 
 
     @Override
-    public void setStartmarker(MapPos startPos) {
+    public void setStartMarker(MapPos startPos) {
         routeLayer.clear();
         markerLayer.clear();
 
@@ -231,6 +240,14 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
         startMarker.setVisible(true);
     }
 
+    @Override
+    public void setStopMarker(MapPos pos) {
+        markerLayer.add(stopMarker);
+        stopMarker.setMapPos(pos);
+        stopMarker.setVisible(true);
+    }
+
+    
     @Override
     public void routeResult(Route route) {
         

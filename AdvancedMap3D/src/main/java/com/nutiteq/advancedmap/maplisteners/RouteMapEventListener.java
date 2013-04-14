@@ -62,10 +62,11 @@ public class RouteMapEventListener extends MapListener {
 		if(startPos == null){
 		    // set start, or start again
 		    startPos = (new EPSG3857()).toWgs84(x,y);
-		    activity.setStartmarker(new MapPos(x,y));
+		    activity.setStartMarker(new MapPos(x,y));
 		}else if(stopPos == null){
 		    // set stop and calculate
 		    stopPos = (new EPSG3857()).toWgs84(x,y);
+		    activity.setStopMarker(new MapPos(x,y));
 	        activity.showRoute(startPos.y, startPos.x, stopPos.y, stopPos.x);
 		 
 	        // restart to force new route next time
