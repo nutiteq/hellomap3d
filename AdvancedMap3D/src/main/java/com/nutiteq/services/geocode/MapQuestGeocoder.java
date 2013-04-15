@@ -14,9 +14,12 @@ import com.nutiteq.utils.NetUtils;
 
 public class MapQuestGeocoder {
 
-    public void geocode(String request, Envelope bbox, SearchQueryResults callback){
+    public void geocode(String request, Envelope bbox, SearchQueryResults callback, String apiKey){
         
         Uri.Builder uri = Uri.parse("http://open.mapquestapi.com/geocoding/v1/address?").buildUpon();
+//        if(apiKey != null){
+//            uri.appendQueryParameter("key", apiKey);
+//        }
         uri.appendQueryParameter("location", request);
         
         if(bbox != null){
@@ -25,6 +28,10 @@ public class MapQuestGeocoder {
         }
         
         String url = uri.build().toString();
+        
+        if(apiKey != null){
+            url += "&key="+apiKey;
+        }
         Log.debug("geocode url: "+uri.build().toString());
         
         new MqGeocodeTask(callback).execute(url);
@@ -42,7 +49,7 @@ public class MapQuestGeocoder {
         
         protected JSONArray doInBackground(String... urls) {
  
-            String json = NetUtils.downloadUrl(urls[0], null, true);
+            String json = NetUtils.downloadUrl(urls[0], null, true, "UTF-8");
 //            Log.debug("geocode response: "+json);
             
             try {

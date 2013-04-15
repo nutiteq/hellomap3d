@@ -191,7 +191,7 @@ public class WmsLayer extends RasterLayer {
         String urlString = url.toString();
         Log.info("WmsLayer: GetFeatureInfo " + urlString);
         
-        return NetUtils.downloadUrl(urlString, this.httpHeaders, true);
+        return NetUtils.downloadUrl(urlString, this.httpHeaders, true, "UTF-8");
     }
     
 

@@ -108,7 +108,7 @@ public class CloudMadeDirections  {
 
           String url = createUrl(mapPos[0],mapPos[1]);
           
-          String xml = NetUtils.downloadUrl(url, null, true);
+          String xml = NetUtils.downloadUrl(url, null, true, "UTF-8");
 //          Log.debug("route response: "+xml);
           
           final Route route = readRoute(new StringReader(xml));
@@ -190,7 +190,7 @@ public class CloudMadeDirections  {
           if (XmlPullParser.START_TAG == eventType) {
             final String tagName = parser.getName();
             if (TIME_TAG.equals(tagName)) {
-              totalTime = parseDuration(parser.nextText());
+              totalTime = new DurationTime(Long.parseLong(parser.nextText()));
             } else if (DISTANCE_TAG.equals(tagName)) {
               distance = readDistance(parser);
             } 
@@ -222,25 +222,6 @@ public class CloudMadeDirections  {
     }
   }
   
-  protected static DurationTime parseDuration(final String time) {
-      if (time == null || "".equals(time.trim())) {
-        return new DurationTime(0, 0, 0, 0);
-      }
-      
-      try {
-        int timeInt = Integer.parseInt(time);
-        final int daysInt = timeInt / 86400;
-        final int hoursInt = (int)(timeInt/3600) - (daysInt*24);
-        final int minutesInt = (int)(timeInt/60) - (hoursInt*60) - (daysInt*60*24);
-        final int secondsInt = timeInt - (minutesInt*60)- (hoursInt*60*60) - (daysInt*60*60*24);
-        return new DurationTime(daysInt, hoursInt, minutesInt, secondsInt);
-      } catch (final NumberFormatException e) {
-        Log.error("Error parsing duration from " + time+ " "+e.getMessage());
-        return null;
-      }
-    }
-
-  
   private static RouteInstruction readInstruction(final XmlPullParser parser, final int count)
       throws Exception {
     final String lat = parser.getAttributeValue(null, ATTRIBUTE_LATITUDE);
@@ -262,7 +243,7 @@ public class CloudMadeDirections  {
         if (XmlPullParser.START_TAG == eventType) {
                 final String tagName = parser.getName();
                 if (TIME_TAG.equals(tagName)) {
-                    time = parseDuration(parser.nextText());
+                    time = new DurationTime(Long.parseLong(parser.nextText()));
                 } else if (DISTANCE_TAG.equals(tagName)) {
                     distance = readDistance(parser);
                 } else if (TURN_TAG.equals(tagName)) {

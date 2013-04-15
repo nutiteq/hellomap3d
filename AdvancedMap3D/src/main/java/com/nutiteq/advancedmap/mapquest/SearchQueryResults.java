@@ -40,6 +40,8 @@ public class SearchQueryResults extends ListActivity
 {  
     private static final int SEARCH_DIALOG = 1;
 
+    private static final String MAPQUEST_KEY = "Fmjtd%7Cluub2qu82q%2C70%3Do5-961w1w";
+
     // UI elements
     private ProgressDialog progressDialog;
     private Marker[] searchResultPlaces;
@@ -118,7 +120,7 @@ public class SearchQueryResults extends ListActivity
          showDialog(SEARCH_DIALOG);
          
          MapQuestGeocoder geocoder = new MapQuestGeocoder();
-         geocoder.geocode(queryString, null, this);
+         geocoder.geocode(queryString, null, this, MAPQUEST_KEY);
     }
 
     // handler to send search results to UI thread
@@ -157,7 +159,7 @@ public class SearchQueryResults extends ListActivity
         
         Projection proj = new EPSG3857();
         Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.olmarker);
-        MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.5f).setColor(Color.WHITE).build();
+        MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.001f).setColor(Color.WHITE).build();
         
         for (int i=0;i<locations.length();i++){
             

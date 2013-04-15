@@ -21,6 +21,7 @@ public class Route {
   public final static int ROUTE_RESULT_OK = 0;
   public final static int ROUTE_RESULT_NETWORK_ERRROR = 1;
   public final static int ROUTE_RESULT_NO_ROUTE = 2;
+  public final static int ROUTE_RESULT_INTERNAL_ERROR = 3;
 
   /**
    * Route from directions service

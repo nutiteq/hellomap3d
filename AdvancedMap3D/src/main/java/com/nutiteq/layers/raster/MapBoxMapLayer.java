@@ -272,7 +272,7 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
     public static JSONObject downloadMetadata(String account, String map) {
         try {
             String url = "http://api.tiles.mapbox.com/v3/"+account+"."+map+".json";
-            String json = NetUtils.downloadUrl(url, null, true);
+            String json = NetUtils.downloadUrl(url, null, true, "UTF-8");
             
             JSONObject metaData = new JSONObject(json);
             Log.debug("metadata loaded: "+metaData.toString());

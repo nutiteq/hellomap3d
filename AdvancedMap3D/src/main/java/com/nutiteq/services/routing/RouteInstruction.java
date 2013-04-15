@@ -19,7 +19,6 @@ public class RouteInstruction {
    *          number of this instruction
    * @param instructionType
    *          type of this instruction
-   *          {@link com.nutiteq.services.routing.DirectionsService}
    * @param duration
    *          duration to this point
    * @param instruction
