@@ -231,7 +231,6 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
         routeLayer.clear();
         markerLayer.clear();
 
-        //stopMarker.setVisible(false);
         markerLayer.add(startMarker);
         startMarker.setMapPos(startPos);
         startMarker.setVisible(true);
