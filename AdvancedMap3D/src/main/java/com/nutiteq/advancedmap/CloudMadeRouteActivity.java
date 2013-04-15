@@ -90,7 +90,7 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
 		    cloudMadeStyle  = "997@2x";
 		}
 		
-        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
+        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
                 "http://b.tile.cloudmade.com/"+CLOUDMADE_KEY+"/"+cloudMadeStyle+"/256/", "/", ".png");
         mapView.getLayers().setBaseLayer(mapLayer);
         

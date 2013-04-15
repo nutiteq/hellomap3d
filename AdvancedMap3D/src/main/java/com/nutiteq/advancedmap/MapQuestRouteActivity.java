@@ -195,8 +195,6 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
                 + toLat + "," + toLon);
 
         Projection proj = mapView.getLayers().getBaseLayer().getProjection();
-        stopMarker.setMapPos(proj.fromWgs84(toLon, toLat));
-
         
         StyleSet<LineStyle> routeLineStyle = new StyleSet<LineStyle>(LineStyle.builder().setWidth(0.05f).setColor(0xff9d7050).build());
         Map<String, String> routeOptions = new HashMap<String,String>();
@@ -224,7 +222,6 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
         routeLayer.clear();
         markerLayer.clear();
 
-        //stopMarker.setVisible(false);
         markerLayer.add(startMarker);
         startMarker.setMapPos(startPos);
         startMarker.setVisible(true);
@@ -246,8 +243,7 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
             return;
         }
         
-        startMarker.setVisible(false);
-        stopMarker.setVisible(false);
+        markerLayer.clear();
         routeLayer.clear();
         
         routeLayer.add(route.getRouteLine());

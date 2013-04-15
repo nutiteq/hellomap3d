@@ -153,7 +153,6 @@ public class AddressSearchActivity extends Activity {
         super.onResume();
         Log.debug("onResume");
         
-        
         if (searchResult != null && searchResult.getMapPos().x != 0) {
             // recenter to searchResult
             Log.debug("Add search result and recenter to it: ");
