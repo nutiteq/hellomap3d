@@ -56,7 +56,6 @@ public class GdalFetchTileTask extends FetchTileTask{
     
     @Override
     protected void finished(byte[] data) {
-        super.finished(data);
         if (data == null) {
             Log.error(getClass().getName() + " : No data.");
           } else {
