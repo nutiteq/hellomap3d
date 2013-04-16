@@ -195,7 +195,7 @@ public class AdvancedMapActivity extends Activity {
 		 
         addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
 
-		addSpatialiteLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/romania_sp3857.sqlite");
+//		addSpatialiteLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/romania_sp3857.sqlite");
 
         // Overlay layer from http://toolserver.org/~cmarqu/hill/$%7Bz%7D/$%7Bx%7D/$%7By%7D.png
         TMSMapLayer hillsLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
