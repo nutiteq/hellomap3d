@@ -72,7 +72,7 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
 
 		// enable logging for troubleshooting - optional
 		Log.enableAll();
-		Log.setTag("hellomap");
+		Log.setTag("ogractivity");
 
 		// 1. Get the MapView from the Layout xml - mandatory
 		mapView = (MapView) findViewById(R.id.mapView);
@@ -96,7 +96,7 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
 		// 3. Define map layer for basemap - mandatory.
 		// Here we use MapQuest open tiles
 		// Almost all online tiled maps use EPSG3857 projection.
-		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
+		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
 				"http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
 
 		mapView.getLayers().setBaseLayer(mapLayer);
