@@ -201,12 +201,11 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
 	        OgrLayer ogrLayer;
             try {
                 ogrLayer = new OgrLayer(proj, dbPath, table,
-                        2000, pointStyleSet, lineStyleSet, polygonStyleSet);
+                        500, pointStyleSet, lineStyleSet, polygonStyleSet);
                 ogrLayer.printSupportedDrivers();
-                ogrLayer.printLayerDetails(table);
                 mapView.getLayers().addLayer(ogrLayer);
  
-                Envelope extent = ogrLayer.getDataExtent(table);
+                Envelope extent = ogrLayer.getDataExtent();
                 DisplayMetrics metrics = new DisplayMetrics();
                 getWindowManager().getDefaultDisplay().getMetrics(metrics);   
                 int screenHeight = metrics.heightPixels;
@@ -242,7 +241,7 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
         return new FileFilter() {
             @Override
             public boolean accept(File file) {                
-                return  (file.isDirectory() || OgrLayer.canOpen(file));
+                return true;
             }
         };
     }

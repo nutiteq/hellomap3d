@@ -31,6 +31,7 @@ import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
+import com.nutiteq.utils.GeoUtils;
 import com.nutiteq.utils.Utils;
 import com.nutiteq.utils.WkbRead;
 
@@ -169,7 +170,7 @@ public class SpatialLiteDb {
 
             Log.debug("original bbox :" + bbox);
 
-            queryBbox = transformBboxProj4(bbox, sdk_proj4text,
+            queryBbox = GeoUtils.transformBboxProj4(bbox, sdk_proj4text,
                     dbLayer.proj4txt);
 
             Log.debug("converted to Layer SRID:" + queryBbox);
@@ -209,68 +210,7 @@ public class SpatialLiteDb {
         return geoms;
     }
 
-    /**
-     * Reproject bounding box using Proj.4 (NDK) library
-     * 
-     * @param bbox
-     *            input bounding box
-     * @param fromProj
-     *            proj4 text
-     * @param toProj
-     * @return projected bounding box
-     */
 
-    private Envelope transformBboxProj4(Envelope bbox, String fromProj,
-            String toProj) {
-        ProjectionData dataTP = new ProjectionData(new double[][] {
-                { bbox.getMinX(), bbox.getMinY() },
-                { bbox.getMaxX(), bbox.getMaxY() } }, new double[] { 0, 0 });
-
-        Proj4 toWgsProjection = new Proj4(fromProj, toProj);
-        toWgsProjection.transform(dataTP, 2, 1);
-
-        return new Envelope(dataTP.x[0], dataTP.x[1], dataTP.y[0], dataTP.y[1]);
-    }
-
-    /**
-     * Reproject bounding box using javaProj library. Slower and not so stable
-     * than Proj.4 but does not require NDK
-     * 
-     * @param bbox
-     *            input bounding box
-     * @param fromProj
-     *            proj4 text
-     * @param toProj
-     * @return projected bounding box
-     */
-    private Envelope transformBboxJavaProj(Envelope bbox, String fromProj,
-            String toProj) {
-
-        Projection projection = ProjectionFactory
-                .fromPROJ4Specification(fromProj.split(" "));
-        com.jhlabs.map.Point2D.Double minA = new com.jhlabs.map.Point2D.Double(
-                bbox.getMinX(), bbox.getMinY());
-        com.jhlabs.map.Point2D.Double maxA = new com.jhlabs.map.Point2D.Double(
-                bbox.getMaxX(), bbox.getMaxY());
-        com.jhlabs.map.Point2D.Double minB = new com.jhlabs.map.Point2D.Double();
-        com.jhlabs.map.Point2D.Double maxB = new com.jhlabs.map.Point2D.Double();
-        projection.inverseTransform(minA, minB);
-        projection.inverseTransform(maxA, maxB);
-        Log.debug("converted to wgs84:" + minA + " " + minB + " " + maxA + " "
-                + maxB);
-        // then from Wgs84 to Layer SRID
-        Projection projection2 = ProjectionFactory
-                .fromPROJ4Specification(toProj.split(" "));
-        com.jhlabs.map.Point2D.Double minC = new com.jhlabs.map.Point2D.Double();
-        com.jhlabs.map.Point2D.Double maxC = new com.jhlabs.map.Point2D.Double();
-        projection2.transform(minB, minC);
-        projection2.transform(maxB, maxC);
-
-        Log.debug("converted to Layer SRID:" + minA + " " + minB + " " + maxA
-                + " " + maxB);
-
-        return new Envelope(minC.x, maxC.x, minC.y, maxC.y);
-    }
 
     private String qryProj4Def(int srid) {
 

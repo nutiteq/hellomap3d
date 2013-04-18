@@ -1,12 +1,9 @@
 package com.nutiteq.layers.raster.db;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.InflaterInputStream;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -18,10 +15,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MapTile;
 import com.nutiteq.components.MutableMapPos;
-import com.nutiteq.utils.TileUtils;
 import com.nutiteq.utils.UtfGridHelper;
 import com.nutiteq.utils.UtfGridHelper.MBTileUTFGrid;
 import com.samskivert.mustache.Mustache;
