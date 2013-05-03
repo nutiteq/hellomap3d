@@ -47,7 +47,7 @@
 		<dependency>
 			<groupId>com.nutiteq</groupId>
 			<artifactId>nutiteq-3d-sdk</artifactId>
-			<version>snapshot</version>
+			<version>2.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jhlabs</groupId>
@@ -115,6 +115,11 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>com.mysema.maven</groupId>
+				<artifactId>maven-version-plugin</artifactId>
+				<version>0.1.0</version>
+			</plugin> 
 		</plugins>
 		<extensions>
             <!-- Extension required to deploy a snapshot or a release to the CloudBees remote maven repository using Webdav -->
