@@ -39,6 +39,7 @@ import com.nutiteq.style.StyleSet;
 import com.nutiteq.tasks.Task;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
+import com.nutiteq.utils.NetUtils;
 import com.nutiteq.utils.Utils;
 import com.nutiteq.utils.WkbRead;
 import com.nutiteq.vectorlayers.GeometryLayer;
@@ -141,61 +142,7 @@ public class CartoDbVectorLayer extends GeometryLayer {
 	}
 	
 	
-    /**
-     * Helper method to load geometries from the CartoDB server
-     */
-	
-    private JSONObject getJSONFromUrl(String url) {
-
-        InputStream is = null;
-        // Making HTTP request
-        try {
-            // defaultHttpClient
-            DefaultHttpClient httpClient = new DefaultHttpClient();
-            HttpGet httpRequest = new HttpGet(url);
-
-            AndroidHttpClient.modifyRequestToAcceptGzipResponse(httpRequest);
-
-            HttpResponse httpResponse = httpClient.execute(httpRequest);
-            is = AndroidHttpClient
-                    .getUngzippedContent(httpResponse.getEntity());
-
-            String json = null;
-            try {
-                BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(is, "utf-8"), 8);
-                StringBuilder sb = new StringBuilder();
-                String line = null;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
-                is.close();
-                json = sb.toString();
-            } catch (Exception e) {
-                Log.error("Error converting result " + e.toString());
-            }
-
-            JSONObject jObj = null;
-            // try parse the string to a JSON object
-            try {
-                jObj = new JSONObject(json);
-            } catch (JSONException e) {
-                Log.error("Error parsing data " + e.toString());
-            }
-
-            // return JSON String
-            return jObj;
-
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-
-    }
+ 
     
     // TODO: check if map data and layer projections are same. If not, need to convert spatial filter rect (from map->data projection) and data objects (data->map projection).
 
@@ -217,7 +164,7 @@ public class CartoDbVectorLayer extends GeometryLayer {
                 uri.appendQueryParameter("q", sqlBbox);
                 Log.debug("CartoDB url:" + uri.build().toString());
 
-                JSONObject jsonData = getJSONFromUrl(uri.build().toString());
+                JSONObject jsonData = NetUtils.getJSONFromUrl(uri.build().toString());
 
                 if(jsonData == null){
                     Log.debug("No CartoDB data");

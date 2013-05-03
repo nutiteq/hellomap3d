@@ -35,6 +35,7 @@ import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.DefaultLabel;
+import com.nutiteq.utils.GeoUtils;
 import com.nutiteq.utils.NetUtils;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
@@ -219,7 +220,7 @@ private RouteInstruction[] instructions;
         // 3. route shape
         
         String shapePoints = route.getJSONObject("shape").getString("shapePoints");
-        Vector<MapPos> wayPoints = decompress(shapePoints, 5, projection); // default precision is 5
+        Vector<MapPos> wayPoints = GeoUtils.decompress(shapePoints, 5, projection); // default precision is 5
                 
         // convert route to needed formats
         instructions = new RouteInstruction[instructionPoints.size()];
@@ -266,42 +267,7 @@ private RouteInstruction[] instructions;
     return routePointMarkers;
   }
   
-  // decompress Google Polyline Encoding Format. Code ported from http://open.mapquestapi.com/common/encodedecode.html sample
-  private static Vector<MapPos> decompress(final String encoded, final double precision, Projection proj) {
-      double precisionMultiple = Math.pow(10, -precision);
-      int len = encoded.length();
-      int index = 0;
-      int lat = 0;
-      int lng = 0;
-      Vector<MapPos> array = new Vector<MapPos>();
-      
-      while (index < len) {
-         int b;
-         int shift = 0;
-         int result = 0;
-         do {
-            b = encoded.codePointAt(index++) - 63;
-            result |= (b & 0x1f) << shift;
-            shift += 5;
-         } while (b >= 0x20);
-         int dlat = (((result & 1)==1) ? ~(result >> 1) : (result >> 1));
-         lat += dlat;
-         shift = 0;
-         result = 0;
-         do {
-            b = encoded.codePointAt(index++) - 63;
-            result |= (b & 0x1f) << shift;
-            shift += 5;
-         } while (b >= 0x20);
-         double dlng = (((result & 1)==1) ? ~(result >> 1) : (result >> 1));
-         lng += dlng;
-         
-         array.add(proj.fromWgs84(lng * precisionMultiple, lat * precisionMultiple));
-      }
-      return array;
-   }
-
-public void startRoutePointMarkerLoading(MarkerLayer markerLayer,
+  public void startRoutePointMarkerLoading(MarkerLayer markerLayer,
         float markerSize) {
     new MqLoadInstructionImagesTask(markerLayer, markerSize).execute();
     

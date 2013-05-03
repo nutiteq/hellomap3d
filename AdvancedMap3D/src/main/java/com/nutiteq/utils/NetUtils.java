@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -19,6 +20,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -135,6 +138,62 @@ public class NetUtils {
         return null;
     }
 
+    
+    /**
+     * Helper method to load JSON 
+     */
+    
+    public static JSONObject getJSONFromUrl(String url) {
+
+        InputStream is = null;
+        // Making HTTP request
+        try {
+            // defaultHttpClient
+            DefaultHttpClient httpClient = new DefaultHttpClient();
+            HttpGet httpRequest = new HttpGet(url);
+
+            AndroidHttpClient.modifyRequestToAcceptGzipResponse(httpRequest);
+
+            HttpResponse httpResponse = httpClient.execute(httpRequest);
+            is = AndroidHttpClient
+                    .getUngzippedContent(httpResponse.getEntity());
+
+            String json = null;
+            try {
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(is, "utf-8"), 8);
+                StringBuilder sb = new StringBuilder();
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+                is.close();
+                json = sb.toString();
+            } catch (Exception e) {
+                Log.error("Error converting result " + e.toString());
+            }
+
+            JSONObject jObj = null;
+            // try parse the string to a JSON object
+            try {
+                jObj = new JSONObject(json);
+            } catch (JSONException e) {
+                Log.error("Error parsing data " + e.toString());
+            }
+
+            // return JSON String
+            return jObj;
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+
+    }
     
     public static Bitmap getBitmapFromURL(String src) {
         try {

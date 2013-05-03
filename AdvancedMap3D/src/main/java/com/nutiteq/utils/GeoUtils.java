@@ -1,11 +1,14 @@
 package com.nutiteq.utils;
 
+import java.util.Vector;
+
 import org.proj4.Proj4;
 import org.proj4.ProjectionData;
 
 import com.jhlabs.map.proj.Projection;
 import com.jhlabs.map.proj.ProjectionFactory;
 import com.nutiteq.components.Envelope;
+import com.nutiteq.components.MapPos;
 import com.nutiteq.log.Log;
 
 public class GeoUtils {
@@ -72,6 +75,49 @@ public class GeoUtils {
 
         return new Envelope(dataTP.x[0], dataTP.x[1], dataTP.y[0], dataTP.y[1]);
     }
+
+      /**
+       * 
+       * decompress Google Polyline Encoding Format. Code ported from http://open.mapquestapi.com/common/encodedecode.html sample
+       * 
+       * @param encoded
+       * @param precision , usually 5
+       * @param proj result is converted from WGS84 to this projection
+       * @return Vector of MapPos in proj Projection
+       */
+    public static Vector<MapPos> decompress(final String encoded, final double precision, com.nutiteq.projections.Projection proj) {
+          double precisionMultiple = Math.pow(10, -precision);
+          int len = encoded.length();
+          int index = 0;
+          int lat = 0;
+          int lng = 0;
+          Vector<MapPos> array = new Vector<MapPos>();
+          
+          while (index < len) {
+             int b;
+             int shift = 0;
+             int result = 0;
+             do {
+                b = encoded.codePointAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+             } while (b >= 0x20);
+             int dlat = (((result & 1)==1) ? ~(result >> 1) : (result >> 1));
+             lat += dlat;
+             shift = 0;
+             result = 0;
+             do {
+                b = encoded.codePointAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+             } while (b >= 0x20);
+             double dlng = (((result & 1)==1) ? ~(result >> 1) : (result >> 1));
+             lng += dlng;
+             
+             array.add(proj.fromWgs84(lng * precisionMultiple, lat * precisionMultiple));
+          }
+          return array;
+       }
 
     
 }
