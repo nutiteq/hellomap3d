@@ -3,26 +3,36 @@ package com.nutiteq.advancedmap;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.widget.RelativeLayout.LayoutParams;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.maplisteners.MyLocationMapEventListener;
-import com.nutiteq.advancedmap.maplisteners.MyLocationMapEventListener.MyLocationCircle;
 import com.nutiteq.components.Components;
+import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.layers.raster.TMSMapLayer;
+import com.nutiteq.layers.vector.DriveTimeRegionLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.style.PolygonStyle;
+import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 
 /**
- * Basic map, same as HelloMap
+ * Shows animated location on map, and fixed drivetime region around user location
  * 
  * @author jaak
  *
@@ -30,13 +40,27 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
 public class AnimatedLocationActivity extends Activity {
 
 	private MapView mapView;
+    private DriveTimeRegionLayer driveTimeLayer;
+    
+    int[] timeValues = new int[] { 1, 5, 10, 15, 30, 60, 90, 120, 240, 480 };
+    
+    String[] timeLabels = new String[] { "1 min", "5 min", "10 min", "15 min",
+            "30 min", "1 h", "1:30 h", "2 h", "4 h", "8 h" };
+    private TextView textView;
     
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		
+	    // spinner in status bar, for progress indication
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        
+        
 		setContentView(R.layout.main);
-
+        Log.enableAll();
+        Log.setTag("gpsmap");
+        
 		// 1. Get the MapView from the Layout xml - mandatory
 		mapView = (MapView) findViewById(R.id.mapView);
 
@@ -58,7 +82,7 @@ public class AnimatedLocationActivity extends Activity {
         // 3. Define map layer for basemap - mandatory.
         // Here we use MapQuest open tiles
         // Almost all online tiled maps use EPSG3857 projection.
-        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
+        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
 
         mapView.getLayers().setBaseLayer(mapLayer);
@@ -123,13 +147,50 @@ public class AnimatedLocationActivity extends Activity {
 			}
 		});
 		
-        // add event listener to redraw map
+		// add SeekBar to control DrivingDistance
+		SeekBar seekBar = (SeekBar) findViewById(R.id.seekBar);
+        seekBar.setVisibility(View.VISIBLE);
+        
+        textView = (TextView) findViewById(R.id.textView);
+        textView.setVisibility(View.VISIBLE);
+        
+        // configure SeekBar
+        seekBar.setMax(timeValues.length-1);
+        seekBar.setProgress(4);
+        
+        seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Log.debug("progress to "+progress+" time to "+timeValues[progress]);
+                textView.setText(timeLabels[progress]);
+                driveTimeLayer.setDistance((float)timeValues[progress]/60.0f);
+            }
+        });
+        
+		
+        // add map event listener to redraw map
         MyLocationMapEventListener mapListener = new MyLocationMapEventListener(this, mapView);
         mapView.getOptions().setMapListener(mapListener);
    
         // add GPS My Location functionality 
         initGps(mapListener.getLocationCircle());
 
+        // drivetime region layer
+        StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(PolygonStyle.builder().setColor(Color.GREEN & 0x80FFFFFF).build());
+        
+        driveTimeLayer = new DriveTimeRegionLayer(mapView.getLayers().getBaseLayer().getProjection(),polygonStyleSet, this);
+        
+        // initial values
+        driveTimeLayer.setDistance((float)timeValues[seekBar.getProgress()]/60.0f);
+        textView.setText(timeLabels[seekBar.getProgress()]);
+        
+        mapView.getLayers().addLayer(driveTimeLayer);
 	}
      
 
@@ -154,6 +215,7 @@ public class AnimatedLocationActivity extends Activity {
                      locationCircle.setLocation(proj, location);
                      locationCircle.setVisible(true);
                      mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(location.getLongitude(), location.getLatitude()));
+                     driveTimeLayer.setMapPos(new MapPos(location.getLongitude(), location.getLatitude()));
                  }
             }
 
@@ -172,8 +234,8 @@ public class AnimatedLocationActivity extends Activity {
         
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 100, locationListener);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 500, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 500, locationListener);
 
     } 
     

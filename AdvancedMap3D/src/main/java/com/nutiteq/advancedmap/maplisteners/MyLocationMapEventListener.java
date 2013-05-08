@@ -63,12 +63,12 @@ public class MyLocationMapEventListener extends MapListener {
     // Vector element (touch) handlers
     @Override
     public void onLabelClicked(VectorElement vectorElement, boolean longClick) {
-        Toast.makeText(activity, "onLabelClicked "+((DefaultLabel) vectorElement.getLabel()).getTitle()+" longClick: "+longClick, Toast.LENGTH_SHORT).show();
+    //    Toast.makeText(activity, "onLabelClicked "+((DefaultLabel) vectorElement.getLabel()).getTitle()+" longClick: "+longClick, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onVectorElementClicked(VectorElement vectorElement, double x, double y, boolean longClick) {
-        Toast.makeText(activity, "onVectorElementClicked "+((DefaultLabel) vectorElement.getLabel()).getTitle()+" longClick: "+longClick, Toast.LENGTH_SHORT).show();
+     //   Toast.makeText(activity, "onVectorElementClicked "+((DefaultLabel) vectorElement.getLabel()).getTitle()+" longClick: "+longClick, Toast.LENGTH_SHORT).show();
 
     }
 
@@ -76,7 +76,7 @@ public class MyLocationMapEventListener extends MapListener {
     @Override
     public void onMapClicked(final double x, final double y, final boolean longClick) {
         // x and y are in base map projection, we convert them to the familiar WGS84 
-         Toast.makeText(activity, "onMapClicked "+(new EPSG3857()).toWgs84(x, y).x+" "+(new EPSG3857()).toWgs84(x, y).y+" longClick: "+longClick, Toast.LENGTH_SHORT).show();
+    //     Toast.makeText(activity, "onMapClicked "+(new EPSG3857()).toWgs84(x, y).x+" "+(new EPSG3857()).toWgs84(x, y).y+" longClick: "+longClick, Toast.LENGTH_SHORT).show();
     }
 
     @Override
