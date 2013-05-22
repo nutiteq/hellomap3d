@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.gdal;
+//jeppesen swig patch
 
 import java.util.Vector;
 import org.gdal.gdalconst.gdalconstConstants;

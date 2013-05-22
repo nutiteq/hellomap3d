@@ -158,6 +158,7 @@ public class osrJNI {
   public final static native int SpatialReference_ImportFromXML(long jarg1, SpatialReference jarg1_, String jarg2);
   public final static native int SpatialReference_ImportFromERM(long jarg1, SpatialReference jarg1_, String jarg2, String jarg3, String jarg4);
   public final static native int SpatialReference_ImportFromMICoordSys(long jarg1, SpatialReference jarg1_, String jarg2);
+  public final static native int SpatialReference_ImportFromOzi(long jarg1, SpatialReference jarg1_, String jarg2, String jarg3, String jarg4);
   public final static native int SpatialReference_ExportToWkt(long jarg1, SpatialReference jarg1_, String[] jarg2);
   public final static native int SpatialReference_ExportToPrettyWkt__SWIG_0(long jarg1, SpatialReference jarg1_, String[] jarg2, int jarg3);
   public final static native int SpatialReference_ExportToPrettyWkt__SWIG_1(long jarg1, SpatialReference jarg1_, String[] jarg2);
@@ -181,4 +182,5 @@ public class osrJNI {
   public final static native void CoordinateTransformation_TransformPoint__SWIG_1(long jarg1, CoordinateTransformation jarg1_, double[] jarg2, double jarg3, double jarg4, double jarg5);
   public final static native void CoordinateTransformation_TransformPoint__SWIG_2(long jarg1, CoordinateTransformation jarg1_, double[] jarg2, double jarg3, double jarg4);
   public final static native void CoordinateTransformation_TransformPoints(long jarg1, CoordinateTransformation jarg1_, double[][] jarg2);
+  public final static native long CreateCoordinateTransformation(long jarg1, SpatialReference jarg1_, long jarg2, SpatialReference jarg2_);
 }

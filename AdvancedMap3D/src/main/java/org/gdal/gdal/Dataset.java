@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.gdal;
+//jeppesen swig patch
 
 public class Dataset extends MajorObject {
   private long swigCPtr;

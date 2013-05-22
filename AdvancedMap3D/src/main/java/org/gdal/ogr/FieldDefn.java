@@ -7,6 +7,9 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.ogr;
+//jeppesen swig patch
+import org.gdal.osr.SpatialReference;
+
 
 public class FieldDefn {
   private long swigCPtr;

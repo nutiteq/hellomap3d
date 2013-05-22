@@ -29,6 +29,7 @@ public interface osrConstants {
   public final static String SRS_PT_GOODE_HOMOLOSINE = "Goode_Homolosine";
   public final static String SRS_PT_IGH = "Interrupted_Goode_Homolosine";
   public final static String SRS_PT_GNOMONIC = "Gnomonic";
+  public final static String SRS_PT_HOTINE_OBLIQUE_MERCATOR_AZIMUTH_CENTER = "Hotine_Oblique_Mercator_Azimuth_Center";
   public final static String SRS_PT_HOTINE_OBLIQUE_MERCATOR = "Hotine_Oblique_Mercator";
   public final static String SRS_PT_HOTINE_OBLIQUE_MERCATOR_TWO_POINT_NATURAL_ORIGIN = "Hotine_Oblique_Mercator_Two_Point_Natural_Origin";
   public final static String SRS_PT_LABORDE_OBLIQUE_MERCATOR = "Laborde_Oblique_Mercator";

@@ -7,6 +7,9 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.ogr;
+//jeppesen swig patch
+import org.gdal.osr.SpatialReference;
+
 
 import java.lang.ref.WeakReference;
 import java.lang.ref.ReferenceQueue;

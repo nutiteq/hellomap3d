@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.gdal;
+//jeppesen swig patch
 
 public class TermProgressCallback extends ProgressCallback {
   private long swigCPtr;

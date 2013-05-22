@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.gdal;
+//jeppesen swig patch
 
 public class AsyncReader {
   private long swigCPtr;

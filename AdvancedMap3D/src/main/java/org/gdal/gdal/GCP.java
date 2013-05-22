@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.gdal;
+//jeppesen swig patch
 
 public class GCP {
   private long swigCPtr;

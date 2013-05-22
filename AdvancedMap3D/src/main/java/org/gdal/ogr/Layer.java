@@ -7,6 +7,9 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.ogr;
+//jeppesen swig patch
+import org.gdal.osr.SpatialReference;
+
 
 import org.gdal.osr.SpatialReference;
 
@@ -230,6 +233,90 @@ public class Layer {
 
   public int SetIgnoredFields(java.util.Vector options) {
     return ogrJNI.Layer_SetIgnoredFields(swigCPtr, this, options);
+  }
+
+  public int Intersection(Layer method_layer, Layer result_layer, java.util.Vector options, ProgressCallback callback) {
+    return ogrJNI.Layer_Intersection__SWIG_0(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options, callback);
+  }
+
+  public int Intersection(Layer method_layer, Layer result_layer, java.util.Vector options) {
+    return ogrJNI.Layer_Intersection__SWIG_2(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options);
+  }
+
+  public int Intersection(Layer method_layer, Layer result_layer) {
+    return ogrJNI.Layer_Intersection__SWIG_3(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer);
+  }
+
+  public int Union(Layer method_layer, Layer result_layer, java.util.Vector options, ProgressCallback callback) {
+    return ogrJNI.Layer_Union__SWIG_0(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options, callback);
+  }
+
+  public int Union(Layer method_layer, Layer result_layer, java.util.Vector options) {
+    return ogrJNI.Layer_Union__SWIG_2(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options);
+  }
+
+  public int Union(Layer method_layer, Layer result_layer) {
+    return ogrJNI.Layer_Union__SWIG_3(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer);
+  }
+
+  public int SymDifference(Layer method_layer, Layer result_layer, java.util.Vector options, ProgressCallback callback) {
+    return ogrJNI.Layer_SymDifference__SWIG_0(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options, callback);
+  }
+
+  public int SymDifference(Layer method_layer, Layer result_layer, java.util.Vector options) {
+    return ogrJNI.Layer_SymDifference__SWIG_2(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options);
+  }
+
+  public int SymDifference(Layer method_layer, Layer result_layer) {
+    return ogrJNI.Layer_SymDifference__SWIG_3(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer);
+  }
+
+  public int Identity(Layer method_layer, Layer result_layer, java.util.Vector options, ProgressCallback callback) {
+    return ogrJNI.Layer_Identity__SWIG_0(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options, callback);
+  }
+
+  public int Identity(Layer method_layer, Layer result_layer, java.util.Vector options) {
+    return ogrJNI.Layer_Identity__SWIG_2(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options);
+  }
+
+  public int Identity(Layer method_layer, Layer result_layer) {
+    return ogrJNI.Layer_Identity__SWIG_3(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer);
+  }
+
+  public int Update(Layer method_layer, Layer result_layer, java.util.Vector options, ProgressCallback callback) {
+    return ogrJNI.Layer_Update__SWIG_0(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options, callback);
+  }
+
+  public int Update(Layer method_layer, Layer result_layer, java.util.Vector options) {
+    return ogrJNI.Layer_Update__SWIG_2(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options);
+  }
+
+  public int Update(Layer method_layer, Layer result_layer) {
+    return ogrJNI.Layer_Update__SWIG_3(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer);
+  }
+
+  public int Clip(Layer method_layer, Layer result_layer, java.util.Vector options, ProgressCallback callback) {
+    return ogrJNI.Layer_Clip__SWIG_0(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options, callback);
+  }
+
+  public int Clip(Layer method_layer, Layer result_layer, java.util.Vector options) {
+    return ogrJNI.Layer_Clip__SWIG_2(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options);
+  }
+
+  public int Clip(Layer method_layer, Layer result_layer) {
+    return ogrJNI.Layer_Clip__SWIG_3(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer);
+  }
+
+  public int Erase(Layer method_layer, Layer result_layer, java.util.Vector options, ProgressCallback callback) {
+    return ogrJNI.Layer_Erase__SWIG_0(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options, callback);
+  }
+
+  public int Erase(Layer method_layer, Layer result_layer, java.util.Vector options) {
+    return ogrJNI.Layer_Erase__SWIG_2(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer, options);
+  }
+
+  public int Erase(Layer method_layer, Layer result_layer) {
+    return ogrJNI.Layer_Erase__SWIG_3(swigCPtr, this, Layer.getCPtr(method_layer), method_layer, Layer.getCPtr(result_layer), result_layer);
   }
 
 }

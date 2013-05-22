@@ -41,9 +41,14 @@ public class gdalJNI {
   public final static native int TermProgressCallback_run(long jarg1, TermProgressCallback jarg1_, double jarg2, String jarg3);
   public final static native void delete_TermProgressCallback(long jarg1);
   public final static native void Debug(String jarg1, String jarg2);
+  public final static native int SetErrorHandler__SWIG_0(String jarg1);
+  public final static native int SetErrorHandler__SWIG_1();
   public final static native int PushErrorHandler__SWIG_0(String jarg1);
   public final static native int PushErrorHandler__SWIG_1();
   public final static native void Error(int jarg1, int jarg2, String jarg3);
+  public final static native String GOA2GetAuthorizationURL(String jarg1);
+  public final static native String GOA2GetRefreshToken(String jarg1, String jarg2);
+  public final static native String GOA2GetAccessToken(String jarg1, String jarg2);
   public final static native void PopErrorHandler();
   public final static native void ErrorReset();
   public final static native String EscapeString__SWIG_0(byte[] jarg1, int jarg3);
@@ -56,6 +61,7 @@ public class gdalJNI {
   public final static native void FinderClean();
   public final static native String FindFile(String jarg1, String jarg2);
   public final static native java.util.Vector ReadDir(String jarg1);
+  public final static native java.util.Vector ReadDirRecursive(String jarg1);
   public final static native void SetConfigOption(String jarg1, String jarg2);
   public final static native String GetConfigOption__SWIG_0(String jarg1, String jarg2);
   public final static native String GetConfigOption__SWIG_1(String jarg1);
@@ -416,6 +422,9 @@ public class gdalJNI {
   public final static native int Transformer_TransformPoint__SWIG_1(long jarg1, Transformer jarg1_, double[] jarg2, int jarg3, double jarg4, double jarg5, double jarg6);
   public final static native int Transformer_TransformPoint__SWIG_2(long jarg1, Transformer jarg1_, double[] jarg2, int jarg3, double jarg4, double jarg5);
   public final static native int Transformer_TransformPoints(long jarg1, Transformer jarg1_, int jarg2, double[][] jarg3, int[] jarg7);
+  public final static native int Transformer_TransformGeolocations__SWIG_0(long jarg1, Transformer jarg1_, long jarg2, Band jarg2_, long jarg3, Band jarg3_, long jarg4, Band jarg4_, ProgressCallback jarg5, java.util.Vector jarg7);
+  public final static native int Transformer_TransformGeolocations__SWIG_1(long jarg1, Transformer jarg1_, long jarg2, Band jarg2_, long jarg3, Band jarg3_, long jarg4, Band jarg4_, ProgressCallback jarg5);
+  public final static native int Transformer_TransformGeolocations__SWIG_3(long jarg1, Transformer jarg1_, long jarg2, Band jarg2_, long jarg3, Band jarg3_, long jarg4, Band jarg4_);
   public final static native void ApplyGeoTransform(double[] jarg1, double jarg2, double jarg3, double[] jarg4, double[] jarg5);
   public final static native int InvGeoTransform(double[] jarg1, double[] jarg2);
   public final static native String VersionInfo__SWIG_0(String jarg1);

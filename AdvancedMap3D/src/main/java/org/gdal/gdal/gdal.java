@@ -54,6 +54,14 @@ public class gdal {
     gdalJNI.Debug(msg_class, message);
   }
 
+  public static int SetErrorHandler(String pszCallbackName) {
+    return gdalJNI.SetErrorHandler__SWIG_0(pszCallbackName);
+  }
+
+  public static int SetErrorHandler() {
+    return gdalJNI.SetErrorHandler__SWIG_1();
+  }
+
   public static int PushErrorHandler(String pszCallbackName) {
     return gdalJNI.PushErrorHandler__SWIG_0(pszCallbackName);
   }
@@ -64,6 +72,18 @@ public class gdal {
 
   public static void Error(int msg_class, int err_code, String msg) {
     gdalJNI.Error(msg_class, err_code, msg);
+  }
+
+  public static String GOA2GetAuthorizationURL(String pszScope) {
+    return gdalJNI.GOA2GetAuthorizationURL(pszScope);
+  }
+
+  public static String GOA2GetRefreshToken(String pszAuthToken, String pszScope) {
+    return gdalJNI.GOA2GetRefreshToken(pszAuthToken, pszScope);
+  }
+
+  public static String GOA2GetAccessToken(String pszRefreshToken, String pszScope) {
+    return gdalJNI.GOA2GetAccessToken(pszRefreshToken, pszScope);
   }
 
   public static void PopErrorHandler() {
@@ -112,6 +132,10 @@ public class gdal {
 
   public static java.util.Vector ReadDir(String utf8_path) {
     return gdalJNI.ReadDir(utf8_path);
+  }
+
+  public static java.util.Vector ReadDirRecursive(String utf8_path) {
+    return gdalJNI.ReadDirRecursive(utf8_path);
   }
 
   public static void SetConfigOption(String pszKey, String pszValue) {

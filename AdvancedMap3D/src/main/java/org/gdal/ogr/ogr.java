@@ -79,6 +79,11 @@ public class ogr implements ogrConstants {
     return (cPtr == 0) ? null : new Geometry(cPtr, true);
   }
 
+  public static Geometry ForceToLineString(Geometry geom_in) {
+    long cPtr = ogrJNI.ForceToLineString(Geometry.getCPtr(geom_in), geom_in);
+    return (cPtr == 0) ? null : new Geometry(cPtr, true);
+  }
+
   public static Geometry ForceToMultiPolygon(Geometry geom_in) {
     long cPtr = ogrJNI.ForceToMultiPolygon(Geometry.getCPtr(geom_in), geom_in);
     return (cPtr == 0) ? null : new Geometry(cPtr, true);

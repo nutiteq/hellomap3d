@@ -38,6 +38,12 @@ public class ogrJNI {
     return available;
   }
 
+  public final static native void delete_ProgressCallback(long jarg1);
+  public final static native int ProgressCallback_run(long jarg1, ProgressCallback jarg1_, double jarg2, String jarg3);
+  public final static native long new_ProgressCallback();
+  public final static native long new_TermProgressCallback();
+  public final static native int TermProgressCallback_run(long jarg1, TermProgressCallback jarg1_, double jarg2, String jarg3);
+  public final static native void delete_TermProgressCallback(long jarg1);
   public final static native String Driver_name_get(long jarg1, Driver jarg1_);
   public final static native long Driver_CreateDataSource__SWIG_0(long jarg1, Driver jarg1_, String jarg2, java.util.Vector jarg3);
   public final static native long Driver_CreateDataSource__SWIG_1(long jarg1, Driver jarg1_, String jarg2);
@@ -106,6 +112,27 @@ public class ogrJNI {
   public final static native long Layer_GetSpatialRef(long jarg1, Layer jarg1_);
   public final static native long Layer_GetFeaturesRead(long jarg1, Layer jarg1_);
   public final static native int Layer_SetIgnoredFields(long jarg1, Layer jarg1_, java.util.Vector jarg2);
+  public final static native int Layer_Intersection__SWIG_0(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4, ProgressCallback jarg5);
+  public final static native int Layer_Intersection__SWIG_2(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4);
+  public final static native int Layer_Intersection__SWIG_3(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_);
+  public final static native int Layer_Union__SWIG_0(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4, ProgressCallback jarg5);
+  public final static native int Layer_Union__SWIG_2(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4);
+  public final static native int Layer_Union__SWIG_3(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_);
+  public final static native int Layer_SymDifference__SWIG_0(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4, ProgressCallback jarg5);
+  public final static native int Layer_SymDifference__SWIG_2(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4);
+  public final static native int Layer_SymDifference__SWIG_3(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_);
+  public final static native int Layer_Identity__SWIG_0(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4, ProgressCallback jarg5);
+  public final static native int Layer_Identity__SWIG_2(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4);
+  public final static native int Layer_Identity__SWIG_3(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_);
+  public final static native int Layer_Update__SWIG_0(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4, ProgressCallback jarg5);
+  public final static native int Layer_Update__SWIG_2(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4);
+  public final static native int Layer_Update__SWIG_3(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_);
+  public final static native int Layer_Clip__SWIG_0(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4, ProgressCallback jarg5);
+  public final static native int Layer_Clip__SWIG_2(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4);
+  public final static native int Layer_Clip__SWIG_3(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_);
+  public final static native int Layer_Erase__SWIG_0(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4, ProgressCallback jarg5);
+  public final static native int Layer_Erase__SWIG_2(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_, java.util.Vector jarg4);
+  public final static native int Layer_Erase__SWIG_3(long jarg1, Layer jarg1_, long jarg2, Layer jarg2_, long jarg3, Layer jarg3_);
   public final static native void delete_Feature(long jarg1);
   public final static native long new_Feature(long jarg1, FeatureDefn jarg1_);
   public final static native long Feature_GetDefnRef(long jarg1, Feature jarg1_);
@@ -199,6 +226,7 @@ public class ogrJNI {
   public final static native long BuildPolygonFromEdges__SWIG_3(long jarg1, Geometry jarg1_);
   public final static native long ApproximateArcAngles(double jarg1, double jarg2, double jarg3, double jarg4, double jarg5, double jarg6, double jarg7, double jarg8, double jarg9);
   public final static native long ForceToPolygon(long jarg1, Geometry jarg1_);
+  public final static native long ForceToLineString(long jarg1, Geometry jarg1_);
   public final static native long ForceToMultiPolygon(long jarg1, Geometry jarg1_);
   public final static native long ForceToMultiPoint(long jarg1, Geometry jarg1_);
   public final static native long ForceToMultiLineString(long jarg1, Geometry jarg1_);
@@ -277,6 +305,8 @@ public class ogrJNI {
   public final static native void Geometry_Segmentize(long jarg1, Geometry jarg1_, double jarg2);
   public final static native void Geometry_GetEnvelope(long jarg1, Geometry jarg1_, double[] jarg2);
   public final static native void Geometry_GetEnvelope3D(long jarg1, Geometry jarg1_, double[] jarg2);
+  public final static native long Geometry_Centroid(long jarg1, Geometry jarg1_);
+  public final static native long Geometry_PointOnSurface(long jarg1, Geometry jarg1_);
   public final static native int Geometry_WkbSize(long jarg1, Geometry jarg1_);
   public final static native int Geometry_GetCoordinateDimension(long jarg1, Geometry jarg1_);
   public final static native void Geometry_SetCoordinateDimension(long jarg1, Geometry jarg1_, int jarg2);
@@ -284,7 +314,6 @@ public class ogrJNI {
   public final static native long new_Geometry__SWIG_0(int jarg1, String jarg2, byte[] jarg3, String jarg5);
   public final static native long new_Geometry__SWIG_1(int jarg1);
   public final static native String Geometry_ExportToWkt__SWIG_1(long jarg1, Geometry jarg1_);
-  public final static native long Geometry_Centroid(long jarg1, Geometry jarg1_);
   public final static native int GetDriverCount();
   public final static native int GetOpenDSCount();
   public final static native int SetGenerate_DB2_V72_BYTE_ORDER(int jarg1);
@@ -300,4 +329,5 @@ public class ogrJNI {
   public final static native long GetDriver(int jarg1);
   public final static native java.util.Vector GeneralCmdLineProcessor__SWIG_0(java.util.Vector jarg1, int jarg2);
   public final static native java.util.Vector GeneralCmdLineProcessor__SWIG_1(java.util.Vector jarg1);
+  public final static native long TermProgressCallback_SWIGUpcast(long jarg1);
 }

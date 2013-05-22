@@ -52,4 +52,9 @@ public class osr implements osrConstants {
     osrJNI.GetProjectionMethodParamInfo(method, param, usrname, type, defaultval);
   }
 
+  public static CoordinateTransformation CreateCoordinateTransformation(SpatialReference src, SpatialReference dst) {
+    long cPtr = osrJNI.CreateCoordinateTransformation(SpatialReference.getCPtr(src), src, SpatialReference.getCPtr(dst), dst);
+    return (cPtr == 0) ? null : new CoordinateTransformation(cPtr, true);
+  }
+
 }

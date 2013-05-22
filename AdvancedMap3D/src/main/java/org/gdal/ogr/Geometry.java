@@ -7,6 +7,9 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.ogr;
+//jeppesen swig patch
+import org.gdal.osr.SpatialReference;
+
 
 import org.gdal.ogr.ogr;
 import org.gdal.ogr.GeometryNative;
@@ -442,6 +445,16 @@ public class Geometry implements Cloneable {
     ogrJNI.Geometry_GetEnvelope3D(swigCPtr, this, argout);
   }
 
+  public Geometry Centroid() {
+    long cPtr = ogrJNI.Geometry_Centroid(swigCPtr, this);
+    return (cPtr == 0) ? null : new Geometry(cPtr, true);
+  }
+
+  public Geometry PointOnSurface() {
+    long cPtr = ogrJNI.Geometry_PointOnSurface(swigCPtr, this);
+    return (cPtr == 0) ? null : new Geometry(cPtr, true);
+  }
+
   public int WkbSize() {
     return ogrJNI.Geometry_WkbSize(swigCPtr, this);
   }
@@ -468,11 +481,6 @@ public class Geometry implements Cloneable {
 
   public String ExportToWkt() {
     return ogrJNI.Geometry_ExportToWkt__SWIG_1(swigCPtr, this);
-  }
-
-  public Geometry Centroid() {
-    long cPtr = ogrJNI.Geometry_Centroid(swigCPtr, this);
-    return (cPtr == 0) ? null : new Geometry(cPtr, true);
   }
 
 }

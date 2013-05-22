@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.osr;
+//jeppesen swig patch
 
 public class CoordinateTransformation {
   private long swigCPtr;
@@ -43,6 +44,12 @@ public class CoordinateTransformation {
 
   public double[] TransformPoint(double x, double y) {
     return TransformPoint(x, y, 0);
+  }
+
+  /* New in GDAL 1.10 */
+  public static CoordinateTransformation CreateCoordinateTransformation(SpatialReference src, SpatialReference dst)
+  {
+      return osr.CreateCoordinateTransformation(src, dst);
   }
 
   public CoordinateTransformation(SpatialReference src, SpatialReference dst) {

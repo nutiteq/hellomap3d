@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.osr;
+//jeppesen swig patch
 
 public class SpatialReference implements Cloneable {
   private long swigCPtr;
@@ -587,6 +588,10 @@ public class SpatialReference implements Cloneable {
 
   public int ImportFromMICoordSys(String pszCoordSys) {
     return osrJNI.SpatialReference_ImportFromMICoordSys(swigCPtr, this, pszCoordSys);
+  }
+
+  public int ImportFromOzi(String datum, String proj, String projParms) {
+    return osrJNI.SpatialReference_ImportFromOzi(swigCPtr, this, datum, proj, projParms);
   }
 
   public int ExportToWkt(String[] argout) {

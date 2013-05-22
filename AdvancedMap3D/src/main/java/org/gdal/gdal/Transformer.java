@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------------- */
 
 package org.gdal.gdal;
+//jeppesen swig patch
 
 public class Transformer {
   private long swigCPtr;
@@ -83,6 +84,18 @@ public class Transformer {
 
   public int TransformPoints(int bDstToSrc, double[][] nCount, int[] panSuccess) {
     return gdalJNI.Transformer_TransformPoints(swigCPtr, this, bDstToSrc, nCount, panSuccess);
+  }
+
+  public int TransformGeolocations(Band xBand, Band yBand, Band zBand, ProgressCallback callback, java.util.Vector options) {
+    return gdalJNI.Transformer_TransformGeolocations__SWIG_0(swigCPtr, this, Band.getCPtr(xBand), xBand, Band.getCPtr(yBand), yBand, Band.getCPtr(zBand), zBand, callback, options);
+  }
+
+  public int TransformGeolocations(Band xBand, Band yBand, Band zBand, ProgressCallback callback) {
+    return gdalJNI.Transformer_TransformGeolocations__SWIG_1(swigCPtr, this, Band.getCPtr(xBand), xBand, Band.getCPtr(yBand), yBand, Band.getCPtr(zBand), zBand, callback);
+  }
+
+  public int TransformGeolocations(Band xBand, Band yBand, Band zBand) {
+    return gdalJNI.Transformer_TransformGeolocations__SWIG_3(swigCPtr, this, Band.getCPtr(xBand), xBand, Band.getCPtr(yBand), yBand, Band.getCPtr(zBand), zBand);
   }
 
 }
