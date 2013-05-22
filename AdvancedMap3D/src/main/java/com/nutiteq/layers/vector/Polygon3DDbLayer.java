@@ -48,10 +48,11 @@ public Polygon3DDbLayer(String dbPath, String tableName, String geomColumnName, 
     this.maxObjects = maxObjects;
     minZoom = styleSet.getFirstNonNullZoomStyleZoom();
     spatialLite = new SpatialLiteDb(dbPath);
-    Vector<DBLayer> dbLayers = spatialLite.qrySpatialLayerMetadata();
-    for (DBLayer dbLayer : dbLayers) {
-      if (dbLayer.table.compareTo(tableName) == 0 && dbLayer.geomColumn.compareTo(geomColumnName) == 0) {
-        this.dbLayer = dbLayer;
+    Map<String, DBLayer> dbLayers = spatialLite.qrySpatialLayerMetadata();
+    for (String layerKey : dbLayers.keySet()) {
+      DBLayer layer = dbLayers.get(layerKey);
+      if (layer.table.compareTo(tableName) == 0 && layer.geomColumn.compareTo(geomColumnName) == 0) {
+        this.dbLayer = layer;
         break;
       }
     }

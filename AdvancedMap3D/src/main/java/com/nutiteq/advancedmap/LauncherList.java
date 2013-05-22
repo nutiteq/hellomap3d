@@ -27,6 +27,7 @@ public class LauncherList extends ListActivity{
             {MBTilesMapActivity.class,FilePicker.class},
             {VectorFileMapActivity.class,FilePicker.class},
             {RasterFileMapActivity.class,FilePicker.class},
+            {SpatialiteMapActivity.class,FilePicker.class},
             {AdvancedMapActivity.class,null},
             {MapsForgeMapActivity.class,FilePicker.class},
             {GraphhopperRouteActivity.class,FilePicker.class},

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -24,6 +25,7 @@ import com.jhlabs.map.proj.Projection;
 import com.jhlabs.map.proj.ProjectionFactory;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
+import com.nutiteq.components.MutableEnvelope;
 import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.log.Log;
@@ -66,9 +68,9 @@ public class SpatialLiteDb {
             Log.error("SpatialLite: Failed to open database! " + e.getMessage());
         }
 
-        sdk_proj4text = qryProj4Def(SDK_SRID);
-        // sdk_proj4text =
-        // "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs";
+        //sdk_proj4text = qryProj4Def(SDK_SRID);
+         sdk_proj4text =
+         "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
     }
 
     public void close() {
@@ -79,9 +81,9 @@ public class SpatialLiteDb {
         }
     }
 
-    public Vector<DBLayer> qrySpatialLayerMetadata() {
-        final Vector<DBLayer> dbLayers = new Vector<DBLayer>();
-        String qry = "SELECT \"f_table_name\", \"f_geometry_column\", \"type\", \"coord_dimension\", geometry_columns.srid, \"spatial_index_enabled\", proj4text FROM \"geometry_columns\", spatial_ref_sys where geometry_columns.srid=spatial_ref_sys.srid";
+    public Map<String,DBLayer> qrySpatialLayerMetadata() {
+        final Map<String,DBLayer> dbLayers = new HashMap<String,DBLayer>();
+        String qry = "SELECT \"f_table_name\", \"f_geometry_column\", \"type\", \"coord_dimension\", geometry_columns.srid, \"spatial_index_enabled\", proj4text FROM \"geometry_columns\", spatial_ref_sys where geometry_columns.srid=spatial_ref_sys.srid order by f_table_name";
         Log.debug(qry);
         try {
             db.exec(qry, new Callback() {
@@ -106,7 +108,7 @@ public class SpatialLiteDb {
                             rowdata[2], rowdata[3], srid, rowdata[5]
                                     .equals("1") ? true : false, rowdata[6]);
 
-                    dbLayers.add(dbLayer);
+                    dbLayers.put(dbLayer.table+"."+dbLayer.geomColumn,dbLayer);
                     return false;
                 }
             });
@@ -124,15 +126,17 @@ public class SpatialLiteDb {
         final long start = System.currentTimeMillis();
 
         Callback cb = new Callback() {
-            // @Override
+            
+            @Override
             public void columns(String[] coldata) {
+                Log.debug("columns" + Arrays.toString(coldata));
             }
 
-            // @Override
+            @Override
             public void types(String[] types) {
             }
 
-            // @Override
+            @Override
             public boolean newrow(String[] rowdata) {
 
                 // Column values to userData Map
@@ -170,8 +174,8 @@ public class SpatialLiteDb {
 
             Log.debug("original bbox :" + bbox);
 
-            queryBbox = GeoUtils.transformBboxProj4(bbox, sdk_proj4text,
-                    dbLayer.proj4txt);
+            queryBbox = GeoUtils.transformBboxJavaProj(bbox, sdk_proj4text,
+                    dbLayer.proj4txt.replace("longlat", "latlong"));
 
             Log.debug("converted to Layer SRID:" + queryBbox);
         } else {
@@ -251,6 +255,106 @@ public class SpatialLiteDb {
             foundName = rowdata[0];
             return false;
         }
+    }
+
+    public Envelope qryDataExtent(final DBLayer dbLayer) {
+
+        String qry = "SELECT Min(MbrMinX("+dbLayer.geomColumn+")), Min(MbrMinY("+dbLayer.geomColumn+")), Max(MbrMaxX("+dbLayer.geomColumn+")), Max(MbrMaxY("+dbLayer.geomColumn+")) FROM " +dbLayer.table;
+        Log.debug(qry);
+        final MutableEnvelope mutableEnvelope = new MutableEnvelope();
+        
+        try {
+            db.exec(qry, new Callback() {
+
+                @Override
+                public void columns(String[] coldata) {
+                }
+
+                @Override
+                public void types(String[] types) {
+                }
+
+                @Override
+                public boolean newrow(String[] rowdata) {
+                    Envelope bbox = new Envelope(Double.parseDouble(rowdata[0]), Double.parseDouble(rowdata[2]),
+                            Double.parseDouble(rowdata[1]), Double.parseDouble(rowdata[3]));
+                    Log.debug("original bbox :" + bbox);
+                    
+                    Envelope transformedBbox;
+                    
+                    // convert to SDK proj
+                    if (dbLayer.srid != SDK_SRID) {
+                        Log.debug("SpatialLite: Data must be transformed from " + dbLayer.srid
+                                + " to " + SDK_SRID);
+
+                        transformedBbox = GeoUtils.transformBboxJavaProj(bbox, 
+                                dbLayer.proj4txt.replace("longlat", "latlong"), 
+                                sdk_proj4text);
+
+                        Log.debug("bbox converted to Map SRID:" + transformedBbox);
+                    } else {
+                        transformedBbox = bbox;
+                    }
+                    
+                    mutableEnvelope.add(transformedBbox);
+                    return false;
+                }
+            });
+
+        } catch (Exception e) {
+            Log.error("SpatialLite: Failed to query envelope! "
+                    + e.getMessage());
+        }
+        
+        
+        return new Envelope(mutableEnvelope);
+        
+    }
+    
+    public String[] qryColumns(final DBLayer dbLayer) {
+
+        String qry = "PRAGMA table_info(" +dbLayer.table+")";
+        Log.debug(qry);
+        final ArrayList<String> columns = new ArrayList<String>();
+        
+        try {
+            db.exec(qry, new Callback() {
+
+                @Override
+                public void columns(String[] coldata) {
+                }
+
+                @Override
+                public void types(String[] types) {
+                }
+
+                @Override
+                public boolean newrow(String[] rowdata) {
+                    String col = rowdata[1];
+                    String type = rowdata[2];
+                    // add only known safe column types, skip geometries
+                    if(type.equals("INTEGER") || type.equals("TEXT") || type.equals("VARCHAR")){
+                        columns.add(col); 
+                    }
+                    return false;
+                }
+            });
+
+        } catch (Exception e) {
+            Log.error("SpatialLite: Failed to query columns! "
+                    + e.getMessage());
+        }
+        
+        return  (String[]) columns.toArray(new String[0]);
+    }
+
+    public void defineEPSG3857() {
+       try {
+        db.exec("replace into spatial_ref_sys (srid,auth_name,auth_srid,ref_sys_name,proj4text) values(3857,'epsg',3857,'Google Sperhical Mercator','+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs')", null);
+       } catch (Exception e) {
+         Log.error("SpatialLite: Failed to insert EPSG3857 definition"
+                + e.getMessage());
+       }
     }
 
 }

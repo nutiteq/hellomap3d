@@ -75,7 +75,7 @@ public class AdvancedMapActivity extends Activity {
 
 		// enable logging for troubleshooting - optional
 		Log.enableAll();
-		Log.setTag("hellomap");
+		Log.setTag("advancedmap");
 
 		// 1. Get the MapView from the Layout xml - mandatory
 		mapView = (MapView) findViewById(R.id.mapView);
@@ -113,11 +113,11 @@ public class AdvancedMapActivity extends Activity {
 
 		// set initial map view camera - optional. "World view" is default
 		// Location: San Francisco
-        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
+//        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
 
 	
 //		mapView.setFocusPoint(2901450, 5528971);    // Romania
-//        mapView.setFocusPoint(2915891.5f, 7984571.0f); // valgamaa
+        mapView.setFocusPoint(2915891.5f, 7984571.0f); // valgamaa
 //        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(2.183333f, 41.383333f)); // barcelona
 //        mapView.setFocusPoint(new MapPos(2753791.3f, 8275296.0f)); // Tallinn
 
@@ -133,6 +133,12 @@ public class AdvancedMapActivity extends Activity {
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
 		mapView.setTilt(55.0f);
 
+		
+		// spatlalite test
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.74314f,59.43635f));
+        mapView.setZoom(6.0f);
+        mapView.setRotation(0);
+        mapView.setTilt(90f);
 
 		// Activate some mapview options to make it smoother - optional
 		mapView.getOptions().setPreloading(false);
@@ -193,16 +199,14 @@ public class AdvancedMapActivity extends Activity {
 
 		// addStoredBaseLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/nutimaps/allimages/");
 		 
-        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
-
-//		addSpatialiteLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/romania_sp3857.sqlite");
+    //    addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
 
         // Overlay layer from http://toolserver.org/~cmarqu/hill/$%7Bz%7D/$%7Bx%7D/$%7By%7D.png
-        TMSMapLayer hillsLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
-                "http://toolserver.org/~cmarqu/hill/", "/", ".png");
-        mapView.getLayers().addLayer(hillsLayer);
-        
-		addOsmPolygonLayer(mapLayer.getProjection());
+//        TMSMapLayer hillsLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
+//                "http://toolserver.org/~cmarqu/hill/", "/", ".png");
+//        mapView.getLayers().addLayer(hillsLayer);
+//        
+//		addOsmPolygonLayer(mapLayer.getProjection());
 
 //        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/mapxt/tallinn28.nml");
 //        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
@@ -211,7 +215,7 @@ public class AdvancedMapActivity extends Activity {
 
 
 	private void addPackagedBaseLayer(Projection projection) {
-	    PackagedMapLayer packagedMapLayer = new PackagedMapLayer(projection, 0, 4, 13, "t", this);
+	    PackagedMapLayer packagedMapLayer = new PackagedMapLayer(projection, 0, 3, 13, "t", this);
 	    mapView.getLayers().setBaseLayer(packagedMapLayer);
     }
 
@@ -265,58 +269,6 @@ public class AdvancedMapActivity extends Activity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-	}
-
-	private void addSpatialiteLayer(Projection proj, String dbPath) {
-
-		// ** Spatialite
-		// print out list of tables first
-		int minZoom = 10;
-
-		SpatialLiteDb spatialLite = new SpatialLiteDb(dbPath);
-		Vector<DBLayer> dbMetaData = spatialLite.qrySpatialLayerMetadata();
-
-		for (DBLayer dbLayer : dbMetaData) {
-            Log.debug("layer: "+dbLayer.table+" "+dbLayer.type+" geom:"+dbLayer.geomColumn);
-		}
-
-		// set styles for all 3 object types: point, line and polygon
-
-		StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
-        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
-        PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(Color.BLACK).build();
-		pointStyleSet.setZoomStyle(minZoom, pointStyle);
-
-		StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
-        lineStyleSet.setZoomStyle(minZoom, LineStyle.builder().setWidth(0.1f).setColor(Color.GREEN).build());
-
-		StyleSet<LineStyle> lineStyleSetHw = new StyleSet<LineStyle>();
-        lineStyleSetHw.setZoomStyle(minZoom, LineStyle.builder().setWidth(0.07f).setColor(Color.GRAY).build());
-
-        PolygonStyle polygonStyle = PolygonStyle.builder().setColor(Color.BLUE).build();
-        StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
-		polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
-
-        SpatialiteLayer spatialiteLayerPt = new SpatialiteLayer(proj, dbPath, "pt_tourism",
-                "GEOMETRY", new String[]{"name"}, 500, pointStyleSet, null, null);
-
-		mapView.getLayers().addLayer(spatialiteLayerPt);
-
-        SpatialiteLayer spatialiteLayerLn = new SpatialiteLayer(proj, dbPath, "ln_railway",
-                "GEOMETRY", new String[]{"sub_type"}, 500, null, lineStyleSet, null);
-
-		mapView.getLayers().addLayer(spatialiteLayerLn);
-
-        SpatialiteLayer spatialiteLayerHw = new SpatialiteLayer(proj, dbPath, "ln_highway",
-                "GEOMETRY", new String[]{"name"}, 500, null, lineStyleSetHw, null);
-
-		mapView.getLayers().addLayer(spatialiteLayerHw);
-
-        SpatialiteLayer spatialiteLayerPoly = new SpatialiteLayer(proj, dbPath, "pg_boundary",
-                "GEOMETRY", new String[]{"name"}, 500, null, null, polygonStyleSet);
-
-		mapView.getLayers().addLayer(spatialiteLayerPoly);
 
 	}
 

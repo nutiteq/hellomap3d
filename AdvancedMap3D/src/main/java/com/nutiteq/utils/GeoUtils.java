@@ -9,7 +9,6 @@ import com.jhlabs.map.proj.Projection;
 import com.jhlabs.map.proj.ProjectionFactory;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
-import com.nutiteq.log.Log;
 
 public class GeoUtils {
 
@@ -27,30 +26,42 @@ public class GeoUtils {
     public static Envelope transformBboxJavaProj(Envelope bbox, String fromProj,
             String toProj) {
 
+        // first A->B, convert to wgs84
         Projection projection = ProjectionFactory
                 .fromPROJ4Specification(fromProj.split(" "));
-        com.jhlabs.map.Point2D.Double minA = new com.jhlabs.map.Point2D.Double(
+        
+        com.jhlabs.map.Point2D.Double minB = new com.jhlabs.map.Point2D.Double(
                 bbox.getMinX(), bbox.getMinY());
-        com.jhlabs.map.Point2D.Double maxA = new com.jhlabs.map.Point2D.Double(
+        com.jhlabs.map.Point2D.Double maxB = new com.jhlabs.map.Point2D.Double(
                 bbox.getMaxX(), bbox.getMaxY());
-        com.jhlabs.map.Point2D.Double minB = new com.jhlabs.map.Point2D.Double();
-        com.jhlabs.map.Point2D.Double maxB = new com.jhlabs.map.Point2D.Double();
-        projection.inverseTransform(minA, minB);
-        projection.inverseTransform(maxA, maxB);
-        Log.debug("converted to wgs84:" + minA + " " + minB + " " + maxA + " "
-                + maxB);
-        // then from Wgs84 to Layer SRID
+        
+        // if proj A already Wgs84, then skip
+        if(projection.toString() != "Null"){
+            com.jhlabs.map.Point2D.Double minA = new com.jhlabs.map.Point2D.Double(
+                    bbox.getMinX(), bbox.getMinY());
+            com.jhlabs.map.Point2D.Double maxA = new com.jhlabs.map.Point2D.Double(
+                    bbox.getMaxX(), bbox.getMaxY());
+            minB = new com.jhlabs.map.Point2D.Double();
+            maxB = new com.jhlabs.map.Point2D.Double();
+            projection.inverseTransform(minA, minB);
+            projection.inverseTransform(maxA, maxB);
+        }
+
+        // then B->C from Wgs84 to Layer SRID
         Projection projection2 = ProjectionFactory
                 .fromPROJ4Specification(toProj.split(" "));
-        com.jhlabs.map.Point2D.Double minC = new com.jhlabs.map.Point2D.Double();
-        com.jhlabs.map.Point2D.Double maxC = new com.jhlabs.map.Point2D.Double();
-        projection2.transform(minB, minC);
-        projection2.transform(maxB, maxC);
-
-        Log.debug("converted to Layer SRID:" + minA + " " + minB + " " + maxA
-                + " " + maxB);
-
-        return new Envelope(minC.x, maxC.x, minC.y, maxC.y);
+        
+        if(projection2.toString() != "Null"){
+            com.jhlabs.map.Point2D.Double minC = new com.jhlabs.map.Point2D.Double();
+            com.jhlabs.map.Point2D.Double maxC = new com.jhlabs.map.Point2D.Double();
+            projection2.transform(minB, minC);
+            projection2.transform(maxB, maxC);
+            return new Envelope(minC.x, maxC.x, minC.y, maxC.y);
+            
+        } else {
+            // dest already wgs84, no convert B->C        
+            return new Envelope(minB.x, maxB.x, minB.y, maxB.y);
+        }
     }
     
     /**

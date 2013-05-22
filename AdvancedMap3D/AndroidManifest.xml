@@ -30,6 +30,7 @@
     <activity android:name="CloudMadeRouteActivity"></activity>
     <activity android:name="Online3DMapActivity"></activity>
     <activity android:name="WfsMapActivity"></activity>
+    <activity android:name="SpatialiteMapActivity"></activity>
     <activity
     android:name="com.nutiteq.advancedmap.mapquest.SearchQueryResults"
     android:exported="false">
