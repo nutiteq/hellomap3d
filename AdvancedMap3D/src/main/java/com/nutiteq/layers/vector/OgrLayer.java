@@ -54,8 +54,11 @@ public class OgrLayer extends GeometryLayer {
     private CoordinateTransformation transformerToData;
     private CoordinateTransformation transformerToMap;
     private static final String EPSG_3785_WKT = "PROJCS[\"Google Maps Global Mercator\",    GEOGCS[\"WGS 84\",        DATUM[\"WGS_1984\",            SPHEROID[\"WGS 84\",6378137,298.257223563,                AUTHORITY[\"EPSG\",\"7030\"]],            AUTHORITY[\"EPSG\",\"6326\"]],        PRIMEM[\"Greenwich\",0,            AUTHORITY[\"EPSG\",\"8901\"]],        UNIT[\"degree\",0.01745329251994328,            AUTHORITY[\"EPSG\",\"9122\"]],        AUTHORITY[\"EPSG\",\"4326\"]],    PROJECTION[\"Mercator_2SP\"],    PARAMETER[\"standard_parallel_1\",0],    PARAMETER[\"latitude_of_origin\",0],    PARAMETER[\"central_meridian\",0],    PARAMETER[\"false_easting\",0],    PARAMETER[\"false_northing\",0],    UNIT[\"Meter\",1],    EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs\"],    AUTHORITY[\"EPSG\",\"3785\"]]";
+
+    // define some equal values for EPSG3785 to avoid transformations for these
     private static final String EPSG_3785_PROJ4 = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs";
     private static final String EPSG_3785_PROJ4BIS = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"; 
+    private static final String EPSG_3785_PROJ4BIS2 = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
 
 	static {
 		ogr.RegisterAll();
@@ -117,10 +120,15 @@ public class OgrLayer extends GeometryLayer {
 		this.pointStyleSet = pointStyleSet;
 		this.lineStyleSet = lineStyleSet;
 		this.polygonStyleSet = polygonStyleSet;
-
-		hDataset = ogr.Open(fileName);
+		
+		ogr.UseExceptions();
+		
+		
+		hDataset = ogr.Open(fileName, false);
 		if (hDataset == null) {
-			Log.error("OgrLayer: unable to open dataset '"+fileName+"'");
+			Log.error("OgrLayer: unable to open dataset '"+fileName+"' "+org.gdal.gdal.gdal.GetLastErrorMsg());
+			
+			printSupportedDrivers();	
 			throw new IOException("OgrLayer: unable to open dataset '"+fileName+"'");
 		}
 		
@@ -176,7 +184,7 @@ public class OgrLayer extends GeometryLayer {
         
         Log.debug("dataProj: "+dataProjName);
         
-        transformNeeded = ! (dataProjName.equals(EPSG_3785_PROJ4) || dataProjName.equals(EPSG_3785_PROJ4BIS));
+        transformNeeded = ! (dataProjName.equals(EPSG_3785_PROJ4) || dataProjName.equals(EPSG_3785_PROJ4BIS) || dataProjName.equals(EPSG_3785_PROJ4BIS2));
         Log.debug("transform needed: "+transformNeeded);
         
         transformerToData = new CoordinateTransformation(layerProjection, dataProj);
@@ -392,7 +400,7 @@ public class OgrLayer extends GeometryLayer {
 	    Log.debug("Supported drivers:");
         for( int iDriver = 0; iDriver < ogr.GetDriverCount(); iDriver++ )
         {
-            Log.debug( "  -> " + ogr.GetDriver(iDriver).GetName() );
+            Log.debug( " -> " + ogr.GetDriver(iDriver).GetName() );
         }
     }
 
