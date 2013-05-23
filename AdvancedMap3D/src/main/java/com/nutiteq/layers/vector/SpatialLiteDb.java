@@ -2,37 +2,21 @@ package com.nutiteq.layers.vector;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import jsqlite.Blob;
 import jsqlite.Callback;
 import jsqlite.Database;
 import jsqlite.Exception;
 
-import org.proj4.Proj4;
-import org.proj4.ProjectionData;
-
-import com.jhlabs.map.proj.Projection;
-import com.jhlabs.map.proj.ProjectionFactory;
 import com.nutiteq.components.Envelope;
-import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MutableEnvelope;
 import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.log.Log;
-import com.nutiteq.style.LineStyle;
-import com.nutiteq.style.PointStyle;
-import com.nutiteq.style.PolygonStyle;
-import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.GeoUtils;
 import com.nutiteq.utils.Utils;
 import com.nutiteq.utils.WkbRead;
@@ -121,7 +105,7 @@ public class SpatialLiteDb {
     }
 
     public Vector<Geometry> qrySpatiaLiteGeom(final Envelope bbox,
-            final int limit, final DBLayer dbLayer, final String[] userColumns) {
+            final int limit, final DBLayer dbLayer, final String[] userColumns, int autoSimplifyPixels, int screenWidth) {
         final Vector<Geometry> geoms = new Vector<Geometry>();
         final long start = System.currentTimeMillis();
 
@@ -181,6 +165,21 @@ public class SpatialLiteDb {
         } else {
             queryBbox = bbox;
         }
+        
+        // simplify geometries
+        if(autoSimplifyPixels > 0){
+            double zoomRange = bbox.maxX-bbox.minX; // map width in mercator meters
+            double width = 1000; // roughly 1000 pixels screen
+
+            // find size of N (=3) pixels.
+            // given in mercator meters, used for Douglas-Peucker tolerance
+            
+            double dpTolerance = ((zoomRange / width) * (double)autoSimplifyPixels);
+
+            // SimplifyPreserveTopology() is about 2x slower, but works a bit better (accepts invalid geometries)
+            geomCol = "Simplify("+geomCol+","+dpTolerance+")";
+        }
+
 
         String noIndexWhere = "MBRIntersects(BuildMBR(" + queryBbox.getMinX()
                 + "," + queryBbox.getMinY() + "," + queryBbox.getMaxX() + ","

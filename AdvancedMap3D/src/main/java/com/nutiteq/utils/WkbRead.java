@@ -161,10 +161,17 @@ public class WkbRead {
 
 	private static Geometry[] readPolygon(ByteArrayInputStream is, int dimensions, ByteOrder endian, Object userData) {
 		int numRings = readInt(is, endian);
-		if(numRings < 1)
-			return new Geometry[0];
+		if(numRings < 1){
+		    Log.warning("empty geometry: numRings <1 for "+userData);
+            return new Geometry[0];
+		}
 
 		int size = readInt(is, endian);
+	    if(size < 3){
+	        Log.warning("invalid geometry: outer ring size="+size+" for "+userData);
+	        return new Geometry[0];
+	    }
+	    
 		List<MapPos> outerRing = readCoordinateList(is, dimensions, size, endian);
 
 		List<List<MapPos>> innerRings = null;

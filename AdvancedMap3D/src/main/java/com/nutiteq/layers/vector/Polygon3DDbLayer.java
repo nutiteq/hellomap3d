@@ -85,7 +85,7 @@ public Polygon3DDbLayer(String dbPath, String tableName, String geomColumnName, 
     MapPos topRight = projection.fromInternal(envelope.getMaxX(), envelope.getMaxY());
 
     List<Geometry> visibleElementslist = spatialLite.qrySpatiaLiteGeom(new Envelope(bottomLeft.x, topRight.x,
-        bottomLeft.y, topRight.y), maxObjects, dbLayer, new String[] { heightColumnName });
+        bottomLeft.y, topRight.y), maxObjects, dbLayer, new String[] { heightColumnName }, 0, 0);
 
     long start = System.currentTimeMillis();
     List<Polygon3D> newVisibleElementsList = new LinkedList<Polygon3D>();
