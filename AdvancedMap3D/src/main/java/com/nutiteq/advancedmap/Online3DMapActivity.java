@@ -73,23 +73,26 @@ public class Online3DMapActivity extends Activity {
         modelLayer.setMemoryLimit(20*1024*1024);
         
         modelLayer.setPersistentCacheSize(30*1024*1024);
-        modelLayer.setPersistentCachePath(this.getDatabasePath("nmlcache").getPath());
+        modelLayer.setPersistentCachePath(this.getDatabasePath("nmlcache6").getPath());
         
         modelLayer.setLODResolutionFactor(0.3f);
         getMapView().getLayers().addLayer(modelLayer);
         
         // Tallinn
-        mapView.setFocusPoint(new MapPos(2753845.7830863246f, 8275045.674995658f));
+        //mapView.setFocusPoint(new MapPos(2753845.7830863246f, 8275045.674995658f));
         
         // San Francisco
         //mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
-         
-        mapView.setZoom(17.0f);
+        getMapView().setFocusPoint(new MapPos(-1.3625947E7f, 4550716.0f));
+        
+        // Rotterdam
+        //mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(4.480727f, 51.921098f));
+        mapView.setZoom(16.0f);
         
 		// rotation - 0 = north-up
-		mapView.setRotation(-96.140175f);
+		//mapView.setRotation(-96.140175f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
-		mapView.setTilt(30.0f);
+		//mapView.setTilt(30.0f);
 
 		// Activate some mapview options to make it smoother - optional
 		mapView.getOptions().setPreloading(false);
