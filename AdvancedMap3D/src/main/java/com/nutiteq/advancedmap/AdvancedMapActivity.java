@@ -194,19 +194,19 @@ public class AdvancedMapActivity extends Activity {
 		// 5. Add various layers to map - optional
         //    comment in needed ones, make sure that data file(s) exists in given folder
 
-		addBingBaseLayer(mapLayer.getProjection(),"http://ecn.t3.tiles.virtualearth.net/tiles/r",".png?g=1&mkt=en-US&shading=hill&n=z");
-        //addPackagedBaseLayer(mapLayer.getProjection());
+		//addBingBaseLayer(mapLayer.getProjection(),"http://ecn.t3.tiles.virtualearth.net/tiles/r",".png?g=1&mkt=en-US&shading=hill&n=z");
+       // addPackagedBaseLayer(mapLayer.getProjection());
 
 		// addStoredBaseLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/nutimaps/allimages/");
 		 
-    //    addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
+        addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
 
         // Overlay layer from http://toolserver.org/~cmarqu/hill/$%7Bz%7D/$%7Bx%7D/$%7By%7D.png
 //        TMSMapLayer hillsLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
 //                "http://toolserver.org/~cmarqu/hill/", "/", ".png");
 //        mapView.getLayers().addLayer(hillsLayer);
 //        
-//		addOsmPolygonLayer(mapLayer.getProjection());
+		addOsmPolygonLayer(mapLayer.getProjection());
 
 //        add3dModelLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory() + "/mapxt/tallinn28.nml");
 //        addWmsLayer(mapLayer.getProjection(),"http://kaart.maakaart.ee/service?","osm", new EPSG4326());
@@ -215,7 +215,7 @@ public class AdvancedMapActivity extends Activity {
 
 
 	private void addPackagedBaseLayer(Projection projection) {
-	    PackagedMapLayer packagedMapLayer = new PackagedMapLayer(projection, 0, 3, 13, "t", this);
+	    PackagedMapLayer packagedMapLayer = new PackagedMapLayer(projection, 0, 3, 16, "t", this);
 	    mapView.getLayers().setBaseLayer(packagedMapLayer);
     }
 
@@ -244,7 +244,7 @@ public class AdvancedMapActivity extends Activity {
 	// Load online simple building 3D boxes
 	private void addOsmPolygonLayer(Projection proj) {
 		// Set style visible from zoom 15
-        Polygon3DStyle polygon3DStyle = Polygon3DStyle.builder().setColor(Color.BLACK | 0x40ffffff).build();
+        Polygon3DStyle polygon3DStyle = Polygon3DStyle.builder().setColor(Color.WHITE & 0x80ffffff).build();
         StyleSet<Polygon3DStyle> polygon3DStyleSet = new StyleSet<Polygon3DStyle>(null);
 		polygon3DStyleSet.setZoomStyle(15, polygon3DStyle);
 
