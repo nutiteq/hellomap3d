@@ -1,0 +1,78 @@
+
+Spatialite library with dependencies for Android
+
+License: MPL. When used with GEOS, then LGPL.
+
+a) Using prebuilt libraries:
+- copy /libs/ files to your project
+- copy jsqlite and org/proj.4 java source folders to your project
+- in runtime copy proj-4.8.0/nad folder to /sdcard/proj , so EPSG codes will be resolved properly 
+
+
+b) How it was done:
+
+1. Compile Proj.4 
+
+cd proj-4.8.0
+chmod u+x configure
+./configure --build=x86_64-pc-linux-gnu --host=arm-linux-eabi
+cd ..
+find proj-4.8.0/ -name "*.c" | grep -Ev "tests|doc" | sort | awk '{ print "\t"$1" \\" }' >projsrc.txt
+copy projsrc.txt to Android.mk
+edit it - remove one with main()
+ find . -iname '*c' | xargs grep 'int main(int argc, char \*\*argv)' -sl
+ cs2cs.c, geod.c, nad2bin.c, proj.c
+  
+
+fix http://trac.osgeo.org/proj/ticket/153:
+ cd proj-4.8.0/src/
+ wget http://trac.osgeo.org/proj/export/2335/tags/4.8.0/proj/src/org_proj4_PJ.h
+
+fix pj_init.c line 260: strdup(setlocale(LC_NUMERIC, 0)); -> apply patch https://code.google.com/p/spatialite-android/source/browse/spatialite-android-library/jni/patches/proj.diff?r=74eb846ed51625c479cc27660335078068601afe
+
+fix sqlite_jni.c : comment out lines 1409 and 1424 (free after sql error) to avoid sql error crash
+
+Add proj-4.8.0/jniwrap as eclipse project source folder
+
+Copy nad/ files to /sdcard/proj folder on device (without nad subfolder)
+
+2. sqlite 3
+ just downloaded latest amalgation and added to Android.mk
+
+3. spatialite 4.1.0 
+
+ similar approach like with proj:
+ cd libspatialite-4.1.0
+ chmod u+x configure
+ ./configure --build=x86_64-pc-linux-gnu --host=arm-linux-eabi --disable-geosadvanced --disable-geos --disable-freexl
+ cd ..
+
+check config.h:
+ - GEOCALLBACK should be enabled
+ 
+ 
+ find libspatialite-4.1.0 -name "*.c" | grep -Ev "tests|doc" | sort | awk '{ print "\t"$1" \\" }' >spsrc.txt
+copy  spsrc.txt to Android.mk
+edit -> remove demo, template and test sources
+
+
+
+4. GEOS
+Note: GEOS has LGPL license, so with GEOS LGPL license terms apply. 
+
+ cd geos-3.3.8
+ chmod u+x configure
+ ./configure --build=x86_64-pc-linux-gnu --host=arm-linux-eabi
+ cd ..
+ find geos-3.3.8/ -name "*.cpp" | grep -Ev "tests|doc" | sort | awk '{ print "\t"$1" \\" }'
+
+* Make sure to use android-ndk-r8e, older r7c crashes during compile
+* isnan issue: change include/geos/platform.h lines 99-101:
+# elif defined(__sun) || defined(__sun__) || defined(__ANDROID__)
+#  include <math.h>
+#  define ISNAN(x) (x!=x)
+
+5. Build now all them
+just run ndk-build from NDK r8e.
+
+// jaak@nutiteq.com
