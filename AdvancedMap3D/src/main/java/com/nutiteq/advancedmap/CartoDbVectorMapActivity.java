@@ -13,6 +13,7 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.layers.vector.CartoDbVectorLayer;
+import com.nutiteq.layers.vector.OnlineVectorLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.style.LineStyle;
@@ -56,11 +57,11 @@ public class CartoDbVectorMapActivity extends Activity {
 
 
 		// 3. Define map layer for basemap - mandatory.
-		// Here we use MapQuest open tiles
-		// Almost all online tiled maps use EPSG3857 projection.
-		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
-				"http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
+		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 3,
+//				"http://nutiteq.cartodb.com/tiles/tm_world_borders/", "/", ".png");
+		        "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
 
+		
 		mapView.getLayers().setBaseLayer(mapLayer);
 
 		// set initial map view camera - optional. "World view" is default
@@ -76,9 +77,9 @@ public class CartoDbVectorMapActivity extends Activity {
 
 
 		// Activate some mapview options to make it smoother - optional
-		mapView.getOptions().setPreloading(true);
+		mapView.getOptions().setPreloading(false);
 		mapView.getOptions().setSeamlessHorizontalPan(true);
-		mapView.getOptions().setTileFading(true);
+		mapView.getOptions().setTileFading(false);
 		mapView.getOptions().setKineticPanning(true);
 		mapView.getOptions().setDoubleClickZoomIn(true);
 		mapView.getOptions().setDualClickZoomOut(true);
@@ -137,28 +138,38 @@ public class CartoDbVectorMapActivity extends Activity {
         pointStyleSet.setZoomStyle(minZoom, pointStyle);
 
         StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
-        LineStyle lineStyle = LineStyle.builder().setWidth(0.05f).setColor(color).build();
+        LineStyle lineStyle = LineStyle.builder().setWidth(0.04f).setColor(Color.WHITE).build();
         lineStyleSet.setZoomStyle(minZoom, lineStyle);
 
-        PolygonStyle polygonStyle = PolygonStyle.builder().setColor(color & 0x80FFFFFF).setLineStyle(lineStyle).build();
+        PolygonStyle polygonStyle = PolygonStyle.builder().setColor(0xFFFF6600 & 0x80FFFFFF).setLineStyle(lineStyle).build();
         StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
         polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
 
         StyleSet<LineStyle> roadLineStyleSet = new StyleSet<LineStyle>(LineStyle.builder().setWidth(0.07f).setColor(0xFFAAAAAA).build());
         
         //  5.2 Define layer and add to map
+
+        
+        
         String account = "nutiteq";
-        String table = "kihelkonnad_1897"; // kihelkonnad_1897, maakond_20120701
-        String columns = "kihelkond, "+CartoDbVectorLayer.TAG_WEBMERCATOR; // NB! always include the_geom_webmercator
+        String table = "tm_world_borders"; // kihelkonnad_1897, maakond_20120701
+        String columns = "name,iso2,pop2005,area,"+CartoDbVectorLayer.TAG_WEBMERCATOR; // NB! always include the_geom_webmercator
         int limit = 5000; // max number of objects
         String sql = "SELECT "+columns+" FROM "+table+" WHERE "+CartoDbVectorLayer.TAG_WEBMERCATOR +" && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT "+limit;
         
-		CartoDbVectorLayer cartoLayer = new CartoDbVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), account, sql, pointStyleSet, lineStyleSet, polygonStyleSet);
-		mapView.getLayers().addLayer(cartoLayer);
+//      String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads WHERE type in ('trunk','primary') AND the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
+//        String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads WHERE the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
+      CartoDbVectorLayer cartoLayerTrunk = new CartoDbVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), account, sql, pointStyleSet, lineStyleSet, polygonStyleSet);
+      mapView.getLayers().addLayer(cartoLayerTrunk);
 
-		String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads where type in ('trunk','primary') AND the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
-	    CartoDbVectorLayer cartoLayerTrunk = new CartoDbVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), account, sql2, null, roadLineStyleSet, null);
-	    mapView.getLayers().addLayer(cartoLayerTrunk);
+//		CartoDbVectorLayer cartoLayer = new CartoDbVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), account, sql, pointStyleSet, lineStyleSet, polygonStyleSet);
+
+      
+//        OnlineVectorLayer vectorLayer = new OnlineVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), pointStyleSet, lineStyleSet, polygonStyleSet,2000);
+//		mapView.getLayers().addLayer(vectorLayer);
+
+		
+
 	}
 
     public MapView getMapView() {
