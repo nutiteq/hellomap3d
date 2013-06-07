@@ -11,11 +11,14 @@ import com.nutiteq.MapView;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.Options;
 import com.nutiteq.layers.vector.WfsLayer;
+import com.nutiteq.layers.vector.WfsLayer.Feature;
+import com.nutiteq.layers.vector.WfsTextLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.StyleSet;
+import com.nutiteq.style.TextStyle;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 
 public class WfsMapActivity extends Activity {
@@ -54,7 +57,7 @@ public class WfsMapActivity extends Activity {
 
 		// 3. Define map layer for basemap - mandatory.
         
-        String layers = "osm:towns,osm:osm_mainroads_gen1,osm:osm_amenities,osm:osm_roads";
+        String layers = "osm:osm_mainroads_gen1,osm:osm_amenities,osm:osm_roads";
 
         // add WFS layer as base layer
         String wfsUrl = "http://kaart.maakaart.ee/geoserver/osm/ows?service=WFS&version=1.0.0&request=GetFeature&typeName="+layers+"&maxFeatures=500";
@@ -71,8 +74,8 @@ public class WfsMapActivity extends Activity {
         // add label layer for WFS streets
         // 1. define style callback for labels
         // disabled - requires experimental SDK
-        /* 
-        WfsTextLayer textLayer = new WfsTextLayer(
+
+     WfsTextLayer textLayer = new WfsTextLayer(
                 mapView.getLayers().getBaseLayer().getProjection(),
                 wfsLayer) {
         
@@ -108,7 +111,7 @@ public class WfsMapActivity extends Activity {
         
         // 3. add layer
         mapView.getLayers().addLayer(textLayer);
-        */
+        
         
 		// Location: San Francisco
         mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.416667f, 37.766667f));
