@@ -1,36 +1,21 @@
 package com.nutiteq.layers.vector;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.net.ParseException;
 import android.net.Uri;
-import android.net.http.AndroidHttpClient;
 
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.geometry.Line;
-import com.nutiteq.geometry.Point;
-import com.nutiteq.geometry.Polygon;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LineStyle;
@@ -39,11 +24,8 @@ import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.tasks.Task;
 import com.nutiteq.ui.DefaultLabel;
-import com.nutiteq.ui.Label;
 import com.nutiteq.utils.GeoUtils;
 import com.nutiteq.utils.NetUtils;
-import com.nutiteq.utils.Utils;
-import com.nutiteq.utils.WkbRead;
 import com.nutiteq.vectorlayers.GeometryLayer;
 
 /**
