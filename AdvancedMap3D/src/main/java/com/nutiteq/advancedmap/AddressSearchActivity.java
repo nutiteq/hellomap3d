@@ -144,9 +144,14 @@ public class AddressSearchActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        mapView.stopMapping();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onStop();
+        mapView.stopMapping();
+    }
+    
     @Override 
     protected void onResume() {
 
