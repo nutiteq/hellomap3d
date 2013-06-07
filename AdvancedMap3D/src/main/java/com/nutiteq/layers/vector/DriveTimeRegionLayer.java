@@ -56,6 +56,7 @@ public class DriveTimeRegionLayer extends GeometryLayer {
         public void run() {
           loadData(pos,distance);
           
+          // refresh map: eventually calculateVisibleElements will be called
           Components components = getComponents();
           if (components != null) {
             components.mapRenderers.getMapRenderer().frustumChanged();
@@ -86,6 +87,7 @@ public class DriveTimeRegionLayer extends GeometryLayer {
         if(currentVisibleElementsList == null)
             return;
         
+        // set style for elements, so they will be visible now
         for(Geometry element : currentVisibleElementsList){
             element.setActiveStyle(zoom);
         }
@@ -98,6 +100,8 @@ public class DriveTimeRegionLayer extends GeometryLayer {
         }
         
         long timeStart = System.currentTimeMillis();
+        
+        // start spinner status bar
         activity.runOnUiThread(new Runnable() {
             public void run() {
                 activity.setProgressBarIndeterminateVisibility(true);
@@ -159,6 +163,8 @@ public class DriveTimeRegionLayer extends GeometryLayer {
         long timeEnd = System.currentTimeMillis();
         Log.debug("DriveTimeRegionLayer loaded dist:"+ distance+" h, calc time ms:"+(timeEnd-timeStart));
         setVisibleElementsList(currentVisibleElementsList);
+        
+        // stop spinner status bar
         activity.runOnUiThread(new Runnable() {
             public void run() {
                 activity.setProgressBarIndeterminateVisibility(false);
