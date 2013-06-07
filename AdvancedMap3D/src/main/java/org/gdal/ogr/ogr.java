@@ -15,6 +15,10 @@ public class ogr implements ogrConstants {
     ogrJNI.UseExceptions();
   }
 
+  public static void nativePipeSTDERRToLogcat() {
+      ogrJNI.nativePipeSTDERRToLogcat();
+    }
+  
   public static void DontUseExceptions() {
     ogrJNI.DontUseExceptions();
   }

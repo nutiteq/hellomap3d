@@ -8,6 +8,7 @@
 
 package org.gdal.ogr;
 
+import org.gdal.gdal.gdal;
 import org.gdal.osr.SpatialReference;
 import org.gdal.osr.CoordinateTransformation;
 
@@ -15,10 +16,13 @@ public class ogrJNI {
   public final static native void UseExceptions();
   public final static native void DontUseExceptions();
 
+  public final static native void nativePipeSTDERRToLogcat();
+  
   private static boolean available = false;
 
   static {
     try {
+        
       System.loadLibrary("ogrjni");
       available = true;
       
@@ -330,4 +334,5 @@ public class ogrJNI {
   public final static native java.util.Vector GeneralCmdLineProcessor__SWIG_0(java.util.Vector jarg1, int jarg2);
   public final static native java.util.Vector GeneralCmdLineProcessor__SWIG_1(java.util.Vector jarg1);
   public final static native long TermProgressCallback_SWIGUpcast(long jarg1);
+  public final static native long nativePipeSTDERRToLogcat(long jarg1);
 }

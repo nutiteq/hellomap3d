@@ -87,6 +87,12 @@ public class GdalMapLayer extends RasterLayer {
         super(projection, minZoom, maxZoom, id, gdalSource);
         
         this.mapView = mapView;
+        
+        gdal.SetConfigOption("CPL_LOG", "/sdcard/gdaldebug.log");
+        gdal.SetConfigOption("CPL_DEBUG", "ON");
+        
+        gdal.PushErrorHandler("CPLLoggingErrorHandler");
+        
         gdal.AllRegister();
         
         // debug print list all enabled drivers
