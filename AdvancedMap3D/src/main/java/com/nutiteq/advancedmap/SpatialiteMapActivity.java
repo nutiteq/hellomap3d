@@ -2,16 +2,9 @@ package com.nutiteq.advancedmap;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Map;
-import java.util.Vector;
-
-import org.mapsforge.android.maps.mapgenerator.JobTheme;
-import org.mapsforge.android.maps.mapgenerator.databaserenderer.ExternalRenderTheme;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -20,11 +13,9 @@ import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
-import android.widget.Toast;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
@@ -34,34 +25,16 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.db.DBLayer;
 import com.nutiteq.filepicker.FilePickerActivity;
-import com.nutiteq.geometry.Marker;
-import com.nutiteq.layers.raster.GdalMapLayer;
-import com.nutiteq.layers.raster.MBTilesMapLayer;
-import com.nutiteq.layers.raster.MapsforgeMapLayer;
-import com.nutiteq.layers.raster.PackagedMapLayer;
-import com.nutiteq.layers.raster.QuadKeyLayer;
 import com.nutiteq.layers.raster.TMSMapLayer;
-import com.nutiteq.layers.raster.WmsLayer;
-import com.nutiteq.layers.vector.OgrLayer;
-import com.nutiteq.layers.vector.Polygon3DOSMLayer;
 import com.nutiteq.layers.vector.SpatialLiteDb;
 import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
-import com.nutiteq.projections.Projection;
-import com.nutiteq.rasterlayers.StoredMapLayer;
 import com.nutiteq.style.LineStyle;
-import com.nutiteq.style.MarkerStyle;
-import com.nutiteq.style.ModelStyle;
 import com.nutiteq.style.PointStyle;
-import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
-import com.nutiteq.ui.DefaultLabel;
-import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
-import com.nutiteq.vectorlayers.MarkerLayer;
-import com.nutiteq.vectorlayers.NMLModelDbLayer;
 
 public class SpatialiteMapActivity extends Activity implements FilePickerActivity {
 
@@ -230,7 +203,7 @@ public class SpatialiteMapActivity extends Activity implements FilePickerActivit
             
         case DIALOG_NO_TABLES:
             return new AlertDialog.Builder(this)
-            .setMessage("No geometry_columns metadata found. Check logcat for more details.")
+            .setMessage("No geometry_columns or spatial_ref_sys metadata found. Check logcat for more details.")
             .setPositiveButton("Back", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     dialog.dismiss();
@@ -264,7 +237,9 @@ public class SpatialiteMapActivity extends Activity implements FilePickerActivit
         lineStyleSet.setZoomStyle(minZoom, lineStyle);
 
         PolygonStyle polygonStyle = PolygonStyle.builder()
-                .setColor(color & 0x80FFFFFF).setLineStyle(lineStyle).build();
+                .setColor(color & 0x80FFFFFF).setLineStyle(
+                        LineStyle.builder().setWidth(0.05f).setColor(color).build()
+                        ).build();
         StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(
                 null);
         polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
@@ -273,7 +248,7 @@ public class SpatialiteMapActivity extends Activity implements FilePickerActivit
 	    
         SpatialiteLayer spatialiteLayer = new SpatialiteLayer(proj, spatialLite, tableKey[0],
                 tableKey[1], null, maxElements, pointStyleSet, lineStyleSet, polygonStyleSet);
-	    
+        
 	    mapView.getLayers().addLayer(spatialiteLayer);
 
         Envelope extent = spatialiteLayer.getDataExtent();
@@ -288,6 +263,9 @@ public class SpatialiteMapActivity extends Activity implements FilePickerActivit
         
         MapPos centerPoint = new MapPos((extent.maxX+extent.minX)/2,(extent.maxY+extent.minY)/2);
         Log.debug("found extent "+extent+", zoom "+zoom+", centerPoint "+centerPoint);
+
+        // define pixels and screen width for automatic polygon/line simplification
+        spatialiteLayer.setAutoSimplify(2,screenWidth);
         
         mapView.setZoom((float) zoom);
         mapView.setFocusPoint(centerPoint); 
