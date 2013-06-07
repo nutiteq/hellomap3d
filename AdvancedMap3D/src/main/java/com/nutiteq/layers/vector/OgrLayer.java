@@ -69,6 +69,7 @@ public class OgrLayer extends GeometryLayer {
             // force Java to load PROJ.4 library. Needed as we don't call it directly, but 
             // OGR datasource reading may need it.
             System.loadLibrary("proj");
+            
         } catch (Throwable t) {
             System.err.println("Unable to load proj: " + t);
         }
@@ -121,12 +122,18 @@ public class OgrLayer extends GeometryLayer {
 		this.lineStyleSet = lineStyleSet;
 		this.polygonStyleSet = polygonStyleSet;
 		
-		ogr.UseExceptions();
+		
+		// ogr stdout redirect
+		new Thread() {
+		    public void run() {
+		        ogr.nativePipeSTDERRToLogcat();
+		    }
+		}.start();
 		
 		
 		hDataset = ogr.Open(fileName, false);
 		if (hDataset == null) {
-			Log.error("OgrLayer: unable to open dataset '"+fileName+"' "+org.gdal.gdal.gdal.GetLastErrorMsg());
+			Log.error("OgrLayer: unable to open dataset '"+fileName+"'");
 			
 			printSupportedDrivers();	
 			throw new IOException("OgrLayer: unable to open dataset '"+fileName+"'");
