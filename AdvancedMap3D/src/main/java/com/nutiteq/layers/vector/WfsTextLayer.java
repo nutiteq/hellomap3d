@@ -18,7 +18,8 @@ import com.nutiteq.vectorlayers.TextLayer;
 
 public abstract class WfsTextLayer extends TextLayer {
 
-  private WfsLayer baseLayer;
+  private final WfsLayer baseLayer;
+  private int maxVisibleElements = Integer.MAX_VALUE;
 
   public WfsTextLayer(Projection projection, WfsLayer baseLayer) {
     super(projection);
@@ -27,6 +28,10 @@ public abstract class WfsTextLayer extends TextLayer {
   
   public WfsLayer getBaseLayer() {
     return baseLayer;
+  }
+  
+  public void setMaxVisibleElements(int maxElements) {
+    this.maxVisibleElements = maxElements;
   }
 
   public void calculateVisibleElements(List<Feature> features, int zoom) {
@@ -43,16 +48,20 @@ public abstract class WfsTextLayer extends TextLayer {
 
     // Create list of new visible elements 
     List<Text> newVisibleElementsList = new ArrayList<Text>();
-    for (Feature feature : features) {
+    for (Feature feature : features) { // first, add existing elements
       Text element = oldVisibleElementsMap.get(feature.properties.osm_id);
-      if (element == null) {
+      if (element != null && newVisibleElementsList.size() < maxVisibleElements) {
+        newVisibleElementsList.add(element);
+      }
+    }
+    for (Feature feature : features) { // now add new elements
+      Text element = oldVisibleElementsMap.get(feature.properties.osm_id);
+      if (element == null && newVisibleElementsList.size() < maxVisibleElements) {
         element = createText(feature, zoom);
         if (element != null) {
           element.attachToLayer(this);
+          newVisibleElementsList.add(element);
         }
-      }
-      if (element != null) {
-        newVisibleElementsList.add(element);
       }
     }
     for (Text element : newVisibleElementsList) {
