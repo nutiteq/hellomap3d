@@ -107,21 +107,21 @@ public class AdvancedMapActivity extends Activity {
 		// 3. Define map layer for basemap - mandatory.
 		// Here we use MapQuest open tiles
 		// Almost all online tiled maps use EPSG3857 projection.
-		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
+		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 1,
 				"http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
 
 		mapView.getLayers().setBaseLayer(mapLayer);
 
 		
-		baseLayerMapBoxSatelliteLayer(mapView.getLayers().getBaseLayer().getProjection());
+	//	baseLayerMapBoxSatelliteLayer(mapView.getLayers().getBaseLayer().getProjection());
 		
 		// set initial map view camera - optional. "World view" is default
 		// Location: San Francisco
-//        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
 
 	
 //		mapView.setFocusPoint(2901450, 5528971);    // Romania
-        mapView.setFocusPoint(2915891.5f, 7984571.0f); // valgamaa
+//        mapView.setFocusPoint(2915891.5f, 7984571.0f); // valgamaa
 //        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(2.183333f, 41.383333f)); // barcelona
 //        mapView.setFocusPoint(new MapPos(2753791.3f, 8275296.0f)); // Tallinn
 
@@ -139,14 +139,14 @@ public class AdvancedMapActivity extends Activity {
 
 		
 		// Estonia 
-		mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.74314f,59.43635f));
-        mapView.setZoom(6.0f);
-        mapView.setRotation(0);
-        mapView.setTilt(90f);
+//		mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.74314f,59.43635f));
+//        mapView.setZoom(6.0f);
+//        mapView.setRotation(0);
+//        mapView.setTilt(90f);
 
         // Coburg, germany
-        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(10.96465, 50.27082));
-        mapView.setZoom(16.0f);
+//        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(10.96465, 50.27082));
+//        mapView.setZoom(16.0f);
 
         
 		// Activate some mapview options to make it smoother - optional
@@ -246,14 +246,17 @@ public class AdvancedMapActivity extends Activity {
         // create layer and add object to the layer, finally add layer to the map. 
         // All overlay layers must be same projection as base layer, so we reuse it
 		MarkerLayer markerLayer = new MarkerLayer(proj);
-        markerLayer.add(new Marker(markerLocation, markerLabel, markerStyle, null));
+		Marker marker = new Marker(markerLocation, markerLabel, markerStyle, null);
+        markerLayer.add(marker);
 		mapView.getLayers().addLayer(markerLayer);
+		mapView.selectVectorElement(marker);
 	}
 
 	// Load online simple building 3D boxes
 	private void addOsmPolygonLayer(Projection proj) {
 		// Set style visible from zoom 15
-        Polygon3DStyle polygon3DStyle = Polygon3DStyle.builder().setColor(Color.WHITE & 0x80ffffff).build();
+	    // note: & 0xaaffffff makes the color a bit transparent
+        Polygon3DStyle polygon3DStyle = Polygon3DStyle.builder().setColor(Color.WHITE & 0xaaffffff).build();
         StyleSet<Polygon3DStyle> polygon3DStyleSet = new StyleSet<Polygon3DStyle>(null);
 		polygon3DStyleSet.setZoomStyle(15, polygon3DStyle);
 
