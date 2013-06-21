@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" 
+    android:id="@+id/mainView">
+
+<com.nutiteq.editable.EditableMapView
+    android:id="@+id/editableMapView"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" />
+
+<ZoomControls
+	android:id="@+id/zoomcontrols"
+    android:layout_width="wrap_content" 
+    android:layout_height="wrap_content"
+    android:layout_alignParentRight="true" 
+    android:layout_alignParentBottom="true" 
+    />
+
+<SeekBar
+    android:id="@+id/seekBar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentTop="true"
+    android:layout_toLeftOf="@+id/textView"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    android:visibility="invisible" />
+
+<TextView
+    android:id="@+id/textView"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignParentRight="true"
+    android:layout_alignParentTop="true"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    android:shadowColor="#AAAAAA"
+    android:shadowDx="1"
+    android:shadowDy="1"
+    android:shadowRadius="1.5"
+    android:text="8:00 h"
+    android:textAppearance="?android:attr/textAppearanceMedium"
+    android:textColor="#000000"
+    android:visibility="invisible"
+    android:width="100dp" />
+
+</RelativeLayout>
