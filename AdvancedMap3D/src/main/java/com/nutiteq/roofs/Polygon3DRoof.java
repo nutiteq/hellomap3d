@@ -91,6 +91,9 @@ public class Polygon3DRoof extends Polygon3D {
     super(mapPoses, mapPosesHoles, height, label, styles, userData);
     this.roof = roof;
     
+    // internal height is to bottom of roof, not top.
+    this.height -= roof.roofHeight;
+    
     this.color = new Color(color);
     this.roofColor = new Color(roofColor);
   }

@@ -91,6 +91,14 @@
 		<artifactId>annotations</artifactId>
 		<version>4.1.1.4</version>
 	</dependency>
+
+	<!-- needed for OSM roofs -->
+	<dependency>
+		<groupId>com.vividsolutions</groupId>
+		<artifactId>jts</artifactId>
+		<version>1.13</version>
+	</dependency>
+	
 	</dependencies>
 
 	<build>
