@@ -48,7 +48,7 @@
 			<groupId>com.nutiteq</groupId>
 			<artifactId>nutiteq-3d-sdk</artifactId>
 			<version>2.2-SNAPSHOT</version>
-		</dependency>
+		</dependency >
 		<dependency>
 			<groupId>com.jhlabs</groupId>
 			<artifactId>javaproj-noawt</artifactId>
@@ -99,7 +99,7 @@
 					<resourceDirectory>${project.basedir}/res</resourceDirectory>
 					<nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
 					<sdk>
-						<platform>8</platform>
+						<platform>16</platform>
 					</sdk>
 					<undeployBeforeDeploy>true</undeployBeforeDeploy>
 					<downloadJavadocs>true</downloadJavadocs>
