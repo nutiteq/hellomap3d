@@ -31,6 +31,7 @@ import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.StoredMapLayer;
+import com.nutiteq.roofs.FlatRoof;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.ModelStyle;
@@ -111,6 +112,9 @@ public class AdvancedMapActivity extends Activity {
 
 		mapView.getLayers().setBaseLayer(mapLayer);
 
+		
+		baseLayerMapBoxSatelliteLayer(mapView.getLayers().getBaseLayer().getProjection());
+		
 		// set initial map view camera - optional. "World view" is default
 		// Location: San Francisco
 //        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
@@ -134,12 +138,17 @@ public class AdvancedMapActivity extends Activity {
 		mapView.setTilt(55.0f);
 
 		
-		// spatlalite test
-        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.74314f,59.43635f));
+		// Estonia 
+		mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.74314f,59.43635f));
         mapView.setZoom(6.0f);
         mapView.setRotation(0);
         mapView.setTilt(90f);
 
+        // Coburg, germany
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(10.96465, 50.27082));
+        mapView.setZoom(16.0f);
+
+        
 		// Activate some mapview options to make it smoother - optional
 		mapView.getOptions().setPreloading(false);
 		mapView.getOptions().setSeamlessHorizontalPan(true);
@@ -248,7 +257,7 @@ public class AdvancedMapActivity extends Activity {
         StyleSet<Polygon3DStyle> polygon3DStyleSet = new StyleSet<Polygon3DStyle>(null);
 		polygon3DStyleSet.setZoomStyle(15, polygon3DStyle);
 
-        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.500f, 200, polygon3DStyleSet);
+        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.500f, new FlatRoof(),  Color.WHITE, Color.LTGRAY, 500, polygon3DStyleSet);
 		mapView.getLayers().addLayer(osm3dLayer);
 	}
 
@@ -284,6 +293,11 @@ public class AdvancedMapActivity extends Activity {
          mapView.getLayers().setBaseLayer(bingMap);
       }
 
+     private void baseLayerMapBoxSatelliteLayer(Projection proj){
+         mapView.getLayers().setBaseLayer(new TMSMapLayer(proj, 0, 18, 20,
+                 "http://api.tiles.mapbox.com/v3/nutiteq.map-f0sfyluv/", "/", ".png"));
+      }
+     
 
     public MapView getMapView() {
         return mapView;

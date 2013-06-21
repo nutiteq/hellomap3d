@@ -22,6 +22,13 @@ import com.nutiteq.geometry.Polygon;
 import com.nutiteq.geometry.Polygon3D;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.roofs.FlatRoof;
+import com.nutiteq.roofs.GabledRoof;
+import com.nutiteq.roofs.HalfHippedRoof;
+import com.nutiteq.roofs.HippedRoof;
+import com.nutiteq.roofs.Polygon3DRoof;
+import com.nutiteq.roofs.PyramidalRoof;
+import com.nutiteq.roofs.Roof;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.tasks.Task;
@@ -30,19 +37,54 @@ import com.nutiteq.vectorlayers.Polygon3DLayer;
 
 public class Polygon3DOSMLayer extends Polygon3DLayer {
     
-    // this height modifier depends on map projection, and latitude: Default world 0.5f OpenGL units is very roughly 30m
+    private static final float DEFAULT_ROOF_HEIGHT = 0.2f;
 
-    private static final float HEIGHT_ADJUST = 0.5f / 30.0f;
+    // this height modifier depends on map projection, and latitude: Default world 0.5f OpenGL units is very roughly 30m
+    private static final float HEIGHT_ADJUST = 1.0f / 60.0f;
+    
+    private static final float LEVELS_TO_HEIGHT = 5.0f * HEIGHT_ADJUST;
+    
+    private static final HashMap<String, Integer> colorNames = new HashMap<String, Integer>();
+	
+	static {
+		colorNames.put("black", 0xFF000000);
+		colorNames.put("gray", 0xFF808080);
+		colorNames.put("maroon", 0xFF800000);
+		colorNames.put("olive", 0xFF808000);
+		colorNames.put("green", 0xFF008000);
+		colorNames.put("teal", 0xFF008080);
+		colorNames.put("navy", 0xFF000080);
+		colorNames.put("purple", 0xFF800080);
+		
+		colorNames.put("white", 0xFFFFFFFF);
+		colorNames.put("silver", 0xFFC0C0C0);
+		colorNames.put("red", 0xFFFF0000);
+		colorNames.put("yellow", 0xFFFFFF00);
+		colorNames.put("lime", 0xFF00FF00);
+		colorNames.put("aqua", 0xFF00FFFF);
+		colorNames.put("blue", 0xFF0000FF);
+		colorNames.put("fuchsia", 0xFFFF00FF);
+		colorNames.put("brown", 0xFFD2B48C);
+		colorNames.put("light_green", 0xFFDBDB70);
+		colorNames.put("violet", 0xFFDB7093);
+		colorNames.put("pink", 0xFFEEA2AD);
+		colorNames.put("orange", 0xFFCD3700);
+        
+		
+	}
 	
     // we use here a server with non-standard (and appareantly undocumented) API
     // it returns OSM building=yes polygons in WKB format, for given BBOX
-	private String baseUrl = "http://kaart.maakaart.ee/poiexport/buildings2.php?";
+	private String baseUrl = "http://kaart.maakaart.ee/poiexport/buildings3d.php?";
 
 	private StyleSet<Polygon3DStyle> styleSet;
 
 	private int minZoom;
 	private int maxObjects;
 	private float height;
+	private Roof roofShape;
+	private int color;
+	private int roofColor;
 
 	/**
 	 * Constructor for layer with 3D OSM building boxes
@@ -52,14 +94,18 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 	 * @param maxObjects limits number of objects per network call. Btw, the server has "largest objects first" order
 	 * @param styleSet defines visual styles
 	 */
-	public Polygon3DOSMLayer(Projection proj, float height, int maxObjects, StyleSet<Polygon3DStyle> styleSet) {
+	public Polygon3DOSMLayer(Projection proj, float height, Roof roofShape, int color, int roofColor, 
+			int maxObjects, StyleSet<Polygon3DStyle> styleSet) {
 		super(proj);
 		this.styleSet = styleSet;
 		this.maxObjects = maxObjects;
 		this.height = height;
+		this.roofShape = roofShape;
+		this.color = color;
+		this.roofColor = roofColor;
 		minZoom = styleSet.getFirstNonNullZoomStyleZoom();
 	}
-
+	
 	@Override
 	public void add(Polygon3D element) {
 		throw new UnsupportedOperationException();
@@ -89,25 +135,12 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 		
 	}
 
-	private float convertToMeters(float hVal, String unit) {
-        if(unit.equals("m")){
-            return hVal;
-        }
-        if(unit.equals("ft")){
-            return hVal * 0.3048f;
-        }
-        if(unit.equals("yd")){
-            return hVal * 0.9144f;
-        }
-        return hVal;
-    }
-
     /**
      * Helper method to load geometries from the server
      */
     private List<Polygon> loadGeom(Envelope box, int maxObjects2, String baseUrl2) {
 		List<Polygon> objects = new LinkedList<Polygon>();
-		// URL request format: http://kaart.maakaart.ee/poiexport/buildings2.php?bbox=xmin,ymin,xmax,ymax&output=wkb
+		// URL request format: http://kaart.maakaart.ee/poiexport/buildings3d.php?bbox=xmin,ymin,xmax,ymax&output=wkb
 		try {
 			Uri.Builder uri = Uri.parse(baseUrl2).buildUpon();
 			uri.appendQueryParameter("bbox", (int) box.minX + "," + (int) box.minY + "," + (int) box.maxX + "," + (int) box.maxY);
@@ -122,10 +155,28 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 
 			for (int i = 0; i < n; i++) {
 			    final Map<String, String> userData = new HashMap<String, String>();
+                userData.put("id", Long.toString(data.readInt()));
 			    userData.put("name", data.readUTF());
 			    userData.put("height", data.readUTF());
 			    userData.put("type", data.readUTF());
 			    userData.put("address", data.readUTF());
+			    userData.put("addr:street", data.readUTF());
+			    userData.put("addr:city", data.readUTF());
+			    userData.put("addr:full", data.readUTF());
+			    userData.put("roof:colour", data.readUTF());
+			    userData.put("building:colour", data.readUTF());
+			    userData.put("roof:levels", data.readUTF());
+			    userData.put("roof:shape", data.readUTF());        
+			    userData.put("building:levels", data.readUTF());   
+			    userData.put("building:min_level", data.readUTF());
+			    userData.put("roof:material", data.readUTF());     
+			    userData.put("building:material", data.readUTF()); 
+			    userData.put("building:part", data.readUTF());     
+			    userData.put("building:parts", data.readUTF());    
+			    userData.put("roof:orientation", data.readUTF());  
+			    userData.put("roof:height", data.readUTF());       
+			    userData.put("roof:angle", data.readUTF());        
+			    userData.put("min_height", data.readUTF());
 			    
 				int len = data.readInt();
 				byte[] wkb = new byte[len];
@@ -164,6 +215,7 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
         
         @Override
         public void run() {
+         
           List<Polygon> polygons = loadGeom(envelope, maxObjects, serverUrl);
           List<Polygon3D> newVisibleElementsList = convert3D(polygons, zoom);
           setVisibleElementsList(newVisibleElementsList); 
@@ -192,43 +244,42 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
             String type = userData.get("type");
             String address = userData.get("address");
             
-            float h = this.height;
-            
-            String heightStr = null;
-            try {
-                heightStr = userData.get("height");
-                if(heightStr != null && !heightStr.equals("")){
-                    float hVal;
-                    // change unit if needed
-                    if(heightStr.contains(" ")){
-                        String[] parts = heightStr.split(" ");
-                        hVal = Float.parseFloat(parts[0]);
-                        hVal = convertToMeters(hVal,parts[1]);
-                    }else{
-                        hVal = Float.parseFloat(heightStr);
-                    }
-                    h = HEIGHT_ADJUST * hVal;
-                    Log.debug("found real height ="+h+" from "+height);
-                }
-            } catch (NumberFormatException e) {
-                Log.error("could not parse height value " + heightStr);
+            float height = parseHeight(userData.get("height"), -1);
+            if (height < 0) {
+            	height = parseLevelsHeight(userData.get("building:levels"), this.height);
+            }
+            float roofHeight = parseHeight(userData.get("roof:height"), -1);
+            if (roofHeight < 0) {
+            	roofHeight = parseLevelsHeight(userData.get("roof:levels"), DEFAULT_ROOF_HEIGHT);
+            }
+            int color = parseColor(userData.get("building:colour"), this.color);
+            int roofColor = parseColor(userData.get("roof:colour"), this.roofColor);
+            boolean roofAlongLongSide = parseRoofOrientation(userData.get("roof:orientation"), this.roofShape.getAlongLongSide());
+            Roof roofShape; 
+            if (roofHeight > 0.0f) {
+            	roofShape = parseRoofShape(userData.get("roof:shape"), roofHeight, roofAlongLongSide, this.roofShape);
+            } else {
+            	roofShape = new FlatRoof();
             }
             
-            //Log.debug("name = '" + name + "' address = '" + address + "'");
-
             DefaultLabel label = null;
-            if ((name == null || name.equals("")) && address != null && address.length()>0) {
+            if ((name == null || name.equals("")) && address != null && address.length() > 0) {
                 label = new DefaultLabel(address);
             }
-            if (name != null && (address == null || address.equals("")) && name.length()>0) {
+            if (name != null && name.length() > 0 && (address == null || address.equals("")) ) {
                 label = new DefaultLabel(name);
             }
-            if (name != null && address != null && address.length()>0 && name.length()>0) {
+            if (name != null && address != null && address.length() > 0 && name.length() > 0) {
                 label = new DefaultLabel(name, address);
             }
+            
+            Log.debug("Polygon3D OSM. Name: " + name + " type: " + type + " addr: " + address + 
+            		" height: " + height + " roof height: " + roofHeight + 
+            		" color: " + color + " roof color: " + roofColor + " roof shape: " + roofShape.getClass().getSimpleName());
 
-            // create 3Dpolygon
-            Polygon3D polygon3D = new Polygon3D(((Polygon)geometry).getVertexList(), geometry.getHolePolygonList(), h, label, styleSet, userData);
+            // Create 3Dpolygon
+            Polygon3D polygon3D = new Polygon3DRoof(((Polygon)geometry).getVertexList(), geometry.getHolePolygonList(), 
+            		height, roofShape, color, roofColor, label, styleSet, userData);
             try {
                 polygon3D.attachToLayer(this);
             }
@@ -238,9 +289,105 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
             }
             polygon3D.setActiveStyle(zoom);
             newVisibleElementsList.add(polygon3D);
+
         }
         Log.debug("Triangulation time: " + (System.currentTimeMillis() - start));
         return newVisibleElementsList;
+    }
+    
+    private boolean parseRoofOrientation(String roofOrientationStr, boolean defaultAlongLongSide) {
+		if(roofOrientationStr != null && roofOrientationStr.length() > 0) {
+	        if (roofOrientationStr.equals("along")) {
+	        	return true;
+	        } else if (roofOrientationStr.equals("across")) {
+	        	return false;
+	        }
+	        Log.error("Failed to parse roof orientation from: " + roofOrientationStr);
+	    }
+		return defaultAlongLongSide;
+	}
+    
+	private float parseHeight(String heightStr, float defaultHeight) {
+    	if(heightStr != null && heightStr.length() > 0){
+            float height;
+            // Change unit if needed
+            try {
+	            if(heightStr.contains(" ")){
+	                String[] parts = heightStr.split(" ");
+	                height = Float.parseFloat(parts[0]);
+	                height = convertToMeters(height,parts[1]);
+	            }else{
+	                height = Float.parseFloat(heightStr);
+	            }
+	            height = HEIGHT_ADJUST * height;
+	            return height;
+            } catch (Exception e) {
+            	Log.error("Failed to parse height from: " + heightStr);
+            }
+        }
+    	return defaultHeight;
+    }
+	
+	private float parseLevelsHeight(String levelsStr, float defaultHeight) {
+    	if(levelsStr != null && levelsStr.length() > 0){
+            try {
+	            float height = Integer.parseInt(levelsStr) * LEVELS_TO_HEIGHT;
+	            return height;
+            } catch (Exception e) {
+            	Log.error("Failed to parse levels height from: " + levelsStr);
+            }
+        }
+    	return defaultHeight;
+    }
+    
+    private float convertToMeters(float hVal, String unit) {
+        if(unit.equals("m")){
+            return hVal;
+        }
+        if(unit.equals("ft")){
+            return hVal * 0.3048f;
+        }
+        if(unit.equals("yd")){
+            return hVal * 0.9144f;
+        }
+        return hVal;
+    }
+    
+    private int parseColor(String colorStr, int defaultColor) {
+    	if (colorStr != null && colorStr.length() > 0) {
+    		try {
+    			int color;
+				if (colorStr.charAt(0) == '#') {
+					color = Integer.parseInt(colorStr);
+				} else {
+					color = colorNames.get(colorStr);
+				}
+				return color;
+    		} catch (Exception e) {
+    			Log.error("Failed to parse color from: " + colorStr);
+    		}
+		} 
+		return defaultColor;
+    }
+    
+    private Roof parseRoofShape(String roofShapeStr, float roofHeight, boolean alongLongSide, Roof defaultRoofShape) {
+    	if (roofShapeStr != null && roofShapeStr.length() > 0) {
+	    	if (roofShapeStr.equals("gabled")) {
+				return new GabledRoof(roofHeight, alongLongSide);
+			} else if (roofShapeStr.equals("hipped")) {
+				return new HippedRoof(roofHeight, alongLongSide);
+			} else if (roofShapeStr.equals("half-hipped")) {
+                return new HalfHippedRoof(roofHeight, alongLongSide);
+			} else if (roofShapeStr.equals("pyramidal")) {
+				return new PyramidalRoof(roofHeight, alongLongSide);
+			} else if (roofShapeStr.equals("flat")) {
+                return new FlatRoof();
+            } 
+
+	    	Log.error("Failed to parse roof shape: " + roofShapeStr);
+    	}
+    	
+    	return defaultRoofShape;
     }
 
 }
