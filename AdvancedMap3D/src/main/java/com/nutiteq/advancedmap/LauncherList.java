@@ -19,6 +19,8 @@ public class LauncherList extends ListActivity{
             {BasicMapActivity.class,null},
             {AddressSearchActivity.class,null},
             {AnimatedLocationActivity.class,null},
+            {EditableCartoDbMapActivity.class,null},
+            {EditableSpatialiteMapActivity.class,FilePicker.class},
             {CartoDbVectorMapActivity.class,null},
             {MapBoxMapActivity.class,null},
             {MapQuestRouteActivity.class,null},

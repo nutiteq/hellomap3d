@@ -17,6 +17,8 @@
     <activity android:name="MBTilesMapActivity"></activity>
     <activity android:name="BasicMapActivity"></activity>
     <activity android:name="com.nutiteq.advancedmap.VectorFileMapActivity"></activity>
+    <activity android:name="EditableCartoDbMapActivity"></activity>
+    <activity android:name="EditableSpatialiteMapActivity"></activity>
     <activity android:name="CartoDbVectorMapActivity"></activity>
     <activity android:name="MapBoxMapActivity"></activity>
     <activity android:name="MapsForgeMapActivity"></activity>

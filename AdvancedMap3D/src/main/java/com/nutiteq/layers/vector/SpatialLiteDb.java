@@ -2,6 +2,8 @@ package com.nutiteq.layers.vector;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,6 +22,7 @@ import com.nutiteq.log.Log;
 import com.nutiteq.utils.GeoUtils;
 import com.nutiteq.utils.Utils;
 import com.nutiteq.utils.WkbRead;
+import com.nutiteq.utils.WktWriter;
 
 /**
  * Basic communicator with a simple SpatiaLite database.
@@ -104,6 +107,36 @@ public class SpatialLiteDb {
         return dbLayers;
     }
 
+    public Vector<DBLayer> qrySpatialiteVersion() {
+        final Vector<DBLayer> dbLayers = new Vector<DBLayer>();
+
+        Callback cb = new Callback() {
+            @Override
+            public void columns(String[] coldata) {
+            }
+
+            @Override
+            public void types(String[] types) {
+            }
+
+            @Override
+            public boolean newrow(String[] rowdata) {
+                Log.info("spatialite_version:"+ rowdata[0]+" proj4_version:"+rowdata[1]+" geos_version:"+rowdata[2]+" sqlite version: "+rowdata[3]);
+                return false;
+            }
+        };
+
+        String qry = "SELECT spatialite_version(), proj4_version(), geos_version(), sqlite_version()";
+       // Log.debug(qry);
+        try {
+            db.exec(qry, cb);
+
+        } catch (Exception e) {
+            Log.error("SpatialLite: Failed to query versions. " + e.getMessage());
+        }
+        return dbLayers;
+    }    
+    
     public Vector<Geometry> qrySpatiaLiteGeom(final Envelope bbox,
             final int limit, final DBLayer dbLayer, final String[] userColumns, int autoSimplifyPixels, int screenWidth) {
         final Vector<Geometry> geoms = new Vector<Geometry>();
@@ -125,14 +158,18 @@ public class SpatialLiteDb {
 
                 // Column values to userData Map
                 final Map<String, String> userData = new HashMap<String, String>();
-                for (int i = 1; i < rowdata.length; i++) {
-                    userData.put(userColumns[i - 1], rowdata[i]);
+                for (int i = 2; i < rowdata.length; i++) {
+                    userData.put(userColumns[i - 2], rowdata[i]);
                 }
 
-                // First column is always geometry
+                // First column is always row id
+                
+                userData.put("_id", rowdata[0]);
+                
+                // second column is geometry
                 Geometry[] g1 = WkbRead.readWkb(
                         new ByteArrayInputStream(Utils
-                                .hexStringToByteArray(rowdata[0])), userData);
+                                .hexStringToByteArray(rowdata[1])), userData);
                 for (int i = 0; i < g1.length; i++) {
                     geoms.add(g1[i]);
                 }
@@ -187,11 +224,11 @@ public class SpatialLiteDb {
 
         String qry;
         if (!dbLayer.spatialIndex) {
-            qry = "SELECT HEX(AsBinary(" + geomCol + ")) " + userColumn
+            qry = "SELECT rowid, HEX(AsBinary(" + geomCol + ")) " + userColumn
                     + " from \"" + dbLayer.table + "\" where " + noIndexWhere
                     + " LIMIT " + limit + ";";
         } else {
-            qry = "SELECT HEX(AsBinary(" + geomCol + ")) " + userColumn
+            qry = "SELECT rowid, HEX(AsBinary(" + geomCol + ")) " + userColumn
                     + " from \"" + dbLayer.table
                     + "\" where ROWID IN (select pkid from idx_"
                     + dbLayer.table + "_" + dbLayer.geomColumn
@@ -355,5 +392,104 @@ public class SpatialLiteDb {
                 + e.getMessage());
        }
     }
+    
+    private String qryGeomType(DBLayer dbLayer) {
+        final String[] result = new String[1];
 
+        Callback cb = new Callback() {
+            @Override
+            public void columns(String[] coldata) {
+            }
+
+            @Override
+            public void types(String[] types) {
+            }
+
+            @Override
+            public boolean newrow(String[] rowdata) {
+                result[0] = rowdata[0];
+                return false;
+            }
+        };
+
+        String qry = "SELECT Upper(type) FROM geom_cols_ref_sys WHERE Lower(f_table_name) = Lower('" + dbLayer.table + "') AND Lower(f_geometry_column) = Lower('" + dbLayer.geomColumn + "')";
+        Log.debug(qry);
+        try {
+            db.exec(qry, cb);
+        } catch (Exception e) {
+            Log.error("SpatialLite: Failed to read geom_cols_ref_sys table! " + e.getMessage());
+        }
+        return result[0];
+    }
+
+    public long insertSpatiaLiteGeom(DBLayer dbLayer, Geometry geom) {
+        String wktGeom = WktWriter.writeWkt(geom, dbLayer.type);
+        String userColumns = "";
+        String userValues = "";
+        if (geom.userData instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, String> userData = (Map<String, String>) geom.userData;
+            for (Map.Entry<String, String> entry : userData.entrySet()) {
+                if (!entry.getKey().startsWith("_")) {
+                    userColumns += "," + entry.getKey();
+                    userValues += "," + escapeSql(entry.getValue());
+                }
+            }
+        }
+
+        String qry = "INSERT INTO \"" + dbLayer.table + "\" (" + dbLayer.geomColumn + userColumns + ") VALUES (GeometryFromText('" + wktGeom + "'," + SDK_SRID + ")" + userValues + ")";
+        Log.debug(qry);
+        try {
+            db.exec(qry, null);
+        } catch (Exception e) {
+            Log.error("SpatialLite: Failed to insert data! " + e.getMessage());
+            return 0;
+        }
+        return db.last_insert_rowid();
+    }
+
+    public void updateSpatiaLiteGeom(DBLayer dbLayer, long id, Geometry geom) {
+        String wktGeom = WktWriter.writeWkt(geom, qryGeomType(dbLayer));
+        String userFields = "";
+        if (geom.userData instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, String> userData = (Map<String, String>) geom.userData;
+            for (Map.Entry<String, String> entry : userData.entrySet()) {
+                if (!entry.getKey().startsWith("_")) {
+                    userFields += "," + entry.getKey() + "=" + escapeSql(entry.getValue());
+                }
+            }
+        }
+
+        String qry = "UPDATE \"" + dbLayer.table + "\" SET " + dbLayer.geomColumn + "=GeometryFromText('" + wktGeom + "'," + SDK_SRID + ")" + userFields + " WHERE rowid=" + id;
+        Log.debug(qry);
+        try {
+            db.exec(qry, null);
+        } catch (Exception e) {
+            Log.error("SpatialLite: Failed to update data! " + e.getMessage());
+        }
+    }
+
+    public void deleteSpatiaLiteGeom(DBLayer dbLayer, long id) {
+        String qry = "DELETE FROM \"" + dbLayer.table + "\" WHERE rowid=" + id;
+        Log.debug(qry);
+        try {
+            db.exec(qry, null);
+        } catch (Exception e) {
+            Log.error("SpatialLite: Failed to delete data! " + e.getMessage());
+        }
+    }
+
+    private static String escapeSql(String value) {
+        if (value == null) {
+            return "NULL";
+        }
+        String hexValue;
+        try {
+            hexValue = String.format("%x", new BigInteger(1, value.getBytes("UTF-8"))); // NOTE: implicitly assuming here database is using UTF-8 encoding
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Unsupported character");
+        }
+        return "X'" + hexValue + "'";
+    }
 }
