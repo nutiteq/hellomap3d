@@ -143,7 +143,8 @@ public class MapBoxMapActivity extends Activity {
 		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
 
         // define online map persistent caching - optional, suggested. Default - no caching
-        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache_mapbox").getPath());
+		// FIXME jaakl: currently disabled caching to enforce loading utfgrid. there is no utfgrid cache yet
+//        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache_mapbox").getPath());
         // set persistent raster cache limit to 100MB
         mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 		
