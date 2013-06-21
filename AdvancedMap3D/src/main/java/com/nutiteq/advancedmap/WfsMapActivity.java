@@ -60,7 +60,7 @@ public class WfsMapActivity extends Activity {
         String layers = "osm:osm_mainroads_gen1,osm:osm_amenities,osm:osm_roads";
 
         // add WFS layer as base layer
-        String wfsUrl = "http://kaart.maakaart.ee/geoserver/osm/ows?service=WFS&version=1.0.0&request=GetFeature&typeName="+layers+"&maxFeatures=500";
+        String wfsUrl = "http://kaart.maakaart.ee/geoserver/osm/ows?service=WFS&version=1.0.0&request=GetFeature&typeName="+layers+"&maxFeatures=1500";
         
         StyleSet<LineStyle> roadLineStyleSet = new StyleSet<LineStyle>(LineStyle.builder().setWidth(0.04f).setColor(0xFFAAAAAA).build());
         
