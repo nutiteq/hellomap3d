@@ -10,12 +10,10 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MutableEnvelope;
 import com.nutiteq.components.Vector;
 import com.nutiteq.geometry.Polygon3D;
-import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.Label;
-import com.nutiteq.utils.Const;
 import com.nutiteq.utils.PolygonTriangulation;
 import com.vividsolutions.jts.algorithm.MinimumDiameter;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -92,7 +90,9 @@ public class Polygon3DRoof extends Polygon3D {
     this.roof = roof;
     
     // internal height is to bottom of roof, not top.
-    this.height -= roof.roofHeight;
+    if(roof != null){
+        this.height -= roof.roofHeight;
+    }
     
     this.color = new Color(color);
     this.roofColor = new Color(roofColor);
