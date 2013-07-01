@@ -36,7 +36,7 @@ public class GeoUtils {
                 bbox.getMaxX(), bbox.getMaxY());
         
         // if proj A already Wgs84, then skip
-        if(projection.toString() != "Null"){
+        if(!projection.toString().equals("Null")){
             com.jhlabs.map.Point2D.Double minA = new com.jhlabs.map.Point2D.Double(
                     bbox.getMinX(), bbox.getMinY());
             com.jhlabs.map.Point2D.Double maxA = new com.jhlabs.map.Point2D.Double(
@@ -51,7 +51,7 @@ public class GeoUtils {
         Projection projection2 = ProjectionFactory
                 .fromPROJ4Specification(toProj.split(" "));
         
-        if(projection2.toString() != "Null"){
+        if(!projection2.toString().equals("Null")){
             com.jhlabs.map.Point2D.Double minC = new com.jhlabs.map.Point2D.Double();
             com.jhlabs.map.Point2D.Double maxC = new com.jhlabs.map.Point2D.Double();
             projection2.transform(minB, minC);
