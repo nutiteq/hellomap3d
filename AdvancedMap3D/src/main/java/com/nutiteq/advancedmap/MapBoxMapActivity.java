@@ -70,8 +70,13 @@ public class MapBoxMapActivity extends Activity {
 
 		// 3. Define map layer for basemap - mandatory.
 
-		final MapBoxMapLayer mapLayer = new MapBoxMapLayer(new EPSG3857(), 0, 8, 31,
-				"nutiteq", "geography-class");
+		// MapBox Streets
+//		final MapBoxMapLayer mapLayer = new MapBoxMapLayer(new EPSG3857(), 0, 19, 333,
+//				"nutiteq", "map-j6a1wkx0");
+
+		// MapBox Satellite
+		final MapBoxMapLayer mapLayer = new MapBoxMapLayer(new EPSG3857(), 0, 19, 334,
+                "nutiteq", "map-f0sfyluv");
 
 		mapView.getLayers().setBaseLayer(mapLayer);
 
@@ -98,7 +103,7 @@ public class MapBoxMapActivity extends Activity {
 
 		// download Metadata, add legend and tooltip listener hooks
 
-        LoadMetadataTask task = new MapBoxMapLayer.LoadMetadataTask(this, mapListener, "nutiteq", "geography-class");
+        LoadMetadataTask task = new MapBoxMapLayer.LoadMetadataTask(this, mapListener, "nutiteq", "map-f0sfyluv");
         task.execute();
         
         
