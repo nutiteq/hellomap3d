@@ -50,6 +50,10 @@ public class EditableSpatialiteLayer extends EditableGeometryDbLayer {
 		if (this.dbLayer == null) {
 			Log.error("EditableSpatialiteLayer: Could not find a matching layer " + tableName + "." + geomColumnName);
 		}
+		
+        // fix/add SDK SRID definition for conversions
+       spatialLite.defineEPSG3857();
+		
 	}
 
 	public String[] getUserColumns() {

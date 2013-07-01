@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -37,6 +38,7 @@ public class SpatialLiteDb {
     private final Database db;
     private String dbPath;
     private String sdk_proj4text;
+    private String spatialiteVersion;
 
     public SpatialLiteDb(String dbPath) {
 
@@ -50,14 +52,18 @@ public class SpatialLiteDb {
         this.dbPath = dbPath;
         db = new jsqlite.Database();
         try {
-            db.open(dbPath, jsqlite.Constants.SQLITE_OPEN_READONLY);
+            db.open(dbPath, jsqlite.Constants.SQLITE_OPEN_READWRITE);
         } catch (Exception e) {
             Log.error("SpatialLite: Failed to open database! " + e.getMessage());
+            return;
         }
 
         //sdk_proj4text = qryProj4Def(SDK_SRID);
          sdk_proj4text =
          "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
+         
+         this.spatialiteVersion = qrySpatialiteVersion();
+         
     }
 
     public void close() {
@@ -70,7 +76,14 @@ public class SpatialLiteDb {
 
     public Map<String,DBLayer> qrySpatialLayerMetadata() {
         final Map<String,DBLayer> dbLayers = new HashMap<String,DBLayer>();
-        String qry = "SELECT \"f_table_name\", \"f_geometry_column\", \"type\", \"coord_dimension\", geometry_columns.srid, \"spatial_index_enabled\", proj4text FROM \"geometry_columns\", spatial_ref_sys where geometry_columns.srid=spatial_ref_sys.srid order by f_table_name";
+        
+        String typeColumn = "type";
+        if(this.spatialiteVersion.startsWith("4")){
+            typeColumn = "geometry_type";
+        }
+        
+        
+        String qry = "SELECT \"f_table_name\", \"f_geometry_column\", " + typeColumn + ", \"coord_dimension\", geometry_columns.srid, \"spatial_index_enabled\", proj4text FROM \"geometry_columns\", spatial_ref_sys where geometry_columns.srid=spatial_ref_sys.srid order by f_table_name";
         Log.debug(qry);
         try {
             db.exec(qry, new Callback() {
@@ -91,8 +104,18 @@ public class SpatialLiteDb {
                     } catch (NumberFormatException e) {
                         e.printStackTrace();
                     }
+                    
+                    // type column in Spatialite <4.x
+                    String geomType = rowdata[2];
+                    
+                    if(spatialiteVersion.startsWith("4")){
+                        int geomTypeInt = Integer.parseInt(rowdata[2]);
+ 
+                        geomType = getGeometryType(geomTypeInt);
+                    }
+                    
                     DBLayer dbLayer = new DBLayer(rowdata[0], rowdata[1],
-                            rowdata[2], rowdata[3], srid, rowdata[5]
+                            geomType, rowdata[3], srid, rowdata[5]
                                     .equals("1") ? true : false, rowdata[6]);
 
                     dbLayers.put(dbLayer.table+"."+dbLayer.geomColumn,dbLayer);
@@ -107,9 +130,54 @@ public class SpatialLiteDb {
         return dbLayers;
     }
 
-    public Vector<DBLayer> qrySpatialiteVersion() {
-        final Vector<DBLayer> dbLayers = new Vector<DBLayer>();
+    protected String getGeometryType(int geomTypeInt) {
+        String geomType = null;
+        
+        // from https://www.gaia-gis.it/fossil/libspatialite/wiki?name=switching-to-4.0
+        switch(geomTypeInt %1000){
+        case 0:
+            geomType = "GEOMETRY";
+            break;
+        case 1:
+            geomType = "POINT";
+            break;
+        case 2:
+            geomType = "LINESTRING";
+            break;
+        case 3:
+            geomType = "POLYGON";
+            break;
+        case 4:
+            geomType = "MULTIPOINT";
+            break;
+        case 5:
+            geomType = "MULTILINESTRING";
+            break;
+        case 6:
+            geomType = "MULTIPOLYGON";
+            break;
+        case 7:
+            geomType = "GEOMETRYCOLLECTION";
+            break;
+        }
 
+        switch(geomTypeInt / 1000){
+        case 1:
+            geomType += " XYZ";
+            break;
+        case 2:
+            geomType += " XYM";
+            break;
+        case 3:
+            geomType += " XYZM";
+            break;
+        }
+        
+        return geomType;
+    }
+
+    public String qrySpatialiteVersion() {
+        final List<String> spatialiteVersion = new ArrayList<String>();
         Callback cb = new Callback() {
             @Override
             public void columns(String[] coldata) {
@@ -122,6 +190,7 @@ public class SpatialLiteDb {
             @Override
             public boolean newrow(String[] rowdata) {
                 Log.info("spatialite_version:"+ rowdata[0]+" proj4_version:"+rowdata[1]+" geos_version:"+rowdata[2]+" sqlite version: "+rowdata[3]);
+                spatialiteVersion.add(rowdata[0]);
                 return false;
             }
         };
@@ -134,7 +203,11 @@ public class SpatialLiteDb {
         } catch (Exception e) {
             Log.error("SpatialLite: Failed to query versions. " + e.getMessage());
         }
-        return dbLayers;
+        if(spatialiteVersion.size()>0){
+            return spatialiteVersion.get(0);
+        }else{
+            return null;
+        }
     }    
     
     public Vector<Geometry> qrySpatiaLiteGeom(final Envelope bbox,
@@ -393,36 +466,7 @@ public class SpatialLiteDb {
        }
     }
     
-    private String qryGeomType(DBLayer dbLayer) {
-        final String[] result = new String[1];
-
-        Callback cb = new Callback() {
-            @Override
-            public void columns(String[] coldata) {
-            }
-
-            @Override
-            public void types(String[] types) {
-            }
-
-            @Override
-            public boolean newrow(String[] rowdata) {
-                result[0] = rowdata[0];
-                return false;
-            }
-        };
-
-        String qry = "SELECT Upper(type) FROM geom_cols_ref_sys WHERE Lower(f_table_name) = Lower('" + dbLayer.table + "') AND Lower(f_geometry_column) = Lower('" + dbLayer.geomColumn + "')";
-        Log.debug(qry);
-        try {
-            db.exec(qry, cb);
-        } catch (Exception e) {
-            Log.error("SpatialLite: Failed to read geom_cols_ref_sys table! " + e.getMessage());
-        }
-        return result[0];
-    }
-
-    public long insertSpatiaLiteGeom(DBLayer dbLayer, Geometry geom) {
+     public long insertSpatiaLiteGeom(DBLayer dbLayer, Geometry geom) {
         String wktGeom = WktWriter.writeWkt(geom, dbLayer.type);
         String userColumns = "";
         String userValues = "";
@@ -437,7 +481,7 @@ public class SpatialLiteDb {
             }
         }
 
-        String qry = "INSERT INTO \"" + dbLayer.table + "\" (" + dbLayer.geomColumn + userColumns + ") VALUES (GeometryFromText('" + wktGeom + "'," + SDK_SRID + ")" + userValues + ")";
+        String qry = "INSERT INTO \"" + dbLayer.table + "\" (" + dbLayer.geomColumn + userColumns + ") VALUES (Transform(GeometryFromText('" + wktGeom + "'," + SDK_SRID + "), " + Integer.toString(dbLayer.srid) + ") " + userValues + ")";
         Log.debug(qry);
         try {
             db.exec(qry, null);
@@ -449,7 +493,7 @@ public class SpatialLiteDb {
     }
 
     public void updateSpatiaLiteGeom(DBLayer dbLayer, long id, Geometry geom) {
-        String wktGeom = WktWriter.writeWkt(geom, qryGeomType(dbLayer));
+        String wktGeom = WktWriter.writeWkt(geom, dbLayer.type);
         String userFields = "";
         if (geom.userData instanceof Map) {
             @SuppressWarnings("unchecked")
@@ -461,7 +505,7 @@ public class SpatialLiteDb {
             }
         }
 
-        String qry = "UPDATE \"" + dbLayer.table + "\" SET " + dbLayer.geomColumn + "=GeometryFromText('" + wktGeom + "'," + SDK_SRID + ")" + userFields + " WHERE rowid=" + id;
+        String qry = "UPDATE \"" + dbLayer.table + "\" SET " + dbLayer.geomColumn + "=Transform(GeometryFromText('" + wktGeom + "'," + SDK_SRID + "), " + Integer.toString(dbLayer.srid) + ") " + userFields + " WHERE rowid=" + id;
         Log.debug(qry);
         try {
             db.exec(qry, null);
