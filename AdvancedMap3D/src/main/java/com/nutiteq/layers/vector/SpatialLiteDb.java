@@ -78,10 +78,12 @@ public class SpatialLiteDb {
         final Map<String,DBLayer> dbLayers = new HashMap<String,DBLayer>();
         
         String typeColumn = "type";
-        if(this.spatialiteVersion.startsWith("4")){
+        try {
+            db.exec("SELECT " + typeColumn + " FROM \"geometry_columns\", spatial_ref_sys where geometry_columns.srid=spatial_ref_sys.srid order by f_table_name", null);
+        } catch (Exception e) {
             typeColumn = "geometry_type";
         }
-        
+        final boolean intGeometryType = typeColumn.equals("geometry_type");
         
         String qry = "SELECT \"f_table_name\", \"f_geometry_column\", " + typeColumn + ", \"coord_dimension\", geometry_columns.srid, \"spatial_index_enabled\", proj4text FROM \"geometry_columns\", spatial_ref_sys where geometry_columns.srid=spatial_ref_sys.srid order by f_table_name";
         Log.debug(qry);
@@ -108,9 +110,8 @@ public class SpatialLiteDb {
                     // type column in Spatialite <4.x
                     String geomType = rowdata[2];
                     
-                    if(spatialiteVersion.startsWith("4")){
+                    if (intGeometryType){
                         int geomTypeInt = Integer.parseInt(rowdata[2]);
- 
                         geomType = getGeometryType(geomTypeInt);
                     }
                     
