@@ -653,6 +653,8 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 	private void saveChanges() {
 		mapView.selectElement(null);
 		dbEditableLayer.saveChanges();
+        redoStack.clear(); // TODO: currently this is required, otherwise redo/undo will not work properly
+        undoStack.clear();
 		updateUIButtons();
 	}
 
