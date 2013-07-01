@@ -18,6 +18,7 @@ import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
+import com.nutiteq.components.Bounds;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
@@ -92,10 +93,10 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
             }else if(bounds != null){
                 // format: longMin,latMin,longMax,latMax
                 String[] boundsParams = bounds.split(",");
-                double xCenter = (Double.parseDouble(boundsParams[0]) + Double.parseDouble(boundsParams[2])) / 2; 
-                double yCenter = (Double.parseDouble(boundsParams[1]) + Double.parseDouble(boundsParams[3])) / 2; 
-                mapView.setFocusPoint(xCenter, yCenter);
-                // TODO: calculate and set zoom from bounds
+                MapPos bottomLeft = mapView.getLayers().getBaseProjection().fromWgs84(Double.parseDouble(boundsParams[0]), Double.parseDouble(boundsParams[1]));
+                MapPos topRight = mapView.getLayers().getBaseProjection().fromWgs84(Double.parseDouble(boundsParams[2]), Double.parseDouble(boundsParams[3]));
+                mapView.setBoundingBox(new Bounds(bottomLeft.x,topRight.y,topRight.x,bottomLeft.y), false);
+
             }else{
                 // bulgaria
                   mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(26.483230800000037, 42.550218000000044));
