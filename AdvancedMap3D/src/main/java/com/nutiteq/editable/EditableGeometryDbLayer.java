@@ -93,6 +93,18 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 
 		updateVisibleElements();
 	}
+	
+	public StyleSet<PointStyle> getPointStyleSet() {
+	  return pointStyleSet;
+	}
+	
+	public StyleSet<LineStyle> getLineStyleSet() {
+	  return lineStyleSet;
+	}
+	
+	public StyleSet<PolygonStyle> getPolygonStyleSet() {
+	  return polygonStyleSet;
+	}
 
 	@Override
 	public void addAll(Collection<? extends Geometry> elements) {

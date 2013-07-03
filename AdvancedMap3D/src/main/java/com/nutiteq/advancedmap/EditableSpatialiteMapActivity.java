@@ -327,6 +327,15 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 			@Override
 			public void onElementCreated(VectorElement element) {
 				saveState();
+				if (element instanceof Point) {
+				  ((Point) element).setStyleSet(dbEditableLayer.getPointStyleSet());
+				}
+                if (element instanceof Line) {
+                  ((Line) element).setStyleSet(dbEditableLayer.getLineStyleSet());
+                }
+                if (element instanceof Polygon) {
+                  ((Polygon) element).setStyleSet(dbEditableLayer.getPolygonStyleSet());
+                }
 				dbEditableLayer.add((Geometry) element); 
 			}
 
