@@ -3,6 +3,13 @@ package com.nutiteq.advancedmap;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.services.routing.Route;
 
+/**
+ * 
+ * Interface for Activities and other classes which want to get routing (Grapphopper, MapQuest or CloudMade) responses 
+ * 
+ * @author jaak
+ *
+ */
 public interface RouteActivity {
 
     /**

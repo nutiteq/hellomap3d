@@ -21,6 +21,18 @@ import com.nutiteq.style.StyleSet;
 import com.nutiteq.style.TextStyle;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 
+/**
+ * 
+ * Demonstrates two layers: 
+ *      WfsLayer - online vector API to WFS server
+ *      WfsTextLayer - text labels for loaded objects
+ * 
+ * It uses one predefined URL and code-defined style for labels. Road labels are rotated to match with roads,
+ *  amenity labels are horizontal. The texts are configured to resolve automatically overlapping.
+ * 
+ * @author jaak
+ *
+ */
 public class WfsMapActivity extends Activity {
 
 	private MapView mapView;

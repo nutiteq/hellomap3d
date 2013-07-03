@@ -16,6 +16,11 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
 /**
  * Basic map, same as HelloMap
  * 
+ * Just defines and configures map with useful settings.
+ *
+ * Used layer(s):
+ *  TMSMapLayer for base map
+ * 
  * @author jaak
  *
  */

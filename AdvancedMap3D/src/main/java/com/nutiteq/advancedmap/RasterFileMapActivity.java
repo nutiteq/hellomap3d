@@ -2,20 +2,13 @@ package com.nutiteq.advancedmap;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Vector;
 
-import org.mapsforge.android.maps.mapgenerator.JobTheme;
-import org.mapsforge.android.maps.mapgenerator.databaserenderer.ExternalRenderTheme;
-
 import android.app.Activity;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
@@ -26,38 +19,27 @@ import com.nutiteq.components.Components;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
-import com.nutiteq.db.DBLayer;
 import com.nutiteq.filepicker.FilePickerActivity;
-import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.GdalDatasetInfo;
 import com.nutiteq.layers.raster.GdalMapLayer;
-import com.nutiteq.layers.raster.MBTilesMapLayer;
-import com.nutiteq.layers.raster.MapsforgeMapLayer;
-import com.nutiteq.layers.raster.PackagedMapLayer;
-import com.nutiteq.layers.raster.QuadKeyLayer;
 import com.nutiteq.layers.raster.TMSMapLayer;
-import com.nutiteq.layers.raster.WmsLayer;
-import com.nutiteq.layers.vector.OgrLayer;
-import com.nutiteq.layers.vector.Polygon3DOSMLayer;
-import com.nutiteq.layers.vector.SpatialLiteDb;
-import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
-import com.nutiteq.projections.Projection;
-import com.nutiteq.rasterlayers.StoredMapLayer;
-import com.nutiteq.style.LineStyle;
-import com.nutiteq.style.MarkerStyle;
-import com.nutiteq.style.ModelStyle;
-import com.nutiteq.style.PointStyle;
-import com.nutiteq.style.Polygon3DStyle;
-import com.nutiteq.style.PolygonStyle;
-import com.nutiteq.style.StyleSet;
-import com.nutiteq.ui.DefaultLabel;
-import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
-import com.nutiteq.vectorlayers.MarkerLayer;
-import com.nutiteq.vectorlayers.NMLModelDbLayer;
 
+/**
+ * 
+ * Demonstrates GdalMapLayer layer, whic uses GDAL native library
+ * 
+ * Requires GDAL native library with JNI wrappers, and raster data file (e.g. GeoTIFF) in SDCard
+ * 
+ * GDAL is used to load map tiles, and tiles are stored to persistent cache for faster loading later.
+ * 
+ * See https://github.com/nutiteq/hellomap3d/wiki/Gdal-layer for details
+ * 
+ * @author jaak
+ *
+ */
 public class RasterFileMapActivity extends Activity implements FilePickerActivity {
 
 	private MapView mapView;

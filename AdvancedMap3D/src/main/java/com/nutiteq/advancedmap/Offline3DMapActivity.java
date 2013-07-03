@@ -26,6 +26,18 @@ import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.NMLModelDbLayer;
 
+/**
+ * 
+ * Demonstrates NMLModelDbLayer - 3D model layer which loads data fom a .nmldb file
+ * 
+ * After file loading the map is recentered to content coverage area.
+ * 
+ * To use this sample a .nmldb file must be loaded to SDCard file.
+ * See https://github.com/nutiteq/hellomap3d/wiki/Nml-3d-models-map-layer for details and sample data download
+ * 
+ * @author jaak
+ *
+ */
 public class Offline3DMapActivity extends Activity implements FilePickerActivity {
 
 	private MapView mapView;

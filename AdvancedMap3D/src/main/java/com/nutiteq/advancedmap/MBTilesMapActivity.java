@@ -34,6 +34,21 @@ import com.nutiteq.utils.UiUtils;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
+/**
+ * 
+ * Demonstrates usage of MBTilesMapLayer - offline tile-based raster map layer
+ * 
+ * Metadata is loaded during activity start: legend, template for tooltips and map bounds.
+ * 
+ * The implementation supports UTFGrid - raster-based interactions. jMustache library needs to be added for this.
+ * From SDK point of view the grid tooltip is an invisible Marker in MarkerLayer, which has open Label.
+ * 
+ * You need to pre-download a MBTiles file to SDCard to use this layer. 
+ * See https://github.com/nutiteq/hellomap3d/wiki/Offline-map-tiles for details
+ * 
+ * @author jaak
+ *
+ */
 public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 
 	private MapView mapView;

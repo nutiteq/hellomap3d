@@ -1,9 +1,9 @@
 package com.nutiteq.advancedmap;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Stack;
 
 import android.annotation.SuppressLint;
@@ -22,11 +22,11 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.Toast;
 import android.widget.ZoomControls;
-import android.widget.ImageView.ScaleType;
-import android.widget.LinearLayout.LayoutParams;
 
 import com.nutiteq.components.Color;
 import com.nutiteq.components.Components;
@@ -41,22 +41,37 @@ import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.geometry.VectorElement;
-import com.nutiteq.advancedmap.R;
-import com.nutiteq.layers.vector.Polygon3DOSMLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterlayers.TMSMapLayer;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
-import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.LongHashMap;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 
+/**
+ * 
+ * Shows usage of EditableMapView with CartoDB.com online API
+ * 
+ *  Enables editing points, lines and polygons.
+ *  Snapping is implemented for line vertexes
+ *  
+ *  See https://github.com/nutiteq/hellomap3d/wiki/Editable-MapView for details
+ * 
+ * @author mtehver
+ *
+ */
 @SuppressLint("NewApi")
 public class EditableCartoDbMapActivity extends Activity {
 
+	/**
+	 * Keeps state of editable elements to enable undo/redo functions
+	 * 
+	 * @author mtehver
+	 *
+	 */
 	private static class Memento {
 		final LongHashMap<Geometry> points;
 		final LongHashMap<Geometry> lines;

@@ -107,7 +107,7 @@ public class CloudMadeDirections  {
       protected Route doInBackground(MapPos... mapPos) {
 
           String url = createUrl(mapPos[0],mapPos[1]);
-          
+          Log.debug(url);
           String xml = NetUtils.downloadUrl(url, null, true, "UTF-8");
 //          Log.debug("route response: "+xml);
           

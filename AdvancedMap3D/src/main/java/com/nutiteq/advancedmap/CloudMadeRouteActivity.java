@@ -30,7 +30,24 @@ import com.nutiteq.vectorlayers.MarkerLayer;
 
 /**
  * Online routing using CloudMade routing http API
- * http://developers.cloudmade.com/projects/show/routing-http-api 
+ * 
+ * Routing class CloudMadeDirections is used to 
+ * 1. Calculate route using online API, get it as Route object
+ * 2. Create a Line which is stored to a routeLayer GeometryLayer
+ * 3. Create Markers to each turn point, show them on markerLayer.
+ *   Marker images with arrows are bundled with this application
+ * 
+ * Interfaces:
+ *  RouteActivity - callback to enable Activity to get Routing results asynchronously
+ * 
+ * Classes:
+ *  routing.CloudMadeDirections implements CloudMade routing API as described in
+ * http://developers.cloudmade.com/projects/show/routing-http-api
+ * 
+ * Resources:
+ *  drawable/direction_[down, up, upthenleft, upthenright].png - instruction markers
+ * 
+ * Note: You have to use your own CloudMade API key if you use it in live application. 
  * 
  * @author jaak
  *

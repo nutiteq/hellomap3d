@@ -1,22 +1,14 @@
 package com.nutiteq.advancedmap;
 
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.webkit.WebView;
-import android.widget.RelativeLayout;
-import android.widget.Toast;
 import android.widget.ZoomControls;
 
-import com.graphhopper.GHRequest;
-import com.graphhopper.GHResponse;
-import com.graphhopper.util.StopWatch;
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
 import com.nutiteq.components.Components;
@@ -30,13 +22,30 @@ import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.ui.Label;
 import com.nutiteq.ui.ViewLabel;
-import com.nutiteq.utils.UiUtils;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
+/**
+ * Demonstrates usage of MapBoxMapLayer - online tile-based map source
+ * 
+ * It is almost like basic tile-based source, with some important additions:
+ * a) load metadata as json, here map legend HTML and template for map popup is loaded from this
+ * b) load UTFGrid tiles as json in addition to map graphics. This enables tooltip on map click,
+ *  even through it is raster data source
+ *  Note that from SDK point of view the grid tooltip is an invisible Marker in MarkerLayer, which has open Label.
+ *
+ *  jMoustache library is required to resolve popup templates.
+ * 
+ * @author jaak
+ *
+ */
 public class MapBoxMapActivity extends Activity {
 
-	private MapView mapView;
+    // Please configure your ID and account here
+    
+	private static final String MAPBOX_MAPID = "map-f0sfyluv";
+    private static final String MAPBOX_ACCOUNT = "nutiteq";
+    private MapView mapView;
 
     
 	@Override
@@ -63,7 +72,6 @@ public class MapBoxMapActivity extends Activity {
 		} else {
 			// 2. create and set MapView components - mandatory
 		      Components components = new Components();
-		      // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
 		      mapView.setComponents(components);
 		      }
 
@@ -72,11 +80,11 @@ public class MapBoxMapActivity extends Activity {
 
 		// MapBox Streets
 //		final MapBoxMapLayer mapLayer = new MapBoxMapLayer(new EPSG3857(), 0, 19, 333,
-//				"nutiteq", "map-j6a1wkx0");
+//				MAPBOX_ACCOUNT, MAPBOX_MAPID);
 
 		// MapBox Satellite
 		final MapBoxMapLayer mapLayer = new MapBoxMapLayer(new EPSG3857(), 0, 19, 334,
-                "nutiteq", "map-f0sfyluv");
+                MAPBOX_ACCOUNT, MAPBOX_MAPID);
 
 		mapView.getLayers().setBaseLayer(mapLayer);
 
@@ -103,7 +111,7 @@ public class MapBoxMapActivity extends Activity {
 
 		// download Metadata, add legend and tooltip listener hooks
 
-        LoadMetadataTask task = new MapBoxMapLayer.LoadMetadataTask(this, mapListener, "nutiteq", "map-f0sfyluv");
+        LoadMetadataTask task = new MapBoxMapLayer.LoadMetadataTask(this, mapListener, MAPBOX_ACCOUNT, MAPBOX_MAPID);
         task.execute();
         
         

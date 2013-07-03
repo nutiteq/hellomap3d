@@ -3,15 +3,14 @@ package com.nutiteq.editable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import android.content.Context;
 
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.db.DBLayer;
-import com.nutiteq.layers.vector.SpatialLiteDb;
 import com.nutiteq.geometry.Geometry;
+import com.nutiteq.layers.vector.SpatialLiteDb;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LineStyle;
@@ -29,6 +28,18 @@ public class EditableSpatialiteLayer extends EditableGeometryDbLayer {
 	private int maxObjects;
 	private String[] userColumns;
 
+	/**
+	 * @param proj Layer projection
+	 * @param dbPath Spatialite file name full path 
+	 * @param tableName
+	 * @param geomColumnName column in tableName which has geometries
+	 * @param userColumns include values from these additional columns to userData
+	 * @param maxObjects maximum number of loaded objects, suggested <2000 or so
+	 * @param pointStyleSet required if layer has points
+	 * @param lineStyleSet required if layer has lines
+	 * @param polygonStyleSet required if layer has lines
+	 * @param context Activity who controls the layer
+	 */
 	public EditableSpatialiteLayer(Projection proj, String dbPath, String tableName, String geomColumnName, String[] userColumns, int maxObjects,
 			StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, Context context) {
 		super(proj, pointStyleSet, lineStyleSet, polygonStyleSet, context);

@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Stack;
 
 import android.annotation.SuppressLint;
@@ -19,14 +19,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ImageView.ScaleType;
+import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 
 import com.nutiteq.components.Bounds;
@@ -45,9 +44,7 @@ import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.geometry.VectorElement;
-import com.nutiteq.advancedmap.R;
 import com.nutiteq.layers.vector.SpatialLiteDb;
-import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterlayers.TMSMapLayer;
@@ -58,9 +55,34 @@ import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.LongHashMap;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 
+/**
+ * 
+ * Shows usage of EditableMapView with Spatialite database file
+ * 
+ *  Enables offline editing of points, lines and polygons. Requires Spatialite file
+ *  Supports both Spatialite 3.x and 4.x formats
+ *  
+ *  See https://github.com/nutiteq/hellomap3d/wiki/Editable-MapView for details
+ * 
+ * Layers:
+ *  TMSMapLayer - base map
+ *  EditableSpatialiteLayer - SpatiaLite layer with editing additions. Uses
+ *      SpatiaLiteDb - SpatiaLite layer with editing functions
+ * 
+ * The Activity shows first list of tables in selected Spatialite database file, and then opens
+ *  for viewing and editing  selected one. It also creates toolbar for set of editing functions.
+ * 
+ * @author mtehver
+ *
+ */
 @SuppressLint("NewApi")
 public class EditableSpatialiteMapActivity extends Activity implements FilePickerActivity{
-
+    /**
+     * Keeps state of editable elements to enable undo/redo functions
+     * 
+     * @author mtehver
+     *
+     */
 	private static class Memento {
 		final LongHashMap<Geometry> geometries;
 
@@ -650,6 +672,7 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 		updateUIButtons();
 	}
 
+	
 	private void saveChanges() {
 		mapView.selectElement(null);
 		dbEditableLayer.saveChanges();

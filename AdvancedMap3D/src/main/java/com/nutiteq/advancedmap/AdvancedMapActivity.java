@@ -1,8 +1,5 @@
 package com.nutiteq.advancedmap;
 
-import java.io.IOException;
-import java.util.Vector;
-
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -17,36 +14,34 @@ import com.nutiteq.advancedmap.maplisteners.MapEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
-import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.PackagedMapLayer;
 import com.nutiteq.layers.raster.QuadKeyLayer;
+import com.nutiteq.layers.raster.StoredMapLayer;
 import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.layers.raster.WmsLayer;
 import com.nutiteq.layers.vector.Polygon3DOSMLayer;
-import com.nutiteq.layers.vector.SpatialLiteDb;
-import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
-import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.projections.Projection;
-import com.nutiteq.rasterlayers.StoredMapLayer;
 import com.nutiteq.roofs.FlatRoof;
-import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
-import com.nutiteq.style.ModelStyle;
-import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.Polygon3DStyle;
-import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
-import com.nutiteq.vectorlayers.NMLModelDbLayer;
 
 /**
- * This sample has a set of different layers. 
+ * This sample has a set of different layers: 
+ * a) raster online: TMS, WMS, Bing, MapBox
+ * b) raster offline: StoredMap (MGM format), PackagedMap from app package (res/raw)
+ * c) 3D layer: OSMPolygon3D with roof structures and color tags
+ * d) Others: MarkerLayer
+ * 
+ * See private methods in this class which layers can be added. Most of them are
+ * not called by default, as they require device/app-specific tuning. See onCreate() method
  * 
  * @author jaak
  *
@@ -145,7 +140,7 @@ public class AdvancedMapActivity extends Activity {
 //        mapView.setTilt(90f);
 
         // Coburg, germany
-//        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(10.96465, 50.27082));
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(10.96465, 50.27082));
 //        mapView.setZoom(16.0f);
 
         
@@ -206,7 +201,7 @@ public class AdvancedMapActivity extends Activity {
 		//addBingBaseLayer(mapLayer.getProjection(),"http://ecn.t3.tiles.virtualearth.net/tiles/r",".png?g=1&mkt=en-US&shading=hill&n=z");
        // addPackagedBaseLayer(mapLayer.getProjection());
 
-		// addStoredBaseLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/nutimaps/allimages/");
+		 addStoredBaseLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/mgm/esp_barcelona_0_17/");
 		 
         addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
 
@@ -262,26 +257,6 @@ public class AdvancedMapActivity extends Activity {
 
         Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.500f, new FlatRoof(),  Color.WHITE, Color.LTGRAY, 500, polygon3DStyleSet);
 		mapView.getLayers().addLayer(osm3dLayer);
-	}
-
-	// load 3D models from special database
-	private void add3dModelLayer(Projection proj, String filePath) {
-
-		// define style for 3D to define minimum zoom = 14
-		ModelStyle modelStyle = ModelStyle.builder().build();
-		StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(null);
-		modelStyleSet.setZoomStyle(14, modelStyle);
-
-		// ** 3D Model layer
-        try {
-            NMLModelDbLayer modelLayer = new NMLModelDbLayer(new EPSG3857(),
-            		filePath, modelStyleSet);
-            modelLayer.setMemoryLimit(20*1024*1024);
-            mapView.getLayers().addLayer(modelLayer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
 	}
 
      private void addWmsLayer(Projection proj, String url, String layers, Projection dataProjection){

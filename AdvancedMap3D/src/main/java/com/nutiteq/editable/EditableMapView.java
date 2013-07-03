@@ -29,25 +29,96 @@ import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.ui.MapListener;
 
+/**
+ * 
+ * Special MapView which enables to have editing interaction of vector objects on map.
+ * Can be created with layout XML
+ * 
+ * @author mtehver
+ *
+ */
 public class EditableMapView extends MapView {
 	private static final MarkerStyle DEFAULT_MARKER_STYLE = MarkerStyle.builder().setColor(Color.RED).setSize(0.5f).setBitmap(BitmapFactory.decodeResource(Resources.getSystem(), android.R.drawable.ic_dialog_map)).build();
 	private static final PointStyle DEFAULT_POINT_STYLE = PointStyle.builder().setColor(Color.RED).setSize(0.2f).build();
 	private static final LineStyle DEFAULT_LINE_STYLE = LineStyle.builder().setColor(Color.RED).setWidth(0.1f).build();
 	private static final PolygonStyle DEFAULT_POLYGON_STYLE = PolygonStyle.builder().setColor(Color.RED).build();
 
+	/**
+	 * Various events during map editing interactions 
+	 * 
+	 * @author mtehver
+	 *
+	 */
 	public interface EditEventListener {
+		/**
+		 * Elements were changed - update UI buttons may be needed
+		 */
 		void updateUI();
+		/**
+		 * Adjust object movement, usable for snapping
+		 * 
+		 * @param element which was moved
+		 * @param delta element movement Vector
+		 * @return adjusted movement Vector if snapping is done, same as input if not
+		 */
 		Vector snapElement(VectorElement element, Vector delta);
+		/**
+		 * Adjust vertex movement, useful for snapping
+		 * 
+		 * @param element element which was edited
+		 * @param index index of vertex which was edited
+		 * @param mapPos A MapPos where vertex was moved to
+		 * @return adjusted MapPos if snapping is done, same as input mapPos if not 
+		 */
 		MapPos snapElementVertex(VectorElement element, int index, MapPos mapPos);
+		/**
+		 * New element created
+		 * @param element 
+		 */
 		void onElementCreated(VectorElement element);
+		/**
+		 * @param element object before editing
+		 */
 		void onBeforeElementChange(VectorElement element);
+		/**
+		 * @param element object after editing it
+		 */
 		void onElementChanged(VectorElement element);
+		/**
+		 * @param element deleted element
+		 */
 		void onElementDeleted(VectorElement element);
-		boolean onElementSelected(VectorElement element); // true if element is selectable, false otherwise
+		/**
+		 * Control if specific element can be selected for editing 
+		 * @param element
+		 * @return true if element is selectable, false otherwise
+		 */
+		boolean onElementSelected(VectorElement element);
+		/**
+		 * @param element object which was unselected
+		 */
 		void onElementDeselected(VectorElement element);
+		/**
+		 * Dragging either vertex or whole element
+		 * 
+		 * @param element object which is selected during drag
+		 * @param x start X of dragging, in screen pixels
+		 * @param y start Y of dragging
+		 */
 		void onDragStart(VectorElement element, float x, float y);
+		/**
+		 * Object or vertex was dragged to specific location
+		 * @param x in screen pixels
+		 * @param y
+		 */
 		void onDrag(float x, float y);
-		boolean onDragEnd(float x, float y); // true if point should be deleted
+		/**
+		 * Object drag is finished, touch is released
+		 * @param x
+		 * @param y
+		 * @return true if point should be deleted
+		 */
+		boolean onDragEnd(float x, float y);
 	}
 
 	public interface ElementUpdater {
@@ -120,18 +191,37 @@ public class EditableMapView extends MapView {
 		return editEventListener;
 	}
 
+	/**
+	 * Define listener for element manipulation events
+	 * 
+	 * @param elementListener
+	 */
 	public void setElementListener(EditEventListener elementListener) {
 		this.editEventListener = elementListener;
 	}
 
+	/**
+	 * Set style for verlay layer. This is for vertex marker point objects
+	 * 
+	 * @param style
+	 */
 	public void setOverlayLayerStyle(OverlayLayerStyle style) {
 		this.overlayLayerStyle = style;
 	}
 
+	/**
+	 * Get last selected (clicked) element
+	 * 
+	 * @return
+	 */
 	public VectorElement getSelectedElement() {
 		return selectedElement;
 	}
 	
+	/**
+	 * Select an object on map for editing
+	 * @param vectorElement
+	 */
 	public void selectElement(final VectorElement vectorElement) {
 		if (vectorElement == selectedElement) {
 			return;
@@ -165,6 +255,14 @@ public class EditableMapView extends MapView {
 		updateUI();
 	}
 
+	/**
+	 * Add new object to map, using some default values. Lines are
+	 * 
+	 * @param cls A VectorElement class to be created added:
+	 *     Marker.class, Point.class, Line.class or Polygon.class
+	 * @param userData added to the object
+	 * @return object which was created
+	 */
 	public VectorElement createElement(Class<?> cls, Object userData) {
 		VectorElement element = null;
 		if (cls.equals(Marker.class)) {
@@ -195,6 +293,12 @@ public class EditableMapView extends MapView {
 		return element;
 	}
 
+	/**
+	 * Update element
+	 * 
+	 * @param vectorElement
+	 * @param updater handles real update action
+	 */
 	public void updateElement(VectorElement vectorElement, ElementUpdater updater) {
 		if (vectorElement == null) {
 			return;
@@ -210,6 +314,11 @@ public class EditableMapView extends MapView {
 		updateUI();
 	}
 
+	/**
+	 * Delete an object 
+	 * 
+	 * @param vectorElement
+	 */
 	public void deleteElement(VectorElement vectorElement) {
 		if (vectorElement == null) {
 			return;

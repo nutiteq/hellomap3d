@@ -18,6 +18,16 @@ import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.NMLModelOnlineLayer;
 
+/**
+ * Demonstrates NMLModelOnlineLayer - online 3D model layer which loads data from Nutiteq NML online API.
+ * 
+ * The demo server has data of few cities: Tallinn, Barcelona, San Francisco. This content is from Google 3D Warehouse
+ *
+ * Loaded data is partly cached locally with special cache.
+ *
+ * @author jaak
+ *
+ */
 public class Online3DMapActivity extends Activity {
 
 	private MapView mapView;

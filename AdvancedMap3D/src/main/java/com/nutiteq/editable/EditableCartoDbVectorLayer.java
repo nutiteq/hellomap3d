@@ -53,6 +53,23 @@ public class EditableCartoDbVectorLayer extends EditableGeometryDbLayer {
 	private final String deleteSql;
 	private final boolean multiGeometry; 
 
+	/**
+	 * @param proj Layer projection
+	 * @param account Your CartoDB Account
+	 * @param apiKey Your CartoDB API Key, get it from CartoDB account settings page 
+	 * @param querySql SQL template to query data. 
+	 *     First returned columns must be: cartodb_id (unique id), the_geom_webmercator (geometry), name (a string). 
+	 *     You can add more columns, these will go to userData. 
+	 *     Query parameter: !bbox!
+	 * @param insertSql SQL template to insert data. Query parameter: !geom!
+	 * @param updateSql SQL template to update data. Query parameters: !geom!, !name! and !id!
+	 * @param deleteSql SQL template for deleting. Query parameter: !id!
+	 * @param multiGeometry true if object must be saved as MULTIgeometry
+     * @param pointStyleSet required if layer has points
+     * @param lineStyleSet required if layer has lines
+     * @param polygonStyleSet required if layer has lines
+     * @param context Activity who controls the layer
+	 */
 	public EditableCartoDbVectorLayer(Projection proj, String account, String apiKey,
 			String querySql, String insertSql, String updateSql, String deleteSql, boolean multiGeometry,
 			StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, Context context) {

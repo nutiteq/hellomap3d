@@ -2,8 +2,6 @@ package com.nutiteq.advancedmap;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 
 import org.mapsforge.android.maps.mapgenerator.JobTheme;
 
@@ -24,6 +22,18 @@ import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 
+/**
+ * 
+ * Demonstrates usage of MapsforgeMapLayer offline raster layer
+ * 
+ * It uses external MapsForge library which generates raster map tiles from vector database.
+ * 
+ * You need to preload .map file to SDCard for using this layer.
+ * See https://github.com/nutiteq/hellomap3d/wiki/Mapsforge-layer for details
+ * 
+ * @author jaak
+ *
+ */
 public class MapsForgeMapActivity extends Activity implements FilePickerActivity {
 
 	private MapView mapView;

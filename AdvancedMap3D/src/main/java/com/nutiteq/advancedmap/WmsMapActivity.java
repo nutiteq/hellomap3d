@@ -10,14 +10,11 @@ import android.webkit.WebView;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
-import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
 import com.nutiteq.advancedmap.maplisteners.WmsLayerClickListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.geometry.Marker;
-import com.nutiteq.layers.raster.MapBoxMapLayer;
-import com.nutiteq.layers.raster.MapBoxMapLayer.LoadMetadataTask;
 import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.layers.raster.WmsLayer;
 import com.nutiteq.log.Log;
@@ -29,6 +26,22 @@ import com.nutiteq.ui.ViewLabel;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
+/**
+ * 
+ * Demonstrates WmsLayer - online raster layer for WMS map sources.  
+ * 
+ * Note that WmsLayer works using map tile boundaries. Therefore it should work for WMSC sources also.
+ * 
+ * The sample loads one layer from a demo geoserver. In addition to map images it implements
+ * GetFeatureInfo request which requests and renders object data if you click on map. Object data is shown
+ * as Marker with Label (generated with WebView to support HTML), similar to UTFGridData in MBTiles and 
+ * MapBox layers.
+ * 
+ * Clicks on map are detected using WmsLayerClickListener (a MapListener).
+ * 
+ * @author jaak
+ *
+ */
 public class WmsMapActivity extends Activity {
 
 	private MapView mapView;

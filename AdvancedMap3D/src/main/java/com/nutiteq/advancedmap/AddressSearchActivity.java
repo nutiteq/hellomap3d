@@ -8,19 +8,35 @@ import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.components.Components;
-import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
-import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
 /**
- * Addres search / Geocoding sample
+ * Address search / Geocoding sample.
  * 
+ * Sample uses Android searchable interface, which is linked to Activity via AndroidManifest file.
+ * 
+ * Classes:
+ * 1. geocode.MapQuestGeocoder.java Geocoder implementation, uses MapQuest Open API REST API Map
+ * 
+ * 2. mapquest.SearchQueryResults.java - ListView which initiates real search, and shows results as ListView
+ * 
+ * 3. mapquest.SearchRecentSuggestionsProvider.java - stores last search terms to memory
+ * 
+ * 4. AddressSearchActivity.java opens Android default search UI. Search result comes from resuming 
+ *      from search results activity, this is shown on map, and map is re-centered to found result.
+ * 
+ * 5. Resources: values/strings.xml, layout/search_query_results.xml and layout/searchrow.xml define ListView.
+ *      xml/searchable.xml - needed for Android searchable interface
+ *
+ * Used layer(s):
+ *  TMSMapLayer for base map
+ *        
  * @author jaak
  *
  */

@@ -21,10 +21,8 @@ import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
-import com.nutiteq.services.routing.CloudMadeDirections;
 import com.nutiteq.services.routing.MapQuestDirections;
 import com.nutiteq.services.routing.Route;
-import com.nutiteq.services.routing.MapQuestDirections.MqRoutingTask;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.StyleSet;
@@ -35,11 +33,27 @@ import com.nutiteq.vectorlayers.MarkerLayer;
 
 /**
  * Online routing using MapQuest Open Directions API
+ * 
+ * Routing class MapQuestDirections is used to 
+ * 1. Calculate route using online API, get it as Route object
+ * 2. Create a Line which is stored to a routeLayer GeometryLayer
+ * 3. Create Markers to each turn point, show them on markerLayer.
+ *   Marker images are here loaded from URLs what are given in route results, using MqLoadInstructionImagesTask
+ * 
+ * Interfaces:
+ *  RouteActivity - callback to enable Activity to get Routing results asynchronously
+ * 
+ * Classes:
+ *  routing.MapQuestDirections implements MapQuestDirections Open routing API as described in
  * http://open.mapquestapi.com/directions/ 
+ * 
+ * 
+ * Note: You have to use your own MapQuest API key if you use it in live application. 
  * 
  * @author jaak
  *
  */
+
 public class MapQuestRouteActivity extends Activity implements RouteActivity{
 
 	private static final float MARKER_SIZE = 0.4f;

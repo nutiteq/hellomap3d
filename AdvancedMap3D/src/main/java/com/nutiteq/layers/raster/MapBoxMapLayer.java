@@ -1,27 +1,16 @@
 package com.nutiteq.layers.raster;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
-import android.net.http.AndroidHttpClient;
 import android.os.AsyncTask;
 import android.widget.RelativeLayout;
 
@@ -34,9 +23,7 @@ import com.nutiteq.components.MutableMapPos;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.tasks.NetFetchTileTask;
-import com.nutiteq.ui.MapListener;
 import com.nutiteq.utils.NetUtils;
-import com.nutiteq.utils.TileUtils;
 import com.nutiteq.utils.UiUtils;
 import com.nutiteq.utils.UtfGridHelper;
 import com.nutiteq.utils.UtfGridHelper.MBTileUTFGrid;

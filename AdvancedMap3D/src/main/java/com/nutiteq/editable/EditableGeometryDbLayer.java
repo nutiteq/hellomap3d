@@ -24,6 +24,13 @@ import com.nutiteq.utils.LongHashMap;
 import com.nutiteq.vectorlayers.GeometryLayer;
 
 
+/**
+ * Vector Layer with extra functions for editing elements
+ * Supports all kind of Geometries: Markers, Points, Lines and Polygons
+ * 
+ * @author mtehver
+ *
+ */
 public abstract class EditableGeometryDbLayer extends GeometryLayer {
 	protected StyleSet<PointStyle> pointStyleSet;
 	protected StyleSet<LineStyle> lineStyleSet;
@@ -276,10 +283,51 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 		return newElementMap;
 	}
 
+	/**
+	 * Read Vector objects for given Envelope
+	 * 
+	 * @param env
+	 * @param zoom
+	 * @return LongHashMap of Geometry objects, 
+	 *     the key must be unique Long value for each object, it will be used as update and delete key
+	 */
 	protected abstract LongHashMap<Geometry> queryElements(Envelope env, int zoom);
+	/**
+	 * Insert new object
+	 * 
+	 * @param element
+	 * @return
+	 */
 	protected abstract long insertElement(Geometry element);
+	/**
+	 * 
+	 * Update vector object with given ID
+	 * 
+	 * @param id
+	 * @param element
+	 */
 	protected abstract void updateElement(long id, Geometry element);
+	/**
+	 * 
+	 * Delete vectro object with given ID
+	 * 
+	 * @param id
+	 */
 	protected abstract void deleteElement(long id);
+	/**
+	 * Generate pop-up labels, shown if you click on object. 
+	 * 
+	 * @param userData object custom attributes
+	 * @return
+	 */
 	protected abstract Label createLabel(Object userData);
+	
+	/**
+	 * 
+	 * Create clone for userData, specific on Object type what you use
+	 * 
+	 * @param userData
+	 * @return
+	 */
 	protected abstract Object cloneUserData(Object userData);
 }

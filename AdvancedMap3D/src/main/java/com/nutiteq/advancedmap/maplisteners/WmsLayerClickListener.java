@@ -18,6 +18,15 @@ import com.nutiteq.ui.MapListener;
 import com.nutiteq.ui.ViewLabel;
 import com.nutiteq.utils.UiUtils;
 
+/**
+ * 
+ * Used for click detection on WMS map, where GetFeatureInfo can be requested. Click initiates
+ * HTTP request to server to get additional metadata as HTML. Then WebView is embed to a Label and shown
+ * on map.
+ * 
+ * @author jaak
+ *
+ */
 public class WmsLayerClickListener extends MapListener {
 
     private WmsLayer layer;

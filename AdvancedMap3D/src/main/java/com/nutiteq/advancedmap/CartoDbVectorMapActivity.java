@@ -13,7 +13,6 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.layers.vector.CartoDbVectorLayer;
-import com.nutiteq.layers.vector.OnlineVectorLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.style.LineStyle;
@@ -22,6 +21,20 @@ import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 
+/**
+ * 
+ * Demonstrates usage of CartoDbVectorLayer, which is a online read-only vector map for cartodb.com server
+ * 
+ * Styles are defined for all possible graphics types: Point, Line and Polygons
+ * 
+ * For CartoDB editing see EditableCartoDbMapActivity.java
+ * 
+ * Used other layer(s):
+ *  TMSMapLayer for base map
+ * 
+ * @author jaak
+ *
+ */
 public class CartoDbVectorMapActivity extends Activity {
 
 	private MapView mapView;
@@ -148,8 +161,6 @@ public class CartoDbVectorMapActivity extends Activity {
         StyleSet<LineStyle> roadLineStyleSet = new StyleSet<LineStyle>(LineStyle.builder().setWidth(0.07f).setColor(0xFFAAAAAA).build());
         
         //  5.2 Define layer and add to map
-
-        
         
         String account = "nutiteq";
         String table = "tm_world_borders"; // kihelkonnad_1897, maakond_20120701

@@ -47,7 +47,13 @@ import com.nutiteq.vectorlayers.GeometryLayer;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
 /**
- * Uses https://github.com/graphhopper/graphhopper-android to calculate offline routes
+ * 
+ * 
+ * Uses Graphhopper library to calculate offline routes
+ * 
+ * Requires that user has downloaded Graphhopper data package to SDCARD. 
+ * 
+ * See https://github.com/nutiteq/hellomap3d/wiki/Offline-routing for details and downloads
  * 
  * @author jaak
  *

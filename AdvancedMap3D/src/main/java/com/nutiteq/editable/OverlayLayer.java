@@ -12,6 +12,12 @@ import com.nutiteq.geometry.VectorElement;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.vectorlayers.GeometryLayer;
 
+/**
+ * This is used for virtual editing circles - markers which are shown in corners of Lines and Polygons
+ * 
+ * @author mtehver
+ *
+ */
 public class OverlayLayer extends GeometryLayer {
 	List<Geometry> elements = new ArrayList<Geometry>();
 

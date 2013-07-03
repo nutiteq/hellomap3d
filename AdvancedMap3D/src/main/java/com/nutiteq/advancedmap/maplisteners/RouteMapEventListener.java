@@ -9,6 +9,14 @@ import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.ui.MapListener;
 
+/**
+ * 
+ * This MapListener waits for two clicks on map - first to set routing start point, and then
+ * second to mark end point and start routing service.
+ * 
+ * @author jaak
+ *
+ */
 public class RouteMapEventListener extends MapListener {
 
 	private RouteActivity activity;

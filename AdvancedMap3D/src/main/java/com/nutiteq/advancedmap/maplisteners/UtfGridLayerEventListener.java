@@ -7,7 +7,6 @@ import javax.microedition.khronos.opengles.GL10;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.view.View;
 import android.webkit.WebView;
 
 import com.nutiteq.MapView;
@@ -24,6 +23,17 @@ import com.nutiteq.ui.ViewLabel;
 import com.nutiteq.utils.UiUtils;
 import com.nutiteq.utils.UtfGridHelper;
 
+/**
+ * 
+ * This MapListener is used to listen map click events and update tooltip on map from UTFGrid data
+ * The tooltip is technically a Marker which has real marker part (bitmap) hidden, and Label opened, so
+ * it looks like just a Label on map.
+ * 
+ * WebView is created and used inside Label, this enables HTML for labels.
+ * 
+ * @author jaak
+ *
+ */
 public class UtfGridLayerEventListener extends MapListener {
 
 	private Activity activity;

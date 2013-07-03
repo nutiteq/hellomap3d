@@ -3,15 +3,12 @@ package com.nutiteq.advancedmap;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.OvalShape;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
-import android.widget.RelativeLayout.LayoutParams;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
@@ -33,6 +30,20 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
 
 /**
  * Shows animated location on map, and fixed drivetime region around user location
+ * 
+ * Animated location uses Android location API to get coordinates, and accuracy. 
+ * Animation is painted in MyLocationMapEventListener.onDrawFrameBefore3D() method using OpenGL.
+ * 
+ * Additional classes:
+ *  maplisteners.MyLocationMapEventListener - called for map updates
+ *   MyLocationMapEventListener.MyLocationCircle - knows user location and can do OpenGL drawing for specific frame
+ *  
+ * Used layer(s):
+ *  TMSMapLayer for base map
+ *  DriveTimeRegionLayer - Vector layer which requests drivetime from Nutiteq demo server, provided coordinates and drive time value
+ *      Drive time is shown as polygon on map. Provided coordinates are user GPS location coordinates, 
+ *      Drive time value is selected by user with a Seekbar control on map
+ *      During data loading progress indicator is shown in application header, using FEATURE_INDETERMINATE_PROGRESS
  * 
  * @author jaak
  *

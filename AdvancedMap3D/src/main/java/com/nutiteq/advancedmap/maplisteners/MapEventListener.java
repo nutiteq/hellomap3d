@@ -9,6 +9,14 @@ import com.nutiteq.geometry.VectorElement;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.ui.MapListener;
 
+/**
+ * 
+ * Simple MapListener which shows and hides progress bar in app status bar, based
+ * on status of background tasks.
+ * 
+ * @author jaak
+ *
+ */
 public class MapEventListener extends MapListener {
 
 	private AdvancedMapActivity activity;

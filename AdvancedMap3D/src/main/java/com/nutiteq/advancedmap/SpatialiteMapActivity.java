@@ -36,6 +36,22 @@ import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 
+/**
+ * 
+ * Demonstrates usage of SpatialiteLayer
+ * 
+ *  The application shows first list of tables in selected Spatialite database file, then opens file, 
+ * loads bounds of selected table and recenters map accordingly 
+ *  
+ * The layer uses and requires custom compiled jsqlite (with spatialite) and proj.4 libraries via JNI
+ *  
+ * You need a Spatialite table file in SDCard. Up to version 4.x tables are supported.
+ *  
+ * See https://github.com/nutiteq/hellomap3d/wiki/Spatialite-layer for details and sample data downloads
+ * 
+ * @author jaak
+ *
+ */
 public class SpatialiteMapActivity extends Activity implements FilePickerActivity {
 
 	private static final int DIALOG_TABLE_LIST = 1;

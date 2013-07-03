@@ -6,6 +6,14 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 
+/**
+ * Roofs can be defined for 3D buildings
+ * 
+ * They require JTS library to be included with app package
+ * 
+ * @author ats
+ *
+ */
 public abstract class Roof {
   
   protected GeometryFactory geoFac = new GeometryFactory();

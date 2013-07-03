@@ -8,17 +8,21 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
 import android.location.Location;
-import android.widget.Toast;
 
 import com.nutiteq.MapView;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.VectorElement;
-import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
-import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.MapListener;
 import com.nutiteq.utils.Const;
 
+/**
+ * 
+ * This MapListener demonstrates usage of OpenGL-level API to show animations on map
+ * 
+ * @author jaak
+ *
+ */
 public class MyLocationMapEventListener extends MapListener {
 
     private Activity activity;
