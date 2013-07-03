@@ -44,16 +44,14 @@ public class EditableMapView extends MapView {
 	private static final PolygonStyle DEFAULT_POLYGON_STYLE = PolygonStyle.builder().setColor(Color.RED).build();
 
 	/**
-	 * Various events during map editing interactions 
-	 * 
-	 * @author mtehver
-	 *
+	 * Listener interface for catching various events during map editing interactions. 
 	 */
 	public interface EditEventListener {
 		/**
 		 * Elements were changed - update UI buttons may be needed
 		 */
 		void updateUI();
+		
 		/**
 		 * Adjust object movement, usable for snapping
 		 * 
@@ -62,6 +60,7 @@ public class EditableMapView extends MapView {
 		 * @return adjusted movement Vector if snapping is done, same as input if not
 		 */
 		Vector snapElement(VectorElement element, Vector delta);
+		
 		/**
 		 * Adjust vertex movement, useful for snapping
 		 * 
@@ -71,57 +70,87 @@ public class EditableMapView extends MapView {
 		 * @return adjusted MapPos if snapping is done, same as input mapPos if not 
 		 */
 		MapPos snapElementVertex(VectorElement element, int index, MapPos mapPos);
+		
 		/**
-		 * New element created
-		 * @param element 
+		 * New element was created. Can be used to customize element attributes
+		 * 
+		 * @param element the element that was created.
 		 */
 		void onElementCreated(VectorElement element);
+		
 		/**
+		 * Called before element is being modified.
+		 * 
 		 * @param element object before editing
 		 */
 		void onBeforeElementChange(VectorElement element);
+		
 		/**
+		 * Called after element was modified.
+		 * 
 		 * @param element object after editing it
 		 */
 		void onElementChanged(VectorElement element);
+		
 		/**
+		 * Called after element was deleted.
+		 * 
 		 * @param element deleted element
 		 */
 		void onElementDeleted(VectorElement element);
+		
 		/**
-		 * Control if specific element can be selected for editing 
-		 * @param element
+		 * Called when element is just selected. Can be used to disallow element selection.
+		 *  
+		 * @param element element that was deleted
 		 * @return true if element is selectable, false otherwise
 		 */
 		boolean onElementSelected(VectorElement element);
+		
 		/**
+		 * Called when element is unselected.
+		 * 
 		 * @param element object which was unselected
 		 */
 		void onElementDeselected(VectorElement element);
+		
 		/**
-		 * Dragging either vertex or whole element
+		 * Called before vertex or element is dragged
 		 * 
 		 * @param element object which is selected during drag
 		 * @param x start X of dragging, in screen pixels
 		 * @param y start Y of dragging
 		 */
 		void onDragStart(VectorElement element, float x, float y);
+		
 		/**
 		 * Object or vertex was dragged to specific location
-		 * @param x in screen pixels
-		 * @param y
+		 * 
+		 * @param x x coordinate in screen pixels
+		 * @param y y coordinate in screen pixels
 		 */
+	
 		void onDrag(float x, float y);
+		
 		/**
 		 * Object drag is finished, touch is released
-		 * @param x
-		 * @param y
+		 * 
+		 * @param x x coordinate in screen pixels of the final position 
+		 * @param y y coordinate in screen pixels of the final position
 		 * @return true if point should be deleted
 		 */
 		boolean onDragEnd(float x, float y);
 	}
 
+	/**
+	 * Interface (callback) for updating vector elements
+	 */
 	public interface ElementUpdater {
+		/**
+		 * Update element attributes.
+		 * 
+		 * @param element element to update
+		 */
 		void update(VectorElement element);
 	}
 
@@ -179,14 +208,30 @@ public class EditableMapView extends MapView {
 	private MapPos initialElementDragPos;
 	private List<List<MapPos>> initialElementPoses;
 
+	/**
+	 * Default constructor.
+	 * 
+	 * @param context app context
+	 */
 	public EditableMapView(final Context context) {
 		super(context);
 	}
 
+    /**
+     * Default constructor.
+     * 
+     * @param context app context
+     * @params attrs view attributes
+     */
 	public EditableMapView(final Context context, final AttributeSet attrs) {
 		super(context, attrs);
 	}
-
+	
+	/**
+	 * Get current element listener
+	 * 
+	 * @return current edit element listener
+	 */
 	public EditEventListener getElementListener() {
 		return editEventListener;
 	}
@@ -194,7 +239,7 @@ public class EditableMapView extends MapView {
 	/**
 	 * Define listener for element manipulation events
 	 * 
-	 * @param elementListener
+	 * @param elementListener new element listener for all edit events
 	 */
 	public void setElementListener(EditEventListener elementListener) {
 		this.editEventListener = elementListener;
@@ -203,7 +248,7 @@ public class EditableMapView extends MapView {
 	/**
 	 * Set style for verlay layer. This is for vertex marker point objects
 	 * 
-	 * @param style
+	 * @param style style for overlay layer
 	 */
 	public void setOverlayLayerStyle(OverlayLayerStyle style) {
 		this.overlayLayerStyle = style;
@@ -212,7 +257,7 @@ public class EditableMapView extends MapView {
 	/**
 	 * Get last selected (clicked) element
 	 * 
-	 * @return
+	 * @return last selected element
 	 */
 	public VectorElement getSelectedElement() {
 		return selectedElement;
@@ -220,7 +265,8 @@ public class EditableMapView extends MapView {
 	
 	/**
 	 * Select an object on map for editing
-	 * @param vectorElement
+	 * 
+	 * @param vectorElement element to select
 	 */
 	public void selectElement(final VectorElement vectorElement) {
 		if (vectorElement == selectedElement) {
@@ -294,10 +340,10 @@ public class EditableMapView extends MapView {
 	}
 
 	/**
-	 * Update element
+	 * Update element attributes via updater callback.
 	 * 
-	 * @param vectorElement
-	 * @param updater handles real update action
+	 * @param vectorElement element to update
+	 * @param updater update handler to use.
 	 */
 	public void updateElement(VectorElement vectorElement, ElementUpdater updater) {
 		if (vectorElement == null) {
@@ -317,7 +363,7 @@ public class EditableMapView extends MapView {
 	/**
 	 * Delete an object 
 	 * 
-	 * @param vectorElement
+	 * @param vectorElement element to delete
 	 */
 	public void deleteElement(VectorElement vectorElement) {
 		if (vectorElement == null) {

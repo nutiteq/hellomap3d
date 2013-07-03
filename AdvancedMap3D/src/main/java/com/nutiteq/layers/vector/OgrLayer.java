@@ -39,6 +39,12 @@ import com.nutiteq.utils.GeoUtils;
 import com.nutiteq.utils.WkbRead;
 import com.nutiteq.vectorlayers.GeometryLayer;
 
+/**
+ * Layer for reading OGR file data sources.
+ *  
+ * @author jaak
+ *
+ */
 public class OgrLayer extends GeometryLayer {
 	private static Vector<String> knownExtensions = new Vector<String>();
     private int maxObjects;
@@ -197,10 +203,6 @@ public class OgrLayer extends GeometryLayer {
         transformerToData = new CoordinateTransformation(layerProjection, dataProj);
         
         transformerToMap = new CoordinateTransformation(dataProj,layerProjection);
-        
-        
-        
-        
     }
 
 

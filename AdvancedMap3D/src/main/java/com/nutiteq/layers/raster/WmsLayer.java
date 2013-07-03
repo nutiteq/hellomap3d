@@ -33,6 +33,11 @@ import com.nutiteq.utils.NetUtils;
 import com.nutiteq.utils.TileUtils;
 import com.nutiteq.utils.Utils;
 
+/**
+ * WMS Map Server API to requests data based on tiles
+ * 
+ * @author jaak
+ */
 public class WmsLayer extends RasterLayer {
 
     private String layer;
@@ -43,7 +48,7 @@ public class WmsLayer extends RasterLayer {
 
 
     /**
-     * WMS Map Server API to requests data based on tiles
+     * Default constructor
      * 
      * @param projection
      *            Projection for your map

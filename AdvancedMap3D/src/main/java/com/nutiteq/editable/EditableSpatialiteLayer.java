@@ -21,6 +21,13 @@ import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.utils.LongHashMap;
 
+/**
+ * 
+ * Local Spatialite database layer that supports editing. 
+ * 
+ * @author mtehver
+ *
+ */
 public class EditableSpatialiteLayer extends EditableGeometryDbLayer {
 	private SpatialLiteDb spatialLite;
 	private DBLayer dbLayer;
@@ -29,6 +36,8 @@ public class EditableSpatialiteLayer extends EditableGeometryDbLayer {
 	private String[] userColumns;
 
 	/**
+	 * Default constructor.
+	 * 
 	 * @param proj Layer projection
 	 * @param dbPath Spatialite file name full path 
 	 * @param tableName

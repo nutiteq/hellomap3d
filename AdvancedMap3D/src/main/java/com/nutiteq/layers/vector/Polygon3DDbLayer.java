@@ -17,6 +17,12 @@ import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.vectorlayers.Polygon3DLayer;
 
+/**
+ * Simple layer of 3D Polygons, reads data from Spatialite table with 2D polygons
+ * 
+ * @author jaak
+ *
+ */
 public class Polygon3DDbLayer extends Polygon3DLayer {
   private static final float DEFAULT_HEIGHT = 2.0f;
   private SpatialLiteDb spatialLite;
@@ -30,16 +36,17 @@ public class Polygon3DDbLayer extends Polygon3DLayer {
   private int maxObjects;
 
   /**
-   * Simple layer of 3D Polygons, reads data from Spatialite table with 2D polygons
- * @param dbPath Spatialite format database
- * @param tableName table with data
- * @param geomColumnName column in table with geometry
- * @param heightColumnName column in table with heigth in meters
- * @param heightFactor multiply height with this number to make it visible
- * @param maxObjects limit number of loaded objects, set to 500 e.g. to avoid out of memory
- * @param styleSet Polygon3DStyle styleset for visualisation
- */
-public Polygon3DDbLayer(String dbPath, String tableName, String geomColumnName, String heightColumnName,
+   * Default constructor.
+   * 
+   * @param dbPath Spatialite format database
+   * @param tableName table with data
+   * @param geomColumnName column in table with geometry
+   * @param heightColumnName column in table with heigth in meters
+   * @param heightFactor multiply height with this number to make it visible
+   * @param maxObjects limit number of loaded objects, set to 500 e.g. to avoid out of memory
+   * @param styleSet Polygon3DStyle styleset for visualisation
+   */
+  public Polygon3DDbLayer(String dbPath, String tableName, String geomColumnName, String heightColumnName,
       float heightFactor, int maxObjects, StyleSet<Polygon3DStyle> styleSet) {
     super(new EPSG3857());
     this.styleSet = styleSet;
@@ -62,10 +69,12 @@ public Polygon3DDbLayer(String dbPath, String tableName, String geomColumnName, 
     }
   }
 
+  @Override
   public void add(Polygon3D element) {
     throw new UnsupportedOperationException();
   }
 
+  @Override
   public void remove(Polygon3D element) {
     throw new UnsupportedOperationException();
   }

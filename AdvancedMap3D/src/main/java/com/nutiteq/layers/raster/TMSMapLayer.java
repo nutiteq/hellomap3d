@@ -1,5 +1,12 @@
 package com.nutiteq.layers.raster;
 
+import java.util.Map;
+
+import com.nutiteq.components.MapTile;
+import com.nutiteq.projections.Projection;
+import com.nutiteq.rasterlayers.RasterLayer;
+import com.nutiteq.tasks.NetFetchTileTask;
+
 /**
  * A raster layer class that uses an URL as a source for the map tile data. The request are generate in this manner:
  * <p>
@@ -13,13 +20,6 @@ package com.nutiteq.layers.raster;
  * <p>
  * Result: http://tile.openstreetmap.org/0/0/0.png
  */
-import java.util.Map;
-
-import com.nutiteq.components.MapTile;
-import com.nutiteq.projections.Projection;
-import com.nutiteq.rasterlayers.RasterLayer;
-import com.nutiteq.tasks.NetFetchTileTask;
-
 public class TMSMapLayer extends RasterLayer {
   protected final String separator;
   protected final String format;

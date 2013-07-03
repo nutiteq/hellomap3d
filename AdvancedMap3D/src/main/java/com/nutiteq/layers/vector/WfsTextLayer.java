@@ -16,6 +16,12 @@ import com.nutiteq.style.StyleSet;
 import com.nutiteq.style.TextStyle;
 import com.nutiteq.vectorlayers.TextLayer;
 
+/**
+ * Special text layer that should be used together with WfsLayer.
+ * 
+ * @author jaak
+ *
+ */
 public abstract class WfsTextLayer extends TextLayer {
 
   private final WfsLayer baseLayer;

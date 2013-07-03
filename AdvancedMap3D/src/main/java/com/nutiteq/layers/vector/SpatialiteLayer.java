@@ -21,6 +21,12 @@ import com.nutiteq.tasks.Task;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.vectorlayers.GeometryLayer;
 
+/**
+ * Layer for Spatialite database files.
+ * 
+ * @author jaak
+ *
+ */
 public class SpatialiteLayer extends GeometryLayer {
 
     private SpatialLiteDb spatialLite;

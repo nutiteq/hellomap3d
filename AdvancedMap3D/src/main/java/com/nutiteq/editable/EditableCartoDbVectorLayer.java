@@ -35,6 +35,13 @@ import com.nutiteq.utils.Utils;
 import com.nutiteq.utils.WkbRead;
 import com.nutiteq.utils.WktWriter;
 
+/**
+ * 
+ * CartoDb layer that supports editing. 
+ * 
+ * @author mtehver
+ *
+ */
 public class EditableCartoDbVectorLayer extends EditableGeometryDbLayer {
 	public static final String TAG_GEOM = "the_geom";
 	public static final String TAG_GEOM_WEBMERCATOR = "the_geom_webmercator";
@@ -54,6 +61,8 @@ public class EditableCartoDbVectorLayer extends EditableGeometryDbLayer {
 	private final boolean multiGeometry; 
 
 	/**
+	 * Default constructor.
+	 * 
 	 * @param proj Layer projection
 	 * @param account Your CartoDB Account
 	 * @param apiKey Your CartoDB API Key, get it from CartoDB account settings page 

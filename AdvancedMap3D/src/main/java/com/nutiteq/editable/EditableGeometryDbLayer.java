@@ -304,33 +304,37 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 	 *     the key must be unique Long value for each object, it will be used as update and delete key
 	 */
 	protected abstract LongHashMap<Geometry> queryElements(Envelope env, int zoom);
+	
 	/**
 	 * Insert new object
 	 * 
-	 * @param element
-	 * @return
+	 * @param element element to insert
+	 * @return inserted element id
 	 */
 	protected abstract long insertElement(Geometry element);
+	
 	/**
 	 * 
 	 * Update vector object with given ID
 	 * 
-	 * @param id
-	 * @param element
+	 * @param id element id to update
+	 * @param element new element state
 	 */
 	protected abstract void updateElement(long id, Geometry element);
+	
 	/**
 	 * 
 	 * Delete vectro object with given ID
 	 * 
-	 * @param id
+	 * @param id element id to delete
 	 */
 	protected abstract void deleteElement(long id);
+	
 	/**
 	 * Generate pop-up labels, shown if you click on object. 
 	 * 
 	 * @param userData object custom attributes
-	 * @return
+	 * @return new label
 	 */
 	protected abstract Label createLabel(Object userData);
 	
@@ -338,8 +342,8 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 	 * 
 	 * Create clone for userData, specific on Object type what you use
 	 * 
-	 * @param userData
-	 * @return
+	 * @param userData object to clone
+	 * @return clone of the userData
 	 */
 	protected abstract Object cloneUserData(Object userData);
 }

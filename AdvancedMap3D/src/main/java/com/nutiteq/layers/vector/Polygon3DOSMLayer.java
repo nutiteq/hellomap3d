@@ -35,6 +35,12 @@ import com.nutiteq.tasks.Task;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.vectorlayers.Polygon3DLayer;
 
+/**
+ * Layer with 3D OSM building boxes
+ * 
+ * @author vendik
+ *
+ */
 public class Polygon3DOSMLayer extends Polygon3DLayer {
     
     private static final float DEFAULT_ROOF_HEIGHT = 0.2f;

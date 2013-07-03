@@ -6,6 +6,7 @@ import java.util.Map;
 
 import android.content.Context;
 
+import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MapTile;
 import com.nutiteq.components.MutableMapPos;
@@ -13,6 +14,7 @@ import com.nutiteq.layers.raster.db.MbTilesDatabaseHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
+import com.nutiteq.tasks.FetchTileTask;
 
 /**
  * A raster layer class for reading map tiles from local Sqlite database.
@@ -26,6 +28,34 @@ public class MBTilesMapLayer extends RasterLayer implements UtfGridLayerInterfac
 
     private MbTilesDatabaseHelper db;
     private boolean tmsY;
+    
+    private class DbFetchTileTask extends FetchTileTask {
+
+      private MbTilesDatabaseHelper db;
+      private int z;
+      private int x;
+      private int y;
+
+      public DbFetchTileTask(MapTile tile, Components components, long tileIdOffset, MbTilesDatabaseHelper db) {
+        super(tile, components, tileIdOffset);
+        this.db = db;
+        this.z = tile.zoom;
+        this.x = tile.x;
+        this.y = tile.y;
+      }
+
+      @Override
+      public void run() {
+        super.run();
+        Log.debug("DbMapLayer task: Start loading " + " zoom=" + z + " x=" + x + " y=" + y);
+        
+        // y is flipped (origin=sw in mbtiles)
+        finished(db.getTileImg(z, x, (1 << (z)) - 1 - y));
+        cleanUp();
+      }
+
+    }
+
 
     /**
      * Default constructor.
