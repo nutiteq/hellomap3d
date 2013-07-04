@@ -107,9 +107,6 @@ public class AdvancedMapActivity extends Activity {
 
 		mapView.getLayers().setBaseLayer(mapLayer);
 
-		
-	//	baseLayerMapBoxSatelliteLayer(mapView.getLayers().getBaseLayer().getProjection());
-		
 		// set initial map view camera - optional. "World view" is default
 		// Location: San Francisco
         mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
@@ -200,8 +197,9 @@ public class AdvancedMapActivity extends Activity {
 
 		//addBingBaseLayer(mapLayer.getProjection(),"http://ecn.t3.tiles.virtualearth.net/tiles/r",".png?g=1&mkt=en-US&shading=hill&n=z");
        // addPackagedBaseLayer(mapLayer.getProjection());
+	     baseLayerMapBoxSatelliteLayer(mapView.getLayers().getBaseLayer().getProjection());
 
-		 addStoredBaseLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/mgm/esp_barcelona_0_17/");
+		// addStoredBaseLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory().getPath()+"/mapxt/mgm/esp_barcelona_0_17/");
 		 
         addMarkerLayer(mapLayer.getProjection(),mapLayer.getProjection().fromWgs84(-122.416667f, 37.766667f));
 
@@ -255,7 +253,7 @@ public class AdvancedMapActivity extends Activity {
         StyleSet<Polygon3DStyle> polygon3DStyleSet = new StyleSet<Polygon3DStyle>(null);
 		polygon3DStyleSet.setZoomStyle(15, polygon3DStyle);
 
-        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.500f, new FlatRoof(),  Color.WHITE, Color.LTGRAY, 500, polygon3DStyleSet);
+        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.500f, new FlatRoof(),  Color.WHITE, Color.LTGRAY, 1500, polygon3DStyleSet);
 		mapView.getLayers().addLayer(osm3dLayer);
 	}
 

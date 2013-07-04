@@ -10,10 +10,12 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MutableEnvelope;
 import com.nutiteq.components.Vector;
 import com.nutiteq.geometry.Polygon3D;
+import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.Label;
+import com.nutiteq.utils.Const;
 import com.nutiteq.utils.PolygonTriangulation;
 import com.vividsolutions.jts.algorithm.MinimumDiameter;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -32,6 +34,7 @@ import com.vividsolutions.jts.geom.util.PolygonExtracter;
 public class Polygon3DRoof extends Polygon3D {
   private static final float MIN_RECTANGLE_SCALE = 1.01f;
 
+  private float minHeight;
   private Roof roof;
   
   private Color color;
@@ -59,9 +62,9 @@ public class Polygon3DRoof extends Polygon3D {
    * @param userData
    *        custom user data associated with the element.
    */
-  public Polygon3DRoof(List<MapPos> mapPoses, List<List<MapPos>> mapPosesHoles, float height, 
+  public Polygon3DRoof(List<MapPos> mapPoses, List<List<MapPos>> mapPosesHoles, float height, float minHeight,
       Roof roof, int color, int roofColor, Label label, Polygon3DStyle polygonStyle, Object userData) {
-    this(mapPoses, mapPosesHoles, height, roof, color, roofColor, label, new StyleSet<Polygon3DStyle>(polygonStyle), userData);
+    this(mapPoses, mapPosesHoles, height, minHeight, roof, color, roofColor, label, new StyleSet<Polygon3DStyle>(polygonStyle), userData);
   }
 
   /**
@@ -84,14 +87,14 @@ public class Polygon3DRoof extends Polygon3D {
    * @param userData
    *        custom user data associated with the element.
    */
-  public Polygon3DRoof(List<MapPos> mapPoses, List<List<MapPos>> mapPosesHoles, float height, 
+  public Polygon3DRoof(List<MapPos> mapPoses, List<List<MapPos>> mapPosesHoles, float height, float minHeight,
       Roof roof, int color, int roofColor, Label label,  StyleSet<Polygon3DStyle> styles, Object userData) {
     super(mapPoses, mapPosesHoles, height, label, styles, userData);
+    this.minHeight = minHeight;
     this.roof = roof;
     
-    // internal height is to bottom of roof, not top.
-    if(roof != null){
-        this.height -= roof.roofHeight;
+    if (roof != null) {
+    	this.height -= roof.getRoofHeight();
     }
     
     this.color = new Color(color);
@@ -152,6 +155,7 @@ public class Polygon3DRoof extends Polygon3D {
         new com.vividsolutions.jts.geom.Polygon(shellInternal, holesInternal, geoFac);
     com.vividsolutions.jts.geom.Point centroid = roofPolygon.getCentroid();
     MapPos originMapPosInternal = new MapPos(centroid.getX(), centroid.getY());
+   
     
     
     
@@ -280,10 +284,8 @@ public class Polygon3DRoof extends Polygon3D {
           Coordinate mapPos1 = clockwise ? mapPos : prevMapPos;
 
           // Calculate how high walls need to connect with the roof
-          float roofHeight1 = (float) ((1 - originMapPosInternal.z) 
-              * roof.calculateRoofPointHeight(mapPos0.x, mapPos0.y)) + height;
-          float roofHeight2 = (float) ((1 - originMapPosInternal.z) 
-              * roof.calculateRoofPointHeight(mapPos1.x, mapPos1.y)) + height;
+          float roofHeight1 = (float) roof.calculateRoofPointHeight(mapPos0.x, mapPos0.y) + height;
+          float roofHeight2 = (float) roof.calculateRoofPointHeight(mapPos1.x, mapPos1.y) + height;
           
           // Caclulate the vertex coordinates
           verts[index + 0] = (float) (mapPos0.x - originMapPosInternal.x);
@@ -291,10 +293,10 @@ public class Polygon3DRoof extends Polygon3D {
           verts[index + 2] = roofHeight1;
           verts[index + 6] = (float) (mapPos0.x - originMapPosInternal.x);
           verts[index + 7] = (float) (mapPos0.y - originMapPosInternal.y);
-          verts[index + 8] = (float) (0 - originMapPosInternal.z) * height;
+          verts[index + 8] = minHeight;
           verts[index + 3] = (float) (mapPos1.x - originMapPosInternal.x);
           verts[index + 4] = (float) (mapPos1.y - originMapPosInternal.y);
-          verts[index + 5] = (float) (0 - originMapPosInternal.z) * height;
+          verts[index + 5] = minHeight;
 
           verts[index + 9]  = (float) (mapPos1.x - originMapPosInternal.x);
           verts[index + 10] = (float) (mapPos1.y - originMapPosInternal.y);
@@ -304,7 +306,7 @@ public class Polygon3DRoof extends Polygon3D {
           verts[index + 17] = roofHeight1;
           verts[index + 12] = (float) (mapPos1.x - originMapPosInternal.x);
           verts[index + 13] = (float) (mapPos1.y - originMapPosInternal.y);
-          verts[index + 14] = (float) (0 - originMapPosInternal.z) * height;
+          verts[index + 14] = minHeight;
 
           // Calculate lighting intensity for the wall
           Vector surface = new Vector(mapPos1.x - mapPos0.x, mapPos1.y - mapPos0.y, 0).getNormalized2D();

@@ -258,6 +258,11 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
             if (roofHeight < 0) {
             	roofHeight = parseLevelsHeight(userData.get("roof:levels"), DEFAULT_ROOF_HEIGHT);
             }
+            float minHeight = parseHeight(userData.get("min_height"), -1);
+            if (minHeight < 0) {
+                minHeight = parseLevelsHeight(userData.get("building:min_level"), 0);
+            }
+
             int color = parseColor(userData.get("building:colour"), this.color);
             int roofColor = parseColor(userData.get("roof:colour"), this.roofColor);
             boolean roofAlongLongSide = parseRoofOrientation(userData.get("roof:orientation"), this.roofShape.getAlongLongSide());
@@ -285,7 +290,7 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 
             // Create 3Dpolygon
             Polygon3D polygon3D = new Polygon3DRoof(((Polygon)geometry).getVertexList(), geometry.getHolePolygonList(), 
-            		height, roofShape, color, roofColor, label, styleSet, userData);
+            		height, minHeight, roofShape, color, roofColor, label, styleSet, userData);
             try {
                 polygon3D.attachToLayer(this);
             }
