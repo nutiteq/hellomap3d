@@ -10,10 +10,15 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import android.graphics.Typeface;
+import android.graphics.Paint.Align;
 import android.net.ParseException;
 import android.net.Uri;
+import android.renderscript.Font;
 
+import com.nutiteq.utils.Utils;
 import com.nutiteq.utils.WkbRead;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
@@ -29,6 +34,7 @@ import com.nutiteq.roofs.HippedRoof;
 import com.nutiteq.roofs.Polygon3DRoof;
 import com.nutiteq.roofs.PyramidalRoof;
 import com.nutiteq.roofs.Roof;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.tasks.Task;
@@ -43,7 +49,7 @@ import com.nutiteq.vectorlayers.Polygon3DLayer;
  */
 public class Polygon3DOSMLayer extends Polygon3DLayer {
     
-    private static final float DEFAULT_ROOF_HEIGHT = 0.2f;
+    private static final float MAX_ROOF_HEIGHT = 0.15f;
 
     // this height modifier depends on map projection, and latitude: Default world 0.5f OpenGL units is very roughly 30m
     private static final float HEIGHT_ADJUST = 1.0f / 60.0f;
@@ -246,9 +252,6 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 
             // parse address and name for label
             final Map<String, String> userData = (Map<String, String>) geometry.userData;
-            String name = userData.get("name");
-            String type = userData.get("type");
-            String address = userData.get("address");
             
             float height = parseHeight(userData.get("height"), -1);
             if (height < 0) {
@@ -256,7 +259,16 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
             }
             float roofHeight = parseHeight(userData.get("roof:height"), -1);
             if (roofHeight < 0) {
-            	roofHeight = parseLevelsHeight(userData.get("roof:levels"), DEFAULT_ROOF_HEIGHT);
+                if(userData.get("roof:levels") != null){
+                    // default roof height is 1/3 of building height, but no more than MAX_ROOF_HEIGHT
+                    roofHeight = parseLevelsHeight(userData.get("roof:levels"), Math.min(height / 3, MAX_ROOF_HEIGHT));
+                    
+                    // adjust building height: add roof height if levels were given 
+                    height += roofHeight; 
+                }else{
+                    roofHeight = Math.min(height / 3, MAX_ROOF_HEIGHT);
+                }
+                
             }
             float minHeight = parseHeight(userData.get("min_height"), -1);
             if (minHeight < 0) {
@@ -272,19 +284,9 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
             } else {
             	roofShape = new FlatRoof();
             }
+            DefaultLabel label = createLabel(userData);
             
-            DefaultLabel label = null;
-            if ((name == null || name.equals("")) && address != null && address.length() > 0) {
-                label = new DefaultLabel(address);
-            }
-            if (name != null && name.length() > 0 && (address == null || address.equals("")) ) {
-                label = new DefaultLabel(name);
-            }
-            if (name != null && address != null && address.length() > 0 && name.length() > 0) {
-                label = new DefaultLabel(name, address);
-            }
-            
-            Log.debug("Polygon3D OSM. Name: " + name + " type: " + type + " addr: " + address + 
+            Log.debug("Polygon3D OSM. " + 
             		" height: " + height + " roof height: " + roofHeight + 
             		" color: " + color + " roof color: " + roofColor + " roof shape: " + roofShape.getClass().getSimpleName());
 
@@ -306,6 +308,49 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
         return newVisibleElementsList;
     }
     
+    private DefaultLabel createLabel(Map<String, String> userData) {
+        DefaultLabel label = null;
+        
+        String name = userData.get("name");
+        String type = userData.get("type");
+        String address = userData.get("address");
+
+        // all tags - for debug
+        
+//        StringBuffer labelStr = mapToStr(userData);
+//
+//        label = new DefaultLabel("Tags:",labelStr.toString(),
+//                LabelStyle.builder()
+//                    .setDescriptionAlign(Align.LEFT)
+//                    .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), 32)
+//                    .build());
+        
+        // address and name
+        
+        if ((name == null || name.equals("")) && address != null && address.length() > 0) {
+            label = new DefaultLabel(address);
+        }
+        if (name != null && name.length() > 0 && (address == null || address.equals("")) ) {
+            label = new DefaultLabel(name);
+        }
+        if (name != null && address != null && address.length() > 0 && name.length() > 0) {
+            label = new DefaultLabel(name, address);
+        }
+    
+        return label;
+    }
+
+    private StringBuffer mapToStr(Map<String, String> userData) {
+        StringBuffer labelStr = new StringBuffer();
+        for(Entry<String, String> entry:userData.entrySet()){
+            labelStr.append(entry.getKey());
+            labelStr.append("=");
+            labelStr.append(entry.getValue());
+            labelStr.append("\n");
+        }
+        return labelStr;
+    }
+
     private boolean parseRoofOrientation(String roofOrientationStr, boolean defaultAlongLongSide) {
 		if(roofOrientationStr != null && roofOrientationStr.length() > 0) {
 	        if (roofOrientationStr.equals("along")) {

@@ -89,9 +89,9 @@ public class AdvancedMapActivity extends Activity {
 		      Components components = new Components();
 		      // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
 		      // Optional - adjust stereo base. Default 1.0
-		      components.options.setStereoModeStrength(1.0f);
+//		      components.options.setStereoModeStrength(1.0f);
 		      // Set rendering mode to stereo
-		      components.options.setRenderMode(Options.STEREO_RENDERMODE);
+//		      components.options.setRenderMode(Options.STEREO_RENDERMODE);
 		      mapView.setComponents(components);
 		      }
 
@@ -253,7 +253,7 @@ public class AdvancedMapActivity extends Activity {
         StyleSet<Polygon3DStyle> polygon3DStyleSet = new StyleSet<Polygon3DStyle>(null);
 		polygon3DStyleSet.setZoomStyle(15, polygon3DStyle);
 
-        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.500f, new FlatRoof(),  Color.WHITE, Color.LTGRAY, 1500, polygon3DStyleSet);
+        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.3f, new FlatRoof(),  Color.WHITE, Color.GRAY, 1500, polygon3DStyleSet);
 		mapView.getLayers().addLayer(osm3dLayer);
 	}
 
