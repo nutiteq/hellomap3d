@@ -24,6 +24,7 @@ public class LauncherList extends ListActivity{
     // if parameter selector is given, then this is launched first to get a parameter (file path)
     
     private Object[][] samples={
+            {AdvancedMapActivity.class,null},
             {BasicMapActivity.class,null},
             {AddressSearchActivity.class,null},
             {AnimatedLocationActivity.class,null},
@@ -38,7 +39,6 @@ public class LauncherList extends ListActivity{
             {VectorFileMapActivity.class,FilePicker.class},
             {RasterFileMapActivity.class,FilePicker.class},
             {SpatialiteMapActivity.class,FilePicker.class},
-            {AdvancedMapActivity.class,null},
             {MapsForgeMapActivity.class,FilePicker.class},
             {GraphhopperRouteActivity.class,FilePicker.class},
             {Offline3DMapActivity.class,FilePicker.class},

@@ -80,7 +80,7 @@ public class MapBoxMapActivity extends Activity {
 
 		// MapBox Streets
 //		final MapBoxMapLayer mapLayer = new MapBoxMapLayer(new EPSG3857(), 0, 19, 333,
-//				MAPBOX_ACCOUNT, MAPBOX_MAPID);
+//				MAPBOX_ACCOUNT, "map-j6a1wkx0");
 
 		// MapBox Satellite
 		final MapBoxMapLayer mapLayer = new MapBoxMapLayer(new EPSG3857(), 0, 19, 334,

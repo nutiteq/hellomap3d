@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2008 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Checkable items appear only in submenus or context menus. -->
+
+    <!-- Carefully look at the attribute name checkableBehavior on groups, but
+         the attribute name checkable on items. The checkableBehavior encompasses
+         the number of items that will be checkable within that group. -->
+
+    <item android:title="Base map" android:icon="@android:drawable/ic_menu_mapmode">
+        <menu>
+            <group android:id="@+id/maps_group"
+                    android:checkableBehavior="single" android:menuCategory="secondary">
+                <item android:id="@+id/menu_openstreetmap"
+                        android:title="OSM MapQuest" 
+                         android:checked="true"/>
+                <item android:id="@+id/menu_mapbox"
+                        android:title="MapBox Streets"
+                        />
+                <item android:id="@+id/menu_mapboxsatellite"
+                        android:title="MapBox Satellite"
+                        />
+                <item android:id="@+id/menu_bing"
+                        android:title="Bing maps"
+                        />
+                <item android:id="@+id/menu_bingaerial" android:title="Bing Aerials" />
+                <item android:id="@+id/menu_stored"
+                        android:title="OSM @APK"
+                        />
+                <item android:id="@+id/menu_openaerial"
+                        android:title="OpenAerial MapQuest"
+                        />
+                
+            </group>
+        </menu>
+   </item>
+
+       <item android:title="Overlays" android:icon="@android:drawable/ic_menu_add">
+        <menu>
+            <group android:id="@+id/overlay_group"
+                    android:checkableBehavior="all" android:menuCategory="secondary">
+                <item android:id="@+id/menu_osm3d" android:title="OSM 3D buildings" />
+                <item android:id="@+id/menu_wms" android:title="WMS Geoserver" />
+                <item android:id="@+id/menu_hillshade" android:title="Hillshade overlay" />
+                <item android:id="@+id/menu_nml"
+                        android:title="Milktruck model @APK" 
+                         />
+                
+                
+                <item android:id="@+id/menu_marker" android:title="Single Marker"/>
+                
+                
+            </group>
+        </menu>
+   </item>
+    
+       <item android:title="Go to" android:icon="@android:drawable/ic_menu_directions">
+        <menu>
+            <group android:id="@+id/overlay_group"
+                    android:checkableBehavior="none" android:menuCategory="secondary">
+                <item android:id="@+id/menu_coburg" android:title="Coburg, Germany" />
+                <item android:id="@+id/menu_petronas" android:title="Petronas Towers" />      
+                <item android:id="@+id/menu_sf" android:title="San Francisco" />
+                <item android:id="@+id/menu_barcelona" android:title="Barcelona" />
+                <item android:id="@+id/menu_tll" android:title="Tallinn" />
+                
+            </group>
+        </menu>
+   </item>    
+</menu>
