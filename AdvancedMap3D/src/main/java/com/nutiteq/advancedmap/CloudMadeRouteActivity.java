@@ -103,7 +103,7 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 		String cloudMadeStyle = "997";
 
-		if(metrics.densityDpi == DisplayMetrics.DENSITY_HIGH){
+		if(metrics.densityDpi >= DisplayMetrics.DENSITY_HIGH){
 		    cloudMadeStyle  = "997@2x";
 		}
 		
