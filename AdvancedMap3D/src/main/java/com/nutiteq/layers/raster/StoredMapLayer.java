@@ -8,6 +8,7 @@ import java.io.InputStream;
 import android.os.Environment;
 
 import com.nutiteq.components.Components;
+import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MapTile;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
@@ -43,6 +44,7 @@ public class StoredMapLayer extends RasterLayer {
   private int tpfy = 1;
 
   private String name;
+  public MapPos center;
 
   /**
    * Class constructor. Creates a new raster layer that uses a specified folder on the SDCard as a source for the tile
@@ -157,7 +159,7 @@ public class StoredMapLayer extends RasterLayer {
               double lon = Float.parseFloat(xyz[1].trim());
               int zoom = Integer.parseInt(xyz[2].trim());
               Log.debug("center zoom found = " + lat + " " + lon + " " + zoom);
-              // setCenterLocation(new WgsPoint(lon, lat), zoom);
+              this.center = new MapPos(lat,lon,zoom);
             } catch (final Exception ex) {
 
               throw new IOException("Invalid center location");
