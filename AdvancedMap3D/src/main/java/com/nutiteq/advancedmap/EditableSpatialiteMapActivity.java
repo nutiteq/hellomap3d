@@ -285,20 +285,25 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 	    }
 	
 	protected void createEditableSpatialiteLayers(int selectedPosition) {
+	    
+	    // create stylesets. You may need just one of them
 		PointStyle pointStyle = PointStyle.builder().setColor(Color.GREEN).setSize(0.2f).build();
 		LineStyle lineStyle = LineStyle.builder().setWidth(0.1f).setColor(Color.BLUE).build();
 		PolygonStyle polygonStyle = PolygonStyle.builder().setColor(Color.BLUE | Color.GREEN).build();
 
+		// find out which table and geometry column to be opened - here it comes from earlier UI interaction steps
 		String[] tableKey = tableList[selectedPosition].split("\\.");
 		String tableName = tableKey[0];
 		String geomColumn = tableKey[1];
 		
+		// create editable layer
 		dbEditableLayer = new EditableSpatialiteLayer(new EPSG3857(), dbPath, tableName,
 				geomColumn, new String[]{"name"}, 500, new StyleSet<PointStyle>(pointStyle), 
 				new StyleSet<LineStyle>(lineStyle), 
 				new StyleSet<PolygonStyle>(polygonStyle), this);
 		mapView.getLayers().addLayer(dbEditableLayer);
 
+		// zoom map to data extent
 		Envelope extent = dbEditableLayer.getDataExtent();
         mapView.setBoundingBox(new Bounds(extent.minX, extent.maxY, extent.maxX, extent.minY), false);
 		

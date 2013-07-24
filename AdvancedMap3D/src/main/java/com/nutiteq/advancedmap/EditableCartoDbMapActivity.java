@@ -158,7 +158,7 @@ public class EditableCartoDbMapActivity extends Activity {
 		// zoom - 0 = world, like on most web maps
 		mapView.setZoom(10.0f);
 		// tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
-		mapView.setTilt(35.0f);
+		//mapView.setTilt(35.0f);
 
 		// Activate some mapview options to make it smoother - optional
 		mapView.getOptions().setPreloading(true);
@@ -262,7 +262,7 @@ public class EditableCartoDbMapActivity extends Activity {
 		String updateSql = "UPDATE "+table+" SET the_geom=ST_Transform(!geom!, 4326), name=!name! WHERE cartodb_id=!id!";
 		String deleteSql = "DELETE FROM "+table+" WHERE cartodb_id=!id!";
 
-		EditableCartoDbVectorLayer cartoDbLayer = new EditableCartoDbVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), account, apiKey, querySql, insertSql, updateSql, deleteSql, multiGeometry, pointStyleSet, lineStyleSet, polygonStyleSet, this);
+		EditableCartoDbVectorLayer cartoDbLayer = new EditableCartoDbVectorLayer(mapView.getLayers().getBaseProjection(), account, apiKey, querySql, insertSql, updateSql, deleteSql, multiGeometry, pointStyleSet, lineStyleSet, polygonStyleSet, this);
 		mapView.getLayers().addLayer(cartoDbLayer);
 
 		return cartoDbLayer;

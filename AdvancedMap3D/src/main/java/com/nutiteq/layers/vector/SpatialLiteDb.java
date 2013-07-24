@@ -212,7 +212,8 @@ public class SpatialLiteDb {
     }    
     
     public Vector<Geometry> qrySpatiaLiteGeom(final Envelope bbox,
-            final int limit, final DBLayer dbLayer, final String[] userColumns, int autoSimplifyPixels, int screenWidth) {
+            final int limit, final DBLayer dbLayer, final String[] userColumns, String filter, int autoSimplifyPixels, int screenWidth) {
+        
         final Vector<Geometry> geoms = new Vector<Geometry>();
         final long start = System.currentTimeMillis();
 
@@ -253,7 +254,7 @@ public class SpatialLiteDb {
         };
 
         String userColumn = "";
-        if (userColumns != null) {
+        if (userColumns != null && userColumns.length > 0) {
             userColumn = ", "
                     + Arrays.asList(userColumns).toString()
                             .replaceAll("^\\[|\\]$", "");
@@ -296,15 +297,17 @@ public class SpatialLiteDb {
                 + "," + queryBbox.getMinY() + "," + queryBbox.getMaxX() + ","
                 + queryBbox.getMaxY() + ")," + dbLayer.geomColumn + ")";
 
+        String filterSql = (filter == null) ? "" : filter + " AND ";
+        
         String qry;
         if (!dbLayer.spatialIndex) {
             qry = "SELECT rowid, HEX(AsBinary(" + geomCol + ")) " + userColumn
-                    + " from \"" + dbLayer.table + "\" where " + noIndexWhere
+                    + " FROM \"" + dbLayer.table + "\" WHERE " + filterSql + noIndexWhere
                     + " LIMIT " + limit + ";";
         } else {
             qry = "SELECT rowid, HEX(AsBinary(" + geomCol + ")) " + userColumn
-                    + " from \"" + dbLayer.table
-                    + "\" where ROWID IN (select pkid from idx_"
+                    + " FROM \"" + dbLayer.table
+                    + "\" WHERE " + filterSql + " ROWID IN (select pkid from idx_"
                     + dbLayer.table + "_" + dbLayer.geomColumn
                     + " where pkid MATCH RtreeIntersects("
                     + +queryBbox.getMinX() + "," + queryBbox.getMinY() + ","
@@ -443,7 +446,7 @@ public class SpatialLiteDb {
                     String col = rowdata[1];
                     String type = rowdata[2];
                     // add only known safe column types, skip geometries
-                    if(type.equals("INTEGER") || type.equals("TEXT") || type.equals("VARCHAR")){
+                    if(type.toUpperCase().equals("INTEGER") || type.toUpperCase().equals("TEXT") || type.toUpperCase().equals("VARCHAR")|| type.toUpperCase().equals("NUMBER")){
                         columns.add(col); 
                     }
                     return false;
@@ -536,5 +539,11 @@ public class SpatialLiteDb {
             throw new RuntimeException("Unsupported character");
         }
         return "X'" + hexValue + "'";
+    }
+
+    public List<Geometry> qrySpatiaLiteGeom(Envelope envelope, int maxObjects,
+            DBLayer dbLayer, String[] strings, int i, int j) {
+        return qrySpatiaLiteGeom(envelope, maxObjects,
+                 dbLayer, strings, null, i, j);
     }
 }
