@@ -3,6 +3,9 @@ package com.nutiteq.layers.vector;
 import java.util.Map;
 import java.util.Vector;
 
+import android.graphics.Paint.Align;
+import android.graphics.Typeface;
+
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.db.DBLayer;
@@ -10,9 +13,9 @@ import com.nutiteq.geometry.Geometry;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
-import com.nutiteq.layers.vector.CartoDbVectorLayer.LoadCartoDataTask;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
@@ -42,7 +45,22 @@ public class SpatialiteLayer extends GeometryLayer {
     private int maxObjects;
     private String[] userColumns;
     private int screenWidth;
+    private String filter;
 
+    
+    /**
+     * Create Spatialite layer with the data
+     * 
+     * @param proj layer projection
+     * @param dbPath path to Spatialite file
+     * @param tableName table from the database
+     * @param geomColumnName geometry column from the table
+     * @param userColumns load data from these columns as userData
+     * @param maxObjects maximum number of objects. No more than 1500 or so suggested
+     * @param pointStyleSet Style for points
+     * @param lineStyleSet Style for lines
+     * @param polygonStyleSet Style for polygons
+     */
     
     public SpatialiteLayer(Projection proj, String dbPath, String tableName,
             String geomColumnName, String[] userColumns, int maxObjects,
@@ -55,11 +73,50 @@ public class SpatialiteLayer extends GeometryLayer {
                 polygonStyleSet);
     }
 
+    /**
+     * Create Spatialite layer with the SpatialLiteDb already opened
+     * 
+     * @param proj layer projection
+     * @param spatialLiteDb Spatialite database
+     * @param tableName table from the database
+     * @param geomColumnName geometry column from the table
+     * @param userColumns load data from these columns as userData
+     * @param maxObjects maximum number of objects. No more than 1500 or so suggested
+     * @param pointStyleSet Style for points
+     * @param lineStyleSet Style for lines
+     * @param polygonStyleSet Style for polygons
+     */
+
     public SpatialiteLayer(Projection proj, SpatialLiteDb spatialLiteDb,
             String tableName, String geomColumnName, String[] userColumns,
             int maxObjects, StyleSet<PointStyle> pointStyleSet,
             StyleSet<LineStyle> lineStyleSet,
             StyleSet<PolygonStyle> polygonStyleSet) {
+        this(proj, spatialLiteDb, geomColumnName, geomColumnName,
+                userColumns, null, maxObjects, pointStyleSet, lineStyleSet,
+                polygonStyleSet);
+    }
+    
+    /**
+     * Create Spatialite layer with the SpatialLiteDb already opened, and filters
+     * 
+     * @param proj layer projection
+     * @param spatialLiteDb Spatialite database
+     * @param tableName table from the database
+     * @param geomColumnName geometry column from the table
+     * @param userColumns load data from these columns as userData
+     * @param filter SQL filter to select some objects, used for WHERE
+     * @param maxObjects maximum number of objects. No more than 1500 or so suggested
+     * @param pointStyleSet Style for points
+     * @param lineStyleSet Style for lines
+     * @param polygonStyleSet Style for polygons
+     */
+    public SpatialiteLayer(Projection proj, SpatialLiteDb spatialLiteDb,
+                String tableName, String geomColumnName, String[] userColumns,
+                String filter, int maxObjects, StyleSet<PointStyle> pointStyleSet,
+                StyleSet<LineStyle> lineStyleSet,
+                StyleSet<PolygonStyle> polygonStyleSet) {
+        
         super(proj);
 
         this.userColumns = userColumns;
@@ -68,6 +125,7 @@ public class SpatialiteLayer extends GeometryLayer {
         this.polygonStyle = polygonStyleSet;
         this.maxObjects = maxObjects;
         this.spatialLite = spatialLiteDb;
+        this.filter = filter;
         
         if (pointStyleSet != null) {
             minZoom = pointStyleSet.getFirstNonNullZoomStyleZoom();
@@ -106,11 +164,13 @@ public class SpatialiteLayer extends GeometryLayer {
        spatialLite.defineEPSG3857();
         
     }
-
+    
+    @Override
     public void add(Geometry element) {
         throw new UnsupportedOperationException();
     }
-
+    
+    @Override
     public void remove(Geometry element) {
         throw new UnsupportedOperationException();
     }
@@ -177,7 +237,7 @@ public class SpatialiteLayer extends GeometryLayer {
         Vector<Geometry> objectTemp = spatialLite
                 .qrySpatiaLiteGeom(new Envelope(bottomLeft.x, topRight.x,
                         bottomLeft.y, topRight.y), maxObjects, dbLayer,
-                        userColumns, autoSimplifyPixels, screenWidth);
+                        userColumns, filter, autoSimplifyPixels, screenWidth);
 
         Vector<Geometry> objects = new Vector<Geometry>();
         // apply styles, create new objects for these
@@ -192,7 +252,15 @@ public class SpatialiteLayer extends GeometryLayer {
                     colData.append(entry.getKey() + ": " + entry.getValue()+"\n");
                 }
                 
-                label = new DefaultLabel(dbLayer.table,colData.toString());
+                label = new DefaultLabel(dbLayer.table,colData.toString(),
+                        LabelStyle.builder()
+                        .setDescriptionAlign(Align.LEFT)
+                        .setEdgePadding(16)
+                        .setLinePadding(16)
+                        .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), 32)
+                        .setTitleFont(Typeface.create("Arial", Typeface.BOLD), 36)
+                        .build());
+                
             }
 
             Geometry newObject = null;
