@@ -210,6 +210,9 @@ public class WkbRead {
 
 		int size = readInt(is, endian);
 		List<MapPos> outerRing = readCoordinateList(is, dimensions, size, endian);
+		if(outerRing == null){
+		    return new Geometry[0];
+		}
 		if (outerRing.size() > 1) {
 			if (outerRing.get(0).equals(outerRing.get(outerRing.size() - 1))) {
 				outerRing.remove(0);
