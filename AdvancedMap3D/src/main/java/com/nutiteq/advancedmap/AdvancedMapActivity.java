@@ -122,6 +122,7 @@ public class AdvancedMapActivity extends Activity {
 
 		baseMapQuest();
 
+		
 		// set initial map view camera - optional. "World view" is default
 		// Location: San Francisco
         mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
@@ -148,8 +149,6 @@ public class AdvancedMapActivity extends Activity {
 //        mapView.setRotation(0);
 //        mapView.setTilt(90f);
 
-
-        
 		// Activate some mapview options to make it smoother - optional
 		mapView.getOptions().setPreloading(false);
 		mapView.getOptions().setSeamlessHorizontalPan(true);
@@ -158,15 +157,7 @@ public class AdvancedMapActivity extends Activity {
 		mapView.getOptions().setDoubleClickZoomIn(true);
 		mapView.getOptions().setDualClickZoomOut(true);
 
-
-		// adjust zooming to DPI, so texts on rasters will be not too small
-
-		DisplayMetrics metrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(metrics);
-		float dpi = metrics.densityDpi;
-		float adjustment = (1.0f - ((float)dpi / (float) DisplayMetrics.DENSITY_DEFAULT)) / 2.0f; 
-		Log.debug("adjust DPI = "+dpi+" as zoom adjustment = "+adjustment);
-		mapView.getOptions().setTileZoomLevelBias(adjustment);
+//		adjustMapDpi();
 		
 		// set sky bitmap - optional, default - white
 		mapView.getOptions().setSkyDrawMode(Options.DRAW_BITMAP);
@@ -212,16 +203,34 @@ public class AdvancedMapActivity extends Activity {
 
 	}
 
+	
+    // adjust zooming to DPI, so texts on rasters will be not too small
+	// useful for non-retina rasters, they would look like "digitally zoomed"
+	private void adjustMapDpi() {
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        float dpi = metrics.densityDpi;
+        // following is equal to  -log2(dpi / DEFAULT_DPI)
+        float adjustment = (float) - (Math.log(dpi / DisplayMetrics.DENSITY_HIGH) / Math.log(2));
+        Log.debug("adjust DPI = "+dpi+" as zoom adjustment = "+adjustment);
+        mapView.getOptions().setTileZoomLevelBias(adjustment);
+    }
 
-	private void basePackagedLayer() {
+
+    private void basePackagedLayer() {
 	    PackagedMapLayer packagedMapLayer = new PackagedMapLayer(this.proj, 0, 3, 16, "t", this);
 	    mapView.getLayers().setBaseLayer(packagedMapLayer);
     }
 
     private void addStoredBaseLayer(String dir) {
         StoredMapLayer storedMapLayer = new StoredMapLayer(this.proj, 256, 0,
-                17, 13, "OpenStreetMap", dir);
+                17, 135, "OpenStreetMap", dir);
+        
         mapView.getLayers().setBaseLayer(storedMapLayer);
+        
+        mapView.setFocusPoint(storedMapLayer.center);
+        mapView.setZoom((float) storedMapLayer.center.z);
+        
     }
 
 	// ** Add simple marker to map.
@@ -276,14 +285,33 @@ public class AdvancedMapActivity extends Activity {
          mapView.getLayers().setBaseLayer(bingMap);
       }
 
-     private void baseLayerMapBoxSatelliteLayer(){
-         mapView.getLayers().setBaseLayer(new TMSMapLayer(proj, 0, 18, 22,
-                 "http://api.tiles.mapbox.com/v3/nutiteq.map-f0sfyluv/", "/", ".png"));
+     private void baseLayerMapBoxSatelliteLayer(boolean retina){
+         String mapId;
+         int cacheID;
+         if(retina){
+              mapId = "nutiteq.map-78tlnlmb";
+              cacheID = 24;
+          }else{
+              mapId = "nutiteq.map-f0sfyluv";
+              cacheID = 25;
+          }
+         
+         mapView.getLayers().setBaseLayer(new TMSMapLayer(proj, 0, 19, cacheID,
+                 "http://api.tiles.mapbox.com/v3/"+mapId+"/", "/", ".png"));
       }
 
-     private void baseLayerMapBoxStreetsLayer(){
-         mapView.getLayers().setBaseLayer(new TMSMapLayer(proj, 0, 18, 21,
-                 "http://api.tiles.mapbox.com/v3/nutiteq.map-j6a1wkx0/", "/", ".png"));
+     private void baseLayerMapBoxStreetsLayer(boolean retina){
+        String mapId;
+        int cacheID;
+        if(retina){
+             mapId = "nutiteq.map-aasha5ru";
+             cacheID = 22;
+         }else{
+             mapId = "nutiteq.map-j6a1wkx0";
+             cacheID = 23;
+         }
+         mapView.getLayers().setBaseLayer(new TMSMapLayer(proj, 0, 19, cacheID,
+                 "http://api.tiles.mapbox.com/v3/"+mapId+"/", "/", ".png"));
       }
 
      
@@ -365,12 +393,21 @@ public class AdvancedMapActivity extends Activity {
             break;
 
         case R.id.menu_mapboxsatellite:
-            baseLayerMapBoxSatelliteLayer();
+            baseLayerMapBoxSatelliteLayer(false);
             break;
+            
+        case R.id.menu_mapboxsatelliteretina:
+            baseLayerMapBoxSatelliteLayer(true);
+            break;  
 
         case R.id.menu_mapbox:
-            baseLayerMapBoxStreetsLayer();
+            baseLayerMapBoxStreetsLayer(false);
             break;
+            
+        case R.id.menu_mapboxretina:
+            baseLayerMapBoxStreetsLayer(true);
+            break;
+
             
         case R.id.menu_bing:
             addBingBaseLayer("http://ecn.t3.tiles.virtualearth.net/tiles/r",
@@ -388,6 +425,10 @@ public class AdvancedMapActivity extends Activity {
         case R.id.menu_stored:
             basePackagedLayer();
             mapView.zoom(4.0f - mapView.getZoom(), 500);
+            break;
+            
+        case R.id.menu_mgm:
+            addStoredBaseLayer("/sdcard/mapxt/mgm/est_tallinn/");
             break;
 
         // overlays

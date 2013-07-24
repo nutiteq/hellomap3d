@@ -32,8 +32,15 @@
                 <item android:id="@+id/menu_mapbox"
                         android:title="MapBox Streets"
                         />
+				<item android:id="@+id/menu_mapboxretina"
+                        android:title="MapBox Streets retina"
+                        />
+ 
                 <item android:id="@+id/menu_mapboxsatellite"
                         android:title="MapBox Satellite"
+                        />
+                <item android:id="@+id/menu_mapboxsatelliteretina"
+                        android:title="MapBox Satellite retina"
                         />
                 <item android:id="@+id/menu_bing"
                         android:title="Bing maps"
@@ -41,6 +48,9 @@
                 <item android:id="@+id/menu_bingaerial" android:title="Bing Aerials" />
                 <item android:id="@+id/menu_stored"
                         android:title="OSM @APK"
+                        />
+                <item android:id="@+id/menu_mgm"
+                        android:title="OSM MGM files"
                         />
                 <item android:id="@+id/menu_openaerial"
                         android:title="OpenAerial MapQuest"
