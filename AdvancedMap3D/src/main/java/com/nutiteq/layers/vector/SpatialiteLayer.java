@@ -68,7 +68,7 @@ public class SpatialiteLayer extends GeometryLayer {
             StyleSet<LineStyle> lineStyleSet,
             StyleSet<PolygonStyle> polygonStyleSet) {
         
-        this(proj, new SpatialLiteDb(dbPath), geomColumnName, geomColumnName,
+        this(proj, new SpatialLiteDb(dbPath), tableName, geomColumnName,
                 userColumns, maxObjects, pointStyleSet, lineStyleSet,
                 polygonStyleSet);
     }
@@ -92,7 +92,7 @@ public class SpatialiteLayer extends GeometryLayer {
             int maxObjects, StyleSet<PointStyle> pointStyleSet,
             StyleSet<LineStyle> lineStyleSet,
             StyleSet<PolygonStyle> polygonStyleSet) {
-        this(proj, spatialLiteDb, geomColumnName, geomColumnName,
+        this(proj, spatialLiteDb, tableName, geomColumnName,
                 userColumns, null, maxObjects, pointStyleSet, lineStyleSet,
                 polygonStyleSet);
     }
