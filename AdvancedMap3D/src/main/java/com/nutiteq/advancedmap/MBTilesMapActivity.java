@@ -190,10 +190,7 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 		mapView.getOptions().setTextureMemoryCacheSize(20 * 1024 * 1024);
 		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
 
-		// 4. Start the map - mandatory
-		mapView.startMapping();
-        
-		// 5. zoom buttons using Android widgets - optional
+		// 4. zoom buttons using Android widgets - optional
 		// get the zoomcontrols that was defined in main.xml
 		ZoomControls zoomControls = (ZoomControls) findViewById(R.id.zoomcontrols);
 		// set zoomcontrols listeners to enable zooming
@@ -210,9 +207,18 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 
 	}
      
+    @Override
+    protected void onStart() {
+        mapView.startMapping();
+        super.onStart();
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.stopMapping();
+    }
 
-	
     public MapView getMapView() {
         return mapView;
     }
@@ -247,12 +253,5 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
         };
     }
     
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mapView.stopMapping();
-    }
-
-     
 }
 

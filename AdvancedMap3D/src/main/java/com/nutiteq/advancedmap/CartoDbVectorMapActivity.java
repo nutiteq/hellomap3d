@@ -120,10 +120,7 @@ public class CartoDbVectorMapActivity extends Activity {
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
-		// 4. Start the map - mandatory
-		mapView.startMapping();
-        
-		// 5. zoom buttons using Android widgets - optional
+		// 4. zoom buttons using Android widgets - optional
 		// get the zoomcontrols that was defined in main.xml
 		ZoomControls zoomControls = (ZoomControls) findViewById(R.id.zoomcontrols);
 		// set zoomcontrols listeners to enable zooming
@@ -140,6 +137,7 @@ public class CartoDbVectorMapActivity extends Activity {
 
 
 		// 5. Add CartoDB vector layer to map
+
 		//  5.1 Define styles for all possible geometry types
 
 		int minZoom = 5;
@@ -169,29 +167,31 @@ public class CartoDbVectorMapActivity extends Activity {
         String sql = "SELECT "+columns+" FROM "+table+" WHERE "+CartoDbVectorLayer.TAG_WEBMERCATOR +" && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT "+limit;
         
 //      String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads WHERE type in ('trunk','primary') AND the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
-//        String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads WHERE the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
-      CartoDbVectorLayer cartoLayerTrunk = new CartoDbVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), account, sql, pointStyleSet, lineStyleSet, polygonStyleSet);
-      mapView.getLayers().addLayer(cartoLayerTrunk);
+//      String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads WHERE the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
+        CartoDbVectorLayer cartoLayerTrunk = new CartoDbVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), account, sql, pointStyleSet, lineStyleSet, polygonStyleSet);
+        mapView.getLayers().addLayer(cartoLayerTrunk);
 
 //		CartoDbVectorLayer cartoLayer = new CartoDbVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), account, sql, pointStyleSet, lineStyleSet, polygonStyleSet);
 
-      
-//        OnlineVectorLayer vectorLayer = new OnlineVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), pointStyleSet, lineStyleSet, polygonStyleSet,2000);
+//      OnlineVectorLayer vectorLayer = new OnlineVectorLayer(mapView.getLayers().getBaseLayer().getProjection(), pointStyleSet, lineStyleSet, polygonStyleSet,2000);
 //		mapView.getLayers().addLayer(vectorLayer);
-
-		
-
 	}
 
-    public MapView getMapView() {
-        return mapView;
+    @Override
+    protected void onStart() {
+        mapView.startMapping();
+        super.onStart();
     }
-     
+
     @Override
     protected void onStop() {
         super.onStop();
         mapView.stopMapping();
     }
 
+    public MapView getMapView() {
+        return mapView;
+    }
+   
 }
 

@@ -115,7 +115,8 @@ public class HelloMap3DActivity extends Activity {
         mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
         
-        // 4. Start the map - mandatory
+        // 4. Start the map - mandatory.
+        // Note: it is recommended to move startMapping() call to onStart method and implement onStop method (call MapView.stopMapping() from onStop). 
         mapView.startMapping();
 
 

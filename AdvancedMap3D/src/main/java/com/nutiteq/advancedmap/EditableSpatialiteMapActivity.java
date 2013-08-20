@@ -201,12 +201,7 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
 
-		// 4. Start the map - mandatory
-		mapView.startMapping();
-
-
-
-	     // read filename from extras
+	    // read filename from extras
         Bundle b = getIntent().getExtras();
         dbPath = b.getString("selectedFile");
         
@@ -215,6 +210,12 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 		createEditorListener();
 		createUIButtons();
 	}
+
+    @Override
+    protected void onStart() {
+        mapView.startMapping();
+        super.onStart();
+    }
 
 	@Override
 	public void onStop() {
@@ -227,63 +228,59 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 		return this.mapView.getComponents();
 	}
 
-	
-	   private void showSpatialiteTableList() {
 
-	        spatialLite = new SpatialLiteDb(dbPath);
-	        dbMetaData = spatialLite.qrySpatialLayerMetadata();
+	private void showSpatialiteTableList() {
+	    spatialLite = new SpatialLiteDb(dbPath);
+	    dbMetaData = spatialLite.qrySpatialLayerMetadata();
 
-	        ArrayList<String> tables = new ArrayList<String>();
-	        
-	        for (String layerKey : dbMetaData.keySet()) {
-	            DBLayer layer = dbMetaData.get(layerKey);
-	            Log.debug("layer: " + layer.table + " " + layer.type + " geom:"
-	                    + layer.geomColumn+ " SRID: "+layer.srid);
-	            tables.add(layerKey);
-	        }
+	    ArrayList<String> tables = new ArrayList<String>();
 
-	        Collections.sort(tables);
-	        
-	        if(tables.size() > 0){
-	            tableList = (String[]) tables.toArray(new String[0]);
-	            showDialog(DIALOG_TABLE_LIST);
-
-	        }else{
-	            showDialog(DIALOG_NO_TABLES);
-	        }
-
+	    for (String layerKey : dbMetaData.keySet()) {
+	        DBLayer layer = dbMetaData.get(layerKey);
+	        Log.debug("layer: " + layer.table + " " + layer.type + " geom:"
+	            + layer.geomColumn+ " SRID: "+layer.srid);
+	        tables.add(layerKey);
 	    }
 
-	    @Override
-	    protected Dialog onCreateDialog(int id) {
-	        switch(id){
-	        case DIALOG_TABLE_LIST:
-	            return new AlertDialog.Builder(this)
+	    Collections.sort(tables);
+
+	    if (tables.size() > 0) {
+	        tableList = (String[]) tables.toArray(new String[0]);
+	        showDialog(DIALOG_TABLE_LIST);
+	    } else {
+	        showDialog(DIALOG_NO_TABLES);
+	    }
+	}
+
+	@Override
+	protected Dialog onCreateDialog(int id) {
+	    switch(id) {
+	    case DIALOG_TABLE_LIST:
+	        return new AlertDialog.Builder(this)
 	            .setTitle("Select table:")
 	            .setSingleChoiceItems(tableList, 0, null)
 	            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-	                public void onClick(DialogInterface dialog, int whichButton) {
-	                    dialog.dismiss();
-	                    int selectedPosition = ((AlertDialog) dialog)
-	                            .getListView().getCheckedItemPosition();
-	                    createEditableSpatialiteLayers(selectedPosition);
-	                }
-	            }).create();
-	            
-	        case DIALOG_NO_TABLES:
-	            return new AlertDialog.Builder(this)
+	                 public void onClick(DialogInterface dialog, int whichButton) {
+	                     dialog.dismiss();
+	                     int selectedPosition = ((AlertDialog) dialog)
+	                         .getListView().getCheckedItemPosition();
+	                     createEditableSpatialiteLayers(selectedPosition);
+	                 }
+	             }).create();
+
+	    case DIALOG_NO_TABLES:
+	        return new AlertDialog.Builder(this)
 	            .setMessage("No geometry_columns or spatial_ref_sys metadata found. Check logcat for more details.")
 	            .setPositiveButton("Back", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int whichButton) {
 	                    dialog.dismiss();
 	                    finish();
-	                  }
+	                }
 	            }).create();
-	            
-	        }
-	        return null;
 	    }
-	
+	    return null;
+	}
+
 	protected void createEditableSpatialiteLayers(int selectedPosition) {
 	    
 	    // create stylesets. You may need just one of them
