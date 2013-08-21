@@ -8,6 +8,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 
 import com.nutiteq.MapView;
 import com.nutiteq.components.Color;
@@ -71,6 +72,15 @@ public class HelloMap3DActivity extends Activity {
 
         mapView.getLayers().setBaseLayer(mapLayer);
 
+        // adjust zooming to DPI, so texts on rasters will be not too small
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        float dpi = metrics.densityDpi;
+        // following is equal to  -log2(dpi / DEFAULT_DPI)
+        float adjustment = (float) - (Math.log(dpi / DisplayMetrics.DENSITY_HIGH) / Math.log(2));
+        Log.debug("adjust DPI = "+dpi+" as zoom adjustment = "+adjustment);
+        mapView.getOptions().setTileZoomLevelBias(adjustment);
+        
         // set initial map view camera - optional. "World view" is default
         // Location: San Francisco 
         // NB! it must be in base layer projection (EPSG3857), so we convert it from lat and long
@@ -78,9 +88,9 @@ public class HelloMap3DActivity extends Activity {
         // rotation - 0 = north-up
         mapView.setRotation(0f);
         // zoom - 0 = world, like on most web maps
-        mapView.setZoom(10.0f);
+        mapView.setZoom(16.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
-        mapView.setTilt(35.0f);
+       // mapView.setTilt(35.0f);
 
 
         // Activate some mapview options to make it smoother - optional
