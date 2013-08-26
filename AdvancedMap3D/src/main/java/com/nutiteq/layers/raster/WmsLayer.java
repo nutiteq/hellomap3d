@@ -40,11 +40,15 @@ import com.nutiteq.utils.Utils;
  */
 public class WmsLayer extends RasterLayer {
 
+
+
+
     private String layer;
     private String format;
     private String style;
     private Projection dataProjection;
     private Map<String, String> httpHeaders;
+    private int tileSize = 256;
 
 
     /**
@@ -114,8 +118,7 @@ public class WmsLayer extends RasterLayer {
         url.append("&EXCEPTIONS=").append(
                 Utils.urlEncode("application/vnd.ogc.se_inimage"));
         url.append("&SRS=").append(Utils.urlEncode(dataProjection.name()));
-        url.append("&WIDTH=256&HEIGHT=256");
-        url.append("&BBOX=").append(Utils.urlEncode(bbox));
+        url.append("&WIDTH="+tileSize+"&HEIGHT="+tileSize);        url.append("&BBOX=").append(Utils.urlEncode(bbox));
         String urlString = url.toString();
         Log.info("WmsLayer: Start loading " + urlString);
         
@@ -159,6 +162,15 @@ public class WmsLayer extends RasterLayer {
     }
 
 
+    public int getTileSize() {
+        return tileSize;
+    }
+
+
+    public void setTileSize(int tileSize) {
+        this.tileSize = tileSize;
+    }
+    
     @Override
     public void flush() {
     }
@@ -180,7 +192,7 @@ public class WmsLayer extends RasterLayer {
         url.append("&SERVICE=WMS&VERSION=1.1.1");
         url.append("&STYLES=").append(Utils.urlEncode(style));
         url.append("&SRS=").append(Utils.urlEncode(dataProjection.name()));
-        url.append("&WIDTH=256&HEIGHT=256");
+        url.append("&WIDTH="+tileSize+"&HEIGHT="+tileSize);
         url.append("&BBOX=").append(Utils.urlEncode(bbox));
         
         // add featureinfo-specific parameters
@@ -188,8 +200,8 @@ public class WmsLayer extends RasterLayer {
         url.append("&QUERY_LAYERS=").append(Utils.urlEncode(layer));
         url.append("&INFO_FORMAT=").append(Utils.urlEncode("text/html"));
         url.append("&FEATURE_COUNT=10");
-        url.append("&X=").append((int) (256 * tilePos.x));
-        url.append("&Y=").append(256 - (int) (256 * tilePos.y));
+        url.append("&X=").append((int) (tileSize * tilePos.x));
+        url.append("&Y=").append(tileSize - (int) (tileSize * tilePos.y));
         url.append("&EXCEPTIONS=").append(
                 Utils.urlEncode("application/vnd.ogc.se_xml"));
         

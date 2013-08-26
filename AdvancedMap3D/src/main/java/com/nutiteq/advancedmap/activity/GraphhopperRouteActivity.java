@@ -1,4 +1,4 @@
-package com.nutiteq.advancedmap;
+package com.nutiteq.advancedmap.activity;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -26,6 +26,10 @@ import com.graphhopper.util.Helper;
 import com.graphhopper.util.PointList;
 import com.graphhopper.util.StopWatch;
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.R;
+import com.nutiteq.advancedmap.R.drawable;
+import com.nutiteq.advancedmap.R.id;
+import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.advancedmap.maplisteners.RouteMapEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;

@@ -1,4 +1,4 @@
-package com.nutiteq.advancedmap;
+package com.nutiteq.advancedmap.activity;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -8,6 +8,10 @@ import android.view.View;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.R;
+import com.nutiteq.advancedmap.R.drawable;
+import com.nutiteq.advancedmap.R.id;
+import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;

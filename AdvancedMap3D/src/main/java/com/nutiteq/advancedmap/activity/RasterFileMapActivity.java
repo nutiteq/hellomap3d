@@ -1,4 +1,4 @@
-package com.nutiteq.advancedmap;
+package com.nutiteq.advancedmap.activity;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -15,6 +15,7 @@ import android.widget.Toast;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.R;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
@@ -88,7 +89,7 @@ public class RasterFileMapActivity extends Activity implements FilePickerActivit
         
         try {
             GdalMapLayer gdalLayer = new GdalMapLayer(new EPSG3857(), 0, 18, 9, file, mapView, true);
-            
+            gdalLayer.setShowAlways(true);
             mapView.getLayers().addLayer(gdalLayer);
             Map<Envelope, GdalDatasetInfo> dataSets = gdalLayer.getDatasets();
             if(!dataSets.isEmpty()){

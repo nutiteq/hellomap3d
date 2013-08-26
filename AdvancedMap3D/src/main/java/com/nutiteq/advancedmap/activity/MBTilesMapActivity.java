@@ -1,4 +1,4 @@
-package com.nutiteq.advancedmap;
+package com.nutiteq.advancedmap.activity;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -17,6 +17,10 @@ import android.widget.RelativeLayout;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.R;
+import com.nutiteq.advancedmap.R.drawable;
+import com.nutiteq.advancedmap.R.id;
+import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
 import com.nutiteq.components.Bounds;
 import com.nutiteq.components.Components;

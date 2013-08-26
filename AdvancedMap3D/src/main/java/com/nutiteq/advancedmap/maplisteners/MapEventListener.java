@@ -2,10 +2,9 @@ package com.nutiteq.advancedmap.maplisteners;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import android.util.Log;
-
-import com.nutiteq.advancedmap.AdvancedMapActivity;
+import com.nutiteq.advancedmap.activity.AdvancedMapActivity;
 import com.nutiteq.geometry.VectorElement;
+import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.ui.MapListener;
 
@@ -29,6 +28,7 @@ public class MapEventListener extends MapListener {
 	// Map drawing callbacks for OpenGL manipulations
 	@Override
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
+	    Log.debug("onSurfaceChanged "+width+" "+height);
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class MapEventListener extends MapListener {
 			final boolean longClick) {
 		// x and y are in base map projection, we convert them to the familiar
 		// WGS84
-		Log.d("nm", "onMapClicked " + (new EPSG3857()).toWgs84(x, y).x + " "
+		Log.debug("onMapClicked " + (new EPSG3857()).toWgs84(x, y).x + " "
 				+ (new EPSG3857()).toWgs84(x, y).y + " longClick: " + longClick);
 
 	}

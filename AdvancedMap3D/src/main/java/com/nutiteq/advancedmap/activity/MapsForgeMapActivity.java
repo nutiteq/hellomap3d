@@ -1,44 +1,44 @@
-package com.nutiteq.advancedmap;
+package com.nutiteq.advancedmap.activity;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
+
+import org.mapsforge.android.maps.mapgenerator.JobTheme;
 
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.R;
+import com.nutiteq.advancedmap.R.drawable;
+import com.nutiteq.advancedmap.R.id;
+import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.components.Components;
-import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.filepicker.FilePickerActivity;
-import com.nutiteq.layers.raster.TMSMapLayer;
+import com.nutiteq.layers.raster.MapsforgeMapLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
-import com.nutiteq.style.ModelStyle;
-import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.UnscaledBitmapLoader;
-import com.nutiteq.vectorlayers.NMLModelDbLayer;
 
 /**
  * 
- * Demonstrates NMLModelDbLayer - 3D model layer which loads data fom a .nmldb file
+ * Demonstrates usage of MapsforgeMapLayer offline raster layer
  * 
- * After file loading the map is recentered to content coverage area.
+ * It uses external MapsForge library which generates raster map tiles from vector database.
  * 
- * To use this sample a .nmldb file must be loaded to SDCard file.
- * See https://github.com/nutiteq/hellomap3d/wiki/Nml-3d-models-map-layer for details and sample data download
+ * You need to preload .map file to SDCard for using this layer.
+ * See https://github.com/nutiteq/hellomap3d/wiki/Mapsforge-layer for details
  * 
  * @author jaak
  *
  */
-public class Offline3DMapActivity extends Activity implements FilePickerActivity {
+public class MapsForgeMapActivity extends Activity implements FilePickerActivity {
 
 	private MapView mapView;
 
@@ -54,7 +54,7 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
 
 		// enable logging for troubleshooting - optional
 		Log.enableAll();
-		Log.setTag("nml3d");
+		Log.setTag("mapsforge");
 
 		// 1. Get the MapView from the Layout xml - mandatory
 		mapView = (MapView) findViewById(R.id.mapView);
@@ -76,50 +76,22 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
 
 
 		// 3. Define map layer for basemap - mandatory.
+        // read filename from extras
+       Bundle b = getIntent().getExtras();
+       String mapFile = b.getString("selectedFile");
+       
+        JobTheme renderTheme = MapsforgeMapLayer.InternalRenderTheme.OSMARENDER;
 
-		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
-                "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
+        MapsforgeMapLayer mapLayer = new MapsforgeMapLayer(new EPSG3857(),
+                0, 20, 1044, mapFile, renderTheme);
+
         mapView.getLayers().setBaseLayer(mapLayer);
-		
 
-        // define style for 3D to define minimum zoom = 14
-        ModelStyle modelStyle = ModelStyle.builder().build();
-        StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(null);
-        modelStyleSet.setZoomStyle(14, modelStyle);
-
-        // ** 3D Model layer
-        try {
-            Bundle b = getIntent().getExtras();
-            String mapFile = b.getString("selectedFile");
-            
-            NMLModelDbLayer modelLayer = new NMLModelDbLayer(new EPSG3857(),
-                    mapFile, modelStyleSet);
-            modelLayer.setMemoryLimit(20*1024*1024);
-            mapView.getLayers().addLayer(modelLayer);
-            
-
-            // set initial map view camera from database
-            Envelope extent = modelLayer.getDataExtent();
-            
-            DisplayMetrics metrics = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(metrics);   
-            int screenHeight = metrics.heightPixels;
-            int screenWidth = metrics.widthPixels;
-
-            double zoom = Math.log((screenWidth * (Math.PI * 6378137.0f * 2.0f)) 
-                    / ((extent.maxX-extent.minX) * 256.0)) / Math.log(2);
-            
-            MapPos centerPoint = new MapPos((extent.maxX+extent.minX)/2,(extent.maxY+extent.minY)/2);
-            Log.debug("found extent "+extent+", zoom "+zoom+", centerPoint "+centerPoint);
-            
-            mapView.setZoom((float) zoom);
-            mapView.setFocusPoint(centerPoint); 
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-        
+        // set initial map view camera from database
+        MapPos mapCenter = new MapPos(mapLayer.getMapDatabase().getMapFileInfo().mapCenter.getLongitude(), mapLayer.getMapDatabase().getMapFileInfo().mapCenter.getLatitude(),mapLayer.getMapDatabase().getMapFileInfo().startZoomLevel);
+        Log.debug("center: "+mapCenter);
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(mapCenter.x,mapCenter.y));
+        mapView.setZoom((float) mapCenter.z);
 
 		// rotation - 0 = north-up
 		mapView.setRotation(0f);
@@ -189,10 +161,7 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
                         // accept all directories
                         return true;
                     } else if (file.isFile()
-                            && (file.getName().endsWith(".db") ||
-                                    file.getName().endsWith(".nml") ||
-                                    file.getName().endsWith(".nmldb")||
-                                    file.getName().endsWith(".sqlite"))) {
+                            && (file.getName().endsWith(".map"))) {
                         // accept files with given extension
                         return true;
                     }
@@ -208,7 +177,7 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
 
     @Override
     public String getFileSelectMessage() {
-        return "Select 3D file (.nmldb)";
+        return "Select MapsForge .map file";
     }
 
 

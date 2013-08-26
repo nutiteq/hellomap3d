@@ -23,11 +23,12 @@ import com.nutiteq.tasks.NetFetchTileTask;
 public class TMSMapLayer extends RasterLayer {
   protected final String separator;
   protected final String format;
-  private boolean tmsY = false;
+  protected boolean tmsY = false;
   private int offsetX = 0;
   private int offsetY = 0;
   private int offsetZoom = 0;
-  private Map<String, String> httpHeaders;
+  protected Map<String, String> httpHeaders;
+private String[] baseUrlSet;
 
   /**
    * Class constructor. Creates a new raster layer that uses a specified URL as a source for the tile data. Tiles that
@@ -57,6 +58,15 @@ public class TMSMapLayer extends RasterLayer {
     this.separator = separator;
     this.format = format;
   }
+  
+  
+  public TMSMapLayer(Projection projection, int minZoom, int maxZoom, int id, String[] baseUrl,
+          String separator, String format) {
+        super(projection, minZoom, maxZoom, id, baseUrl[0]);
+        this.separator = separator;
+        this.format = format;
+        this.baseUrlSet = baseUrl;
+      }
   
   
   /**
@@ -89,7 +99,14 @@ public class TMSMapLayer extends RasterLayer {
       return;
     }
 
-    StringBuffer url = new StringBuffer(location);
+    StringBuffer url = new StringBuffer();
+    
+    if(baseUrlSet != null){
+        url.append(baseUrlSet[(tileX % baseUrlSet.length)]);
+    }else{
+        url.append(location);
+    }
+    
     url.append(tileZoom);
     url.append(separator);
     url.append(tileX);

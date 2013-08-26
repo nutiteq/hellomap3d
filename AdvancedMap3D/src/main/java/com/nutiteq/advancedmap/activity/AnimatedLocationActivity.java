@@ -1,4 +1,4 @@
-package com.nutiteq.advancedmap;
+package com.nutiteq.advancedmap.activity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -15,6 +15,10 @@ import android.widget.TextView;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.R;
+import com.nutiteq.advancedmap.R.drawable;
+import com.nutiteq.advancedmap.R.id;
+import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.advancedmap.maplisteners.MyLocationMapEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;

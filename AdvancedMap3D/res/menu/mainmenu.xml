@@ -73,6 +73,7 @@
                 
                 
                 <item android:id="@+id/menu_marker" android:title="Single Marker"/>
+                <item android:id="@+id/menu_tileborders" android:title="Tile borders" />
                 
                 
             </group>

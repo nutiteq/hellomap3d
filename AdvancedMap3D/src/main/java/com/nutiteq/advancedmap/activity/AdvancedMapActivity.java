@@ -1,13 +1,13 @@
-package com.nutiteq.advancedmap;
+package com.nutiteq.advancedmap.activity;
 
 import java.io.InputStream;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.Paint.Align;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,6 +17,7 @@ import android.view.Window;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.R;
 import com.nutiteq.advancedmap.maplisteners.MapEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
@@ -28,6 +29,7 @@ import com.nutiteq.layers.raster.PackagedMapLayer;
 import com.nutiteq.layers.raster.QuadKeyLayer;
 import com.nutiteq.layers.raster.StoredMapLayer;
 import com.nutiteq.layers.raster.TMSMapLayer;
+import com.nutiteq.layers.raster.TileDebugMapLayer;
 import com.nutiteq.layers.raster.WmsLayer;
 import com.nutiteq.layers.vector.Polygon3DOSMLayer;
 import com.nutiteq.log.Log;
@@ -41,8 +43,8 @@ import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.ModelStyle;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
-import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
+import com.nutiteq.ui.ViewLabel;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 import com.nutiteq.vectorlayers.NMLModelLayer;
@@ -150,7 +152,7 @@ public class AdvancedMapActivity extends Activity {
 //        mapView.setTilt(90f);
 
 		// Activate some mapview options to make it smoother - optional
-		mapView.getOptions().setPreloading(false);
+		mapView.getOptions().setPreloading(true);
 		mapView.getOptions().setSeamlessHorizontalPan(true);
 		mapView.getOptions().setTileFading(false);
 		mapView.getOptions().setKineticPanning(true);
@@ -158,6 +160,8 @@ public class AdvancedMapActivity extends Activity {
 		mapView.getOptions().setDualClickZoomOut(true);
 
 //		adjustMapDpi();
+		//mapView.getOptions().setTileSize(512);
+		mapView.getOptions().setTileZoomLevelBias(1.0f);
 		
 		// set sky bitmap - optional, default - white
 		mapView.getOptions().setSkyDrawMode(Options.DRAW_BITMAP);
@@ -178,7 +182,7 @@ public class AdvancedMapActivity extends Activity {
 		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
 
         // define online map persistent caching - optional, suggested. Default - no caching
-        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
+//        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
@@ -248,8 +252,12 @@ public class AdvancedMapActivity extends Activity {
                     .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), 32)
                     .build();
         
-        Label markerLabel = new DefaultLabel("San Francisco", "Here is a marker", labelStyle);
-        
+//        Label markerLabel = new DefaultLabel("San Francisco", "Here is a marker", labelStyle);
+      MarkerMenu view = new MarkerMenu(this, "Tekst");
+      view.layout(0, 0, 150, 150);
+                                      
+      Label markerLabel = new ViewLabel("Label",view, new Handler(), labelStyle);
+
 
         // create layer and add object to the layer, finally add layer to the map. 
         // All overlay layers must be same projection as base layer, so we reuse it
@@ -276,8 +284,13 @@ public class AdvancedMapActivity extends Activity {
      private void addWmsLayer( String url, String layers, Projection dataProjection){
        WmsLayer wmsLayer = new WmsLayer(proj, 0, 19, 1012, url, "", layers, "image/png", dataProjection);
 		wmsLayer.setFetchPriority(-5);
+		wmsLayer.setTileSize(256);
 		mapView.getLayers().addLayer(wmsLayer);
 	}
+     
+     private void addTestLayer(int tileSize){
+         mapView.getLayers().addLayer(new TileDebugMapLayer(proj, 0, 19, 1016, tileSize));
+     }
      
 
      private void addBingBaseLayer(String url, String extension){
@@ -317,7 +330,12 @@ public class AdvancedMapActivity extends Activity {
      
      private void baseMapQuest() {
          mapView.getLayers().setBaseLayer(new TMSMapLayer(this.proj, 0, 20, 11,
-                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png"));
+                 new String[]{
+                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/",
+                 "http://otile2.mqcdn.com/tiles/1.0.0/osm/",
+                 "http://otile3.mqcdn.com/tiles/1.0.0/osm/",
+                 "http://otile4.mqcdn.com/tiles/1.0.0/osm/"
+                 }, "/", ".png"));
      }
 
      private void baseBingAerial() {
@@ -442,9 +460,10 @@ public class AdvancedMapActivity extends Activity {
             break;
 
         case R.id.menu_wms:
-            String url = "http://kaart.maakaart.ee/geoserver/wms?transparent=true&";
-            String layers = "topp:states";
-
+//            String url = "http://kaart.maakaart.ee/geoserver/wms?transparent=true&";
+//            String layers = "topp:states";
+            String url = "http://kaart.maakaart.ee/service?";
+            String layers = "osm";
             addWmsLayer(url, layers, new EPSG4326());
 
             break;
@@ -458,6 +477,10 @@ public class AdvancedMapActivity extends Activity {
 
         case R.id.menu_marker:
             addMarkerLayer(proj.fromWgs84(-122.416667f, 37.766667f));
+            break;
+            
+        case R.id.menu_tileborders:
+            addTestLayer(256);
             break;
 
        // Locations

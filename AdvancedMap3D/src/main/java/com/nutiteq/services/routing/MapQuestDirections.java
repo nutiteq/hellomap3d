@@ -24,7 +24,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.SparseArray;
 
-import com.nutiteq.advancedmap.RouteActivity;
+import com.nutiteq.advancedmap.activity.RouteActivity;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Line;

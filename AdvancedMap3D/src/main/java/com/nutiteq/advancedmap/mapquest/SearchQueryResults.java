@@ -22,8 +22,8 @@ import android.widget.AdapterView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
-import com.nutiteq.advancedmap.AddressSearchActivity;
 import com.nutiteq.advancedmap.R;
+import com.nutiteq.advancedmap.activity.AddressSearchActivity;
 import com.nutiteq.components.Color;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.log.Log;

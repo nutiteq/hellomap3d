@@ -1,4 +1,4 @@
-package com.nutiteq.advancedmap;
+package com.nutiteq.advancedmap.activity;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -7,26 +7,48 @@ import android.view.View;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.R;
+import com.nutiteq.advancedmap.R.drawable;
+import com.nutiteq.advancedmap.R.id;
+import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.Options;
+import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.TMSMapLayer;
+import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.utils.UnscaledBitmapLoader;
+import com.nutiteq.vectorlayers.MarkerLayer;
 
 /**
- * Basic map, same as HelloMap
+ * Address search / Geocoding sample.
  * 
- * Just defines and configures map with useful settings.
+ * Sample uses Android searchable interface, which is linked to Activity via AndroidManifest file.
+ * 
+ * Classes:
+ * 1. geocode.MapQuestGeocoder.java Geocoder implementation, uses MapQuest Open API REST API Map
+ * 
+ * 2. mapquest.SearchQueryResults.java - ListView which initiates real search, and shows results as ListView
+ * 
+ * 3. mapquest.SearchRecentSuggestionsProvider.java - stores last search terms to memory
+ * 
+ * 4. AddressSearchActivity.java opens Android default search UI. Search result comes from resuming 
+ *      from search results activity, this is shown on map, and map is re-centered to found result.
+ * 
+ * 5. Resources: values/strings.xml, layout/search_query_results.xml and layout/searchrow.xml define ListView.
+ *      xml/searchable.xml - needed for Android searchable interface
  *
  * Used layer(s):
  *  TMSMapLayer for base map
- * 
+ *        
  * @author jaak
  *
  */
-public class BasicMapActivity extends Activity {
+public class AddressSearchActivity extends Activity {
 
-	private MapView mapView;
+	private static Marker searchResult;
+    private MapView mapView;
+    private MarkerLayer searchMarkerLayer;
     
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -34,6 +56,9 @@ public class BasicMapActivity extends Activity {
 
 		setContentView(R.layout.main);
 
+		Log.enableAll();
+		Log.setTag("addresssearch");
+		
 		// 1. Get the MapView from the Layout xml - mandatory
 		mapView = (MapView) findViewById(R.id.mapView);
 
@@ -55,7 +80,7 @@ public class BasicMapActivity extends Activity {
         // 3. Define map layer for basemap - mandatory.
         // Here we use MapQuest open tiles
         // Almost all online tiled maps use EPSG3857 projection.
-        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
+        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
 
         mapView.getLayers().setBaseLayer(mapLayer);
@@ -119,6 +144,15 @@ public class BasicMapActivity extends Activity {
 				mapView.zoomOut();
 			}
 		});
+		
+        // create layer for search result 
+        searchMarkerLayer = new MarkerLayer(mapView.getLayers().getBaseLayer().getProjection());
+//        searchResult = new Marker(new MapPos(0,0), null, (MarkerStyle) null, null);
+        //searchResult.setVisible(false);
+        mapView.getLayers().addLayer(searchMarkerLayer);
+		
+		// open search right away
+		onSearchRequested();
 
 	}
      
@@ -130,7 +164,32 @@ public class BasicMapActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onStop();
         mapView.stopMapping();
+    }
+    
+    @Override 
+    protected void onResume() {
+
+        super.onResume();
+        Log.debug("onResume");
+        
+        if (searchResult != null && searchResult.getMapPos().x != 0) {
+            // recenter to searchResult
+            Log.debug("Add search result and recenter to it: ");
+            searchMarkerLayer.add(searchResult);
+            mapView.setFocusPoint(searchResult.getMapPos());
+            //searchResult.setVisible(true);
+            mapView.selectVectorElement(searchResult);
+        }
+    }
+
+    public static void setSearchResult(Marker marker) {
+        searchResult = marker;
     }
 
      

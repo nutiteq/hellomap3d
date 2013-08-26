@@ -1,4 +1,4 @@
-package com.nutiteq.advancedmap;
+package com.nutiteq.advancedmap.activity;
 
 import android.app.ListActivity;
 import android.content.Intent;
@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.nutiteq.advancedmap.R;
+import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.filepicker.FilePicker;
 import com.nutiteq.filepicker.FilePickerActivity;
 
@@ -24,6 +26,7 @@ public class LauncherList extends ListActivity{
     // if parameter selector is given, then this is launched first to get a parameter (file path)
     
     private Object[][] samples={
+            {MParkMapActivity.class,null},
             {AdvancedMapActivity.class,null},
             {BasicMapActivity.class,null},
             {AddressSearchActivity.class,null},

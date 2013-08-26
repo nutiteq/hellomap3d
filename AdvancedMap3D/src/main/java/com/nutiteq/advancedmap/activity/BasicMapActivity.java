@@ -1,4 +1,4 @@
-package com.nutiteq.advancedmap;
+package com.nutiteq.advancedmap.activity;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -7,41 +7,36 @@ import android.view.View;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.R;
+import com.nutiteq.advancedmap.R.drawable;
+import com.nutiteq.advancedmap.R.id;
+import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.components.Components;
-import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.layers.raster.TMSMapLayer;
-import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
-import com.nutiteq.style.ModelStyle;
-import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.UnscaledBitmapLoader;
-import com.nutiteq.vectorlayers.NMLModelOnlineLayer;
 
 /**
- * Demonstrates NMLModelOnlineLayer - online 3D model layer which loads data from Nutiteq NML online API.
+ * Basic map, same as HelloMap
  * 
- * The demo server has data of few cities: Tallinn, Barcelona, San Francisco. This content is from Google 3D Warehouse
+ * Just defines and configures map with useful settings.
  *
- * Loaded data is partly cached locally with special cache.
- *
+ * Used layer(s):
+ *  TMSMapLayer for base map
+ * 
  * @author jaak
  *
  */
-public class Online3DMapActivity extends Activity {
+public class BasicMapActivity extends Activity {
 
 	private MapView mapView;
-
     
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.main);
-
-		// enable logging for troubleshooting - optional
-		Log.enableAll();
-		Log.setTag("online3d");
 
 		// 1. Get the MapView from the Layout xml - mandatory
 		mapView = (MapView) findViewById(R.id.mapView);
@@ -57,61 +52,36 @@ public class Online3DMapActivity extends Activity {
 		} else {
 			// 2. create and set MapView components - mandatory
 		      Components components = new Components();
-		      // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
 		      mapView.setComponents(components);
 		      }
 
 
-		// 3. Define map layer for basemap - mandatory.
-
-		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 2,
+        // 3. Define map layer for basemap - mandatory.
+        // Here we use MapQuest open tiles
+        // Almost all online tiled maps use EPSG3857 projection.
+        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
+
         mapView.getLayers().setBaseLayer(mapLayer);
-		
+        
+        // Location: Estonia
+        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.5f, 58.3f));
 
-        // define style for 3D to define minimum zoom = 14
-        ModelStyle modelStyle = ModelStyle.builder().build();
-        StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(null);
-        modelStyleSet.setZoomStyle(14, modelStyle);
-
-        // ** Online 3D Model layer
-
-        
-        NMLModelOnlineLayer modelLayer = new NMLModelOnlineLayer(new EPSG3857(),
-                "http://aws-lb.nutiteq.ee/nml/nmlserver2.php?data=demo&", modelStyleSet);
-
-        modelLayer.setMemoryLimit(20*1024*1024);
-        
-        modelLayer.setPersistentCacheSize(30*1024*1024);
-        modelLayer.setPersistentCachePath(this.getDatabasePath("nmlcache6").getPath());
-        
-        modelLayer.setLODResolutionFactor(0.3f);
-        getMapView().getLayers().addLayer(modelLayer);
-        
-        // Tallinn
-        //mapView.setFocusPoint(new MapPos(2753845.7830863246f, 8275045.674995658f));
-        
-        // San Francisco
-        //mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
-        getMapView().setFocusPoint(new MapPos(-1.3625947E7f, 4550716.0f));
-        
-        // Rotterdam
-        //mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(4.480727f, 51.921098f));
-        mapView.setZoom(16.0f);
-        
-		// rotation - 0 = north-up
-		//mapView.setRotation(-96.140175f);
+        // rotation - 0 = north-up
+        mapView.setRotation(0f);
+        // zoom - 0 = world, like on most web maps
+        mapView.setZoom(5.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
-		//mapView.setTilt(30.0f);
+        mapView.setTilt(90.0f);
 
 		// Activate some mapview options to make it smoother - optional
-		mapView.getOptions().setPreloading(false);
-		mapView.getOptions().setSeamlessHorizontalPan(true);
-		mapView.getOptions().setTileFading(false);
-		mapView.getOptions().setKineticPanning(true);
-		mapView.getOptions().setDoubleClickZoomIn(true);
-		mapView.getOptions().setDualClickZoomOut(true);
-
+        mapView.getOptions().setPreloading(true);
+        mapView.getOptions().setSeamlessHorizontalPan(true);
+        mapView.getOptions().setTileFading(true);
+        mapView.getOptions().setKineticPanning(true);
+        mapView.getOptions().setDoubleClickZoomIn(true);
+        mapView.getOptions().setDualClickZoomOut(true);
+        
 		// set sky bitmap - optional, default - white
 		mapView.getOptions().setSkyDrawMode(Options.DRAW_BITMAP);
 		mapView.getOptions().setSkyOffset(4.86f);
@@ -137,6 +107,7 @@ public class Online3DMapActivity extends Activity {
 
 		// 4. Start the map - mandatory
 		mapView.startMapping();
+
         
 		// 5. zoom buttons using Android widgets - optional
 		// get the zoomcontrols that was defined in main.xml
@@ -154,24 +125,15 @@ public class Online3DMapActivity extends Activity {
 		});
 
 	}
+     
 
-
-
-	public MapView getMapView() {
+    public MapView getMapView() {
         return mapView;
     }
-
-
-
+    
     @Override
     protected void onStop() {
         super.onStop();
-        Log.debug("x " + getMapView().getFocusPoint().x);
-        Log.debug("y " + getMapView().getFocusPoint().y);
-        Log.debug("tilt " + getMapView().getTilt());
-        Log.debug("rotation " + getMapView().getRotation());
-        Log.debug("zoom " + getMapView().getZoom());
-        
         mapView.stopMapping();
     }
 

@@ -1,4 +1,4 @@
-package com.nutiteq.advancedmap;
+package com.nutiteq.advancedmap.activity;
 
 import com.nutiteq.components.MapPos;
 import com.nutiteq.services.routing.Route;

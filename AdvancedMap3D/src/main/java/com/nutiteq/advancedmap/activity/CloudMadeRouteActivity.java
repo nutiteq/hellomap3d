@@ -1,17 +1,19 @@
-package com.nutiteq.advancedmap;
-
-import java.util.HashMap;
-import java.util.Map;
+package com.nutiteq.advancedmap.activity;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Toast;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
+import com.nutiteq.advancedmap.R;
+import com.nutiteq.advancedmap.R.drawable;
+import com.nutiteq.advancedmap.R.id;
+import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.advancedmap.maplisteners.RouteMapEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
@@ -21,9 +23,8 @@ import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
-import com.nutiteq.services.routing.MapQuestDirections;
+import com.nutiteq.services.routing.CloudMadeDirections;
 import com.nutiteq.services.routing.Route;
-import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.DefaultLabel;
@@ -32,38 +33,39 @@ import com.nutiteq.vectorlayers.GeometryLayer;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
 /**
- * Online routing using MapQuest Open Directions API
+ * Online routing using CloudMade routing http API
  * 
- * Routing class MapQuestDirections is used to 
+ * Routing class CloudMadeDirections is used to 
  * 1. Calculate route using online API, get it as Route object
  * 2. Create a Line which is stored to a routeLayer GeometryLayer
  * 3. Create Markers to each turn point, show them on markerLayer.
- *   Marker images are here loaded from URLs what are given in route results, using MqLoadInstructionImagesTask
+ *   Marker images with arrows are bundled with this application
  * 
  * Interfaces:
  *  RouteActivity - callback to enable Activity to get Routing results asynchronously
  * 
  * Classes:
- *  routing.MapQuestDirections implements MapQuestDirections Open routing API as described in
- * http://open.mapquestapi.com/directions/ 
+ *  routing.CloudMadeDirections implements CloudMade routing API as described in
+ * http://developers.cloudmade.com/projects/show/routing-http-api
  * 
+ * Resources:
+ *  drawable/direction_[down, up, upthenleft, upthenright].png - instruction markers
  * 
- * Note: You have to use your own MapQuest API key if you use it in live application. 
+ * Note: You have to use your own CloudMade API key if you use it in live application. 
  * 
  * @author jaak
  *
  */
+public class CloudMadeRouteActivity extends Activity implements RouteActivity{
 
-public class MapQuestRouteActivity extends Activity implements RouteActivity{
-
-	private static final float MARKER_SIZE = 0.4f;
-    private static final String MAPQUEST_KEY = "Fmjtd%7Cluub2qu82q%2C70%3Do5-961w1w";
+	private static final float MARKER_SIZE = 0.3f;
+    private static final String CLOUDMADE_KEY = "e12f720d5f2b5499946d2e975088dc89";
     private MapView mapView;
     private GeometryLayer routeLayer;
     private Marker startMarker;
     private Marker stopMarker;
+    private Bitmap[] routeImages = new Bitmap[5];
     private MarkerLayer markerLayer;
-    private MapQuestDirections directionsService;
     
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -72,7 +74,7 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
 		setContentView(R.layout.main);
 
 		Log.enableAll();
-		Log.setTag("mq_route");
+		Log.setTag("cloudmade");
 		
 		// 1. Get the MapView from the Layout xml - mandatory
 		mapView = (MapView) findViewById(R.id.mapView);
@@ -100,9 +102,17 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
 
 		      }
 
-        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 12,
-                "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
-        
+		// use special style for high-density devices
+		DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		String cloudMadeStyle = "997";
+
+		if(metrics.densityDpi >= DisplayMetrics.DENSITY_HIGH){
+		    cloudMadeStyle  = "997@2x";
+		}
+		
+        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
+                "http://b.tile.cloudmade.com/"+CLOUDMADE_KEY+"/"+cloudMadeStyle+"/256/", "/", ".png");
         mapView.getLayers().setBaseLayer(mapLayer);
         
         // Location: London
@@ -139,14 +149,25 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
         markerLayer.add(startMarker);
         markerLayer.add(stopMarker);
 
+        // define images for turns
+        // source: http://mapicons.nicolasmollet.com/markers/transportation/directions/directions/
+        // TODO: use better structure than plain array for this
+        routeImages[CloudMadeDirections.IMAGE_ROUTE_START] = UnscaledBitmapLoader.decodeResource(getResources(),
+                R.drawable.direction_up);
+        routeImages[CloudMadeDirections.IMAGE_ROUTE_RIGHT] = UnscaledBitmapLoader.decodeResource(getResources(),
+                R.drawable.direction_upthenright);
+        routeImages[CloudMadeDirections.IMAGE_ROUTE_LEFT] = UnscaledBitmapLoader.decodeResource(getResources(),
+                R.drawable.direction_upthenleft);
+        routeImages[CloudMadeDirections.IMAGE_ROUTE_STRAIGHT] = UnscaledBitmapLoader.decodeResource(getResources(),
+                R.drawable.direction_up);
+        routeImages[CloudMadeDirections.IMAGE_ROUTE_END] = UnscaledBitmapLoader.decodeResource(getResources(),
+                R.drawable.direction_down);
+        
         // rotation - 0 = north-up
         mapView.setRotation(0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
         mapView.setTilt(90.0f);
 
-        
-        mapView.getOptions().setTileZoomLevelBias(-0.5f);
-        
 		// Activate some mapview options to make it smoother - optional
         mapView.getOptions().setPreloading(true);
         mapView.getOptions().setSeamlessHorizontalPan(true);
@@ -209,14 +230,9 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
                 + toLat + "," + toLon);
 
         Projection proj = mapView.getLayers().getBaseLayer().getProjection();
-        
-        StyleSet<LineStyle> routeLineStyle = new StyleSet<LineStyle>(LineStyle.builder().setWidth(0.05f).setColor(0xff9d7050).build());
-        Map<String, String> routeOptions = new HashMap<String,String>();
-        routeOptions.put("unit", "K"); // K - km, M - miles
-        routeOptions.put("routeType", "fastest");
-        // Add other route options here, see http://open.mapquestapi.com/directions/
-        
-        directionsService = new MapQuestDirections(this, new MapPos(fromLon, fromLat), new MapPos(toLon, toLat), routeOptions, MAPQUEST_KEY, proj, routeLineStyle);
+        stopMarker.setMapPos(proj.fromWgs84(toLon, toLat));
+
+        CloudMadeDirections directionsService = new CloudMadeDirections(this, new MapPos(fromLon, fromLat), new MapPos(toLon, toLat), CloudMadeDirections.ROUTE_TYPE_CAR, CloudMadeDirections.ROUTE_TYPE_MODIFIER_FASTEST, CLOUDMADE_KEY, proj);
         directionsService.route();
     }
 
@@ -257,15 +273,13 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
             return;
         }
         
-        markerLayer.clear();
         routeLayer.clear();
-        
         routeLayer.add(route.getRouteLine());
         Log.debug("route line points: "+route.getRouteLine().getVertexList().size());
 //        Log.debug("route line: "+route.getRouteLine().toString());
+        markerLayer.addAll(CloudMadeDirections.getRoutePointMarkers(routeImages, MARKER_SIZE, route.getInstructions()));
         mapView.requestRender();
         Toast.makeText(this, "Route "+route.getRouteSummary(), Toast.LENGTH_LONG).show();
-        directionsService.startRoutePointMarkerLoading(markerLayer, MARKER_SIZE);
     }
 }
 
