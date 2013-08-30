@@ -162,7 +162,7 @@ public class AdvancedMapActivity extends Activity {
 
 		adjustMapDpi();
 		//mapView.getOptions().setTileSize(512);
-		mapView.getOptions().setFPSIndicator(true);
+//		mapView.getOptions().setFPSIndicator(true);
 //		mapView.getOptions().setRasterTaskPoolSize(4);
 		
 		// set sky bitmap - optional, default - white
