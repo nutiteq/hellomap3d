@@ -33,7 +33,6 @@
     <activity android:name=".activity.Online3DMapActivity"></activity>
     <activity android:name=".activity.WfsMapActivity"></activity>
     <activity android:name=".activity.SpatialiteMapActivity"></activity>
-     <activity android:name=".activity.MParkMapActivity"></activity>
     <activity
     android:name="com.nutiteq.advancedmap.mapquest.SearchQueryResults"
     android:exported="false">

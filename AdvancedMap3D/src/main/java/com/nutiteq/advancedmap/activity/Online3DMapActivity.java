@@ -11,9 +11,6 @@ import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.R.drawable;
-import com.nutiteq.advancedmap.R.id;
-import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
@@ -133,10 +130,7 @@ public class Online3DMapActivity extends Activity {
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
-		// 4. Start the map - mandatory
-		mapView.startMapping();
-        
-		// 5. zoom buttons using Android widgets - optional
+		// 4. zoom buttons using Android widgets - optional
 		// get the zoomcontrols that was defined in main.xml
 		ZoomControls zoomControls = (ZoomControls) findViewById(R.id.zoomcontrols);
 		// set zoomcontrols listeners to enable zooming
@@ -153,13 +147,11 @@ public class Online3DMapActivity extends Activity {
 
 	}
 
-
-
-	public MapView getMapView() {
-        return mapView;
+    @Override
+    protected void onStart() {
+        mapView.startMapping();
+        super.onStart();
     }
-
-
 
     @Override
     protected void onStop() {
@@ -208,6 +200,13 @@ public class Online3DMapActivity extends Activity {
             // London
             mapView.setFocusPoint(mapView.getLayers().getBaseProjection().fromWgs84(-0.109015f, 51.516584f), 1000);
             break;
+            
+        case R.id.menu3d_seattle:
+            online3DLayer("seattle");
+            // London
+            mapView.setFocusPoint(mapView.getLayers().getBaseProjection().fromWgs84(-122.3336f, 47.6014f), 1000);
+            break;
+
 
         }
         return false;
@@ -231,5 +230,9 @@ public class Online3DMapActivity extends Activity {
         getMapView().getLayers().addLayer(modelLayer);
     }
      
+    public MapView getMapView() {
+        return mapView;
+    }
+
 }
 

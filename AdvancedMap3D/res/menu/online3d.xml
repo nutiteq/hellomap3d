@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2008 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Checkable items appear only in submenus or context menus. -->
+
+    <!-- Carefully look at the attribute name checkableBehavior on groups, but
+         the attribute name checkable on items. The checkableBehavior encompasses
+         the number of items that will be checkable within that group. -->
+
+                <item android:id="@+id/menu3d_demo"
+                        android:title="Warehouse 3D" 
+                         />
+                <item android:id="@+id/menu3d_hover"
+                        android:title="Hover SF"
+                        />
+				<item android:id="@+id/menu3d_blom"
+                        android:title="Blom London"
+                        />
+				<item android:id="@+id/menu3d_tomtomlod3"
+                        android:title="TomTom LOD3 SF"
+                        />
+				<item android:id="@+id/menu3d_seattle"
+                        android:title="TomTom Seattle LOD4"
+                        />
+				
+				
+</menu>

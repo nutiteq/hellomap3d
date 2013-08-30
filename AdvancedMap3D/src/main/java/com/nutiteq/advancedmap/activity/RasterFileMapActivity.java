@@ -146,14 +146,11 @@ public class RasterFileMapActivity extends Activity implements FilePickerActivit
     		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
     
             // define online map persistent caching - optional, suggested. Default - no caching
-            mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
+           // mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
     		// set persistent raster cache limit to 100MB
     		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
     
-    		// 4. Start the map - mandatory
-    		mapView.startMapping();
-            
-    		// 5. zoom buttons using Android widgets - optional
+    		// 4. zoom buttons using Android widgets - optional
     		// get the zoomcontrols that was defined in main.xml
     		ZoomControls zoomControls = (ZoomControls) findViewById(R.id.zoomcontrols);
     		// set zoomcontrols listeners to enable zooming
@@ -177,7 +174,18 @@ public class RasterFileMapActivity extends Activity implements FilePickerActivit
 
 	}
 
-	
+    @Override
+    protected void onStart() {
+        mapView.startMapping();
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.stopMapping();
+    }
+
     public MapView getMapView() {
         return mapView;
     }
@@ -199,12 +207,5 @@ public class RasterFileMapActivity extends Activity implements FilePickerActivit
         };
     }
     
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mapView.stopMapping();
-    }
-
-     
 }
 

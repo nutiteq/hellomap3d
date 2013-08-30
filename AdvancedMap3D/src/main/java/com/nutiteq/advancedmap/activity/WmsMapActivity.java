@@ -165,10 +165,7 @@ public class WmsMapActivity extends Activity {
         // set persistent raster cache limit to 100MB
         mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 		
-		// 4. Start the map - mandatory
-		mapView.startMapping();
-        
-		// 5. zoom buttons using Android widgets - optional
+		// 4. zoom buttons using Android widgets - optional
 		// get the zoomcontrols that was defined in main.xml
 		ZoomControls zoomControls = (ZoomControls) findViewById(R.id.zoomcontrols);
 		// set zoomcontrols listeners to enable zooming
@@ -185,16 +182,21 @@ public class WmsMapActivity extends Activity {
 
 	}
 
-
-    public MapView getMapView() {
-        return mapView;
+    @Override
+    protected void onStart() {
+        mapView.startMapping();
+        super.onStart();
     }
-     
+
     @Override
     protected void onStop() {
         super.onStop();
         mapView.stopMapping();
     }
 
+    public MapView getMapView() {
+        return mapView;
+    }
+   
 }
 

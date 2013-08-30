@@ -34,6 +34,7 @@ import com.nutiteq.vectorlayers.MarkerLayer;
  */
 public class HelloMap3DActivity extends Activity {
 
+
     private MapView mapView;
 
     @SuppressLint("NewApi")
@@ -72,14 +73,10 @@ public class HelloMap3DActivity extends Activity {
 
         mapView.getLayers().setBaseLayer(mapLayer);
 
-        // adjust zooming to DPI, so texts on rasters will be not too small
-        DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        float dpi = metrics.densityDpi;
-        // following is equal to  -log2(dpi / DEFAULT_DPI)
-        float adjustment = (float) - (Math.log(dpi / DisplayMetrics.DENSITY_HIGH) / Math.log(2));
-        Log.debug("adjust DPI = "+dpi+" as zoom adjustment = "+adjustment);
-        mapView.getOptions().setTileZoomLevelBias(adjustment);
+        adjustMapDpi();
+        
+//        mapView.getOptions().setFPSIndicator(true);
+//        mapView.getOptions().setRasterTaskPoolSize(4);
         
         // set initial map view camera - optional. "World view" is default
         // Location: San Francisco 
@@ -90,7 +87,7 @@ public class HelloMap3DActivity extends Activity {
         // zoom - 0 = world, like on most web maps
         mapView.setZoom(16.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
-       // mapView.setTilt(35.0f);
+        mapView.setTilt(65.0f);
 
 
         // Activate some mapview options to make it smoother - optional
@@ -120,13 +117,9 @@ public class HelloMap3DActivity extends Activity {
         mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
         
         // define online map persistent caching - optional, suggested. Default - no caching
-        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
+        //mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
         // set persistent raster cache limit to 100MB
         mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
-
-        
-        // 4. Start the map - mandatory
-        mapView.startMapping();
 
 
         // 5. Add simple marker to map. 
@@ -161,6 +154,22 @@ public class HelloMap3DActivity extends Activity {
         return this.mapView.getComponents();
     }
     
+    
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // 4. Start the map - mandatory.
+        mapView.startMapping();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Note: it is recommended to move startMapping() call to onStart method and implement onStop method (call MapView.stopMapping() from onStop). 
+        mapView.stopMapping();
+    }
+
+    
     protected void initGps(final MyLocationCircle locationCircle) {
         final Projection proj = mapView.getLayers().getBaseLayer().getProjection();
         
@@ -170,6 +179,9 @@ public class HelloMap3DActivity extends Activity {
                  if (locationCircle != null) {
                      locationCircle.setLocation(proj, location);
                      locationCircle.setVisible(true);
+                     
+                     // recenter automatically to GPS point
+                     // TODO in real app it can be annoying this way, add extra control that it is done only once
                      mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(location.getLongitude(), location.getLatitude()));
                  }
             }
@@ -193,5 +205,16 @@ public class HelloMap3DActivity extends Activity {
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locationListener);
 
     }
-
+    
+    // adjust zooming to DPI, so texts on rasters will be not too small
+    // useful for non-retina rasters, they would look like "digitally zoomed"
+    private void adjustMapDpi() {
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        float dpi = metrics.densityDpi;
+        // following is equal to  -log2(dpi / DEFAULT_DPI)
+        float adjustment = (float) - (Math.log(dpi / DisplayMetrics.DENSITY_HIGH) / Math.log(2));
+        Log.debug("adjust DPI = "+dpi+" as zoom adjustment = "+adjustment);
+        mapView.getOptions().setTileZoomLevelBias(adjustment / 2.0f);
+    }
 }

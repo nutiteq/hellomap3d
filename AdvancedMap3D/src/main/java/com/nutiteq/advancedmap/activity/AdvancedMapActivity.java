@@ -43,6 +43,7 @@ import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.ModelStyle;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
+import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.ui.ViewLabel;
 import com.nutiteq.utils.UnscaledBitmapLoader;
@@ -152,16 +153,17 @@ public class AdvancedMapActivity extends Activity {
 //        mapView.setTilt(90f);
 
 		// Activate some mapview options to make it smoother - optional
-		mapView.getOptions().setPreloading(true);
+		mapView.getOptions().setPreloading(false);
 		mapView.getOptions().setSeamlessHorizontalPan(true);
 		mapView.getOptions().setTileFading(false);
 		mapView.getOptions().setKineticPanning(true);
 		mapView.getOptions().setDoubleClickZoomIn(true);
 		mapView.getOptions().setDualClickZoomOut(true);
 
-//		adjustMapDpi();
+		adjustMapDpi();
 		//mapView.getOptions().setTileSize(512);
-		mapView.getOptions().setTileZoomLevelBias(1.0f);
+		mapView.getOptions().setFPSIndicator(true);
+//		mapView.getOptions().setRasterTaskPoolSize(4);
 		
 		// set sky bitmap - optional, default - white
 		mapView.getOptions().setSkyDrawMode(Options.DRAW_BITMAP);
@@ -186,11 +188,7 @@ public class AdvancedMapActivity extends Activity {
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
-		// 4. Start the map - mandatory
-		mapView.startMapping();
-
-        
-		// 5. zoom buttons using Android widgets - optional
+		// 4. zoom buttons using Android widgets - optional
 		// get the zoomcontrols that was defined in main.xml
 		ZoomControls zoomControls = (ZoomControls) findViewById(R.id.zoomcontrols);
 		// set zoomcontrols listeners to enable zooming
@@ -207,7 +205,12 @@ public class AdvancedMapActivity extends Activity {
 
 	}
 
-	
+    @Override
+    protected void onStart() {
+        mapView.startMapping();
+        super.onStart();
+    }
+    
     // adjust zooming to DPI, so texts on rasters will be not too small
 	// useful for non-retina rasters, they would look like "digitally zoomed"
 	private void adjustMapDpi() {
@@ -217,174 +220,9 @@ public class AdvancedMapActivity extends Activity {
         // following is equal to  -log2(dpi / DEFAULT_DPI)
         float adjustment = (float) - (Math.log(dpi / DisplayMetrics.DENSITY_HIGH) / Math.log(2));
         Log.debug("adjust DPI = "+dpi+" as zoom adjustment = "+adjustment);
-        mapView.getOptions().setTileZoomLevelBias(adjustment);
+        mapView.getOptions().setTileZoomLevelBias(adjustment / 2.0f);
     }
-
-
-    private void basePackagedLayer() {
-	    PackagedMapLayer packagedMapLayer = new PackagedMapLayer(this.proj, 0, 3, 16, "t", this);
-	    mapView.getLayers().setBaseLayer(packagedMapLayer);
-    }
-
-    private void addStoredBaseLayer(String dir) {
-        StoredMapLayer storedMapLayer = new StoredMapLayer(this.proj, 256, 0,
-                17, 135, "OpenStreetMap", dir);
-        
-        mapView.getLayers().setBaseLayer(storedMapLayer);
-        
-        mapView.setFocusPoint(storedMapLayer.center);
-        mapView.setZoom((float) storedMapLayer.center.z);
-        
-    }
-
-	// ** Add simple marker to map.
-	private void addMarkerLayer(MapPos markerLocation) {
-		// define marker style (image, size, color)
-        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.olmarker);
-        MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.5f).setColor(Color.WHITE).build();
-		// define label what is shown when you click on marker
-        
-        LabelStyle labelStyle = 
-                LabelStyle.builder()
-                    .setEdgePadding(24)
-                    .setLinePadding(12)
-                    .setTitleFont(Typeface.create("Arial", Typeface.BOLD), 38)
-                    .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), 32)
-                    .build();
-        
-//        Label markerLabel = new DefaultLabel("San Francisco", "Here is a marker", labelStyle);
-      MarkerMenu view = new MarkerMenu(this, "Tekst");
-      view.layout(0, 0, 150, 150);
-                                      
-      Label markerLabel = new ViewLabel("Label",view, new Handler(), labelStyle);
-
-
-        // create layer and add object to the layer, finally add layer to the map. 
-        // All overlay layers must be same projection as base layer, so we reuse it
-		MarkerLayer markerLayer = new MarkerLayer(proj);
-		Marker marker = new Marker(markerLocation, markerLabel, markerStyle, null);
-        markerLayer.add(marker);
-		mapView.getLayers().addLayer(markerLayer);
-		mapView.selectVectorElement(marker);
-	}
-
-	// Load online simple building 3D boxes
-	private void addOsmPolygonLayer() {
-		// Set style visible from zoom 15
-	    // note: & 0xaaffffff makes the color a bit transparent
-        Polygon3DStyle polygon3DStyle = Polygon3DStyle.builder().setColor(Color.WHITE & 0xaaffffff).build();
-        StyleSet<Polygon3DStyle> polygon3DStyleSet = new StyleSet<Polygon3DStyle>(null);
-		polygon3DStyleSet.setZoomStyle(15, polygon3DStyle);
-
-        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.3f, new FlatRoof(),  Color.WHITE, Color.GRAY, 1500, polygon3DStyleSet);
-		mapView.getLayers().addLayer(osm3dLayer);
-		
-	}
-
-     private void addWmsLayer( String url, String layers, Projection dataProjection){
-       WmsLayer wmsLayer = new WmsLayer(proj, 0, 19, 1012, url, "", layers, "image/png", dataProjection);
-		wmsLayer.setFetchPriority(-5);
-		wmsLayer.setTileSize(256);
-		mapView.getLayers().addLayer(wmsLayer);
-	}
-     
-     private void addTestLayer(int tileSize){
-         mapView.getLayers().addLayer(new TileDebugMapLayer(proj, 0, 19, 1016, tileSize));
-     }
-     
-
-     private void addBingBaseLayer(String url, String extension){
-         QuadKeyLayer bingMap = new QuadKeyLayer(proj, 0, 19, 1013, url, extension);
-         mapView.getLayers().setBaseLayer(bingMap);
-      }
-
-     private void baseLayerMapBoxSatelliteLayer(boolean retina){
-         String mapId;
-         int cacheID;
-         if(retina){
-              mapId = "nutiteq.map-78tlnlmb";
-              cacheID = 24;
-          }else{
-              mapId = "nutiteq.map-f0sfyluv";
-              cacheID = 25;
-          }
-         
-         mapView.getLayers().setBaseLayer(new TMSMapLayer(proj, 0, 19, cacheID,
-                 "http://api.tiles.mapbox.com/v3/"+mapId+"/", "/", ".png"));
-      }
-
-     private void baseLayerMapBoxStreetsLayer(boolean retina){
-        String mapId;
-        int cacheID;
-        if(retina){
-             mapId = "nutiteq.map-aasha5ru";
-             cacheID = 22;
-         }else{
-             mapId = "nutiteq.map-j6a1wkx0";
-             cacheID = 23;
-         }
-         mapView.getLayers().setBaseLayer(new TMSMapLayer(proj, 0, 19, cacheID,
-                 "http://api.tiles.mapbox.com/v3/"+mapId+"/", "/", ".png"));
-      }
-
-     
-     private void baseMapQuest() {
-         mapView.getLayers().setBaseLayer(new TMSMapLayer(this.proj, 0, 20, 11,
-                 new String[]{
-                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/",
-                 "http://otile2.mqcdn.com/tiles/1.0.0/osm/",
-                 "http://otile3.mqcdn.com/tiles/1.0.0/osm/",
-                 "http://otile4.mqcdn.com/tiles/1.0.0/osm/"
-                 }, "/", ".png"));
-     }
-
-     private void baseBingAerial() {
-       mapView.getLayers().setBaseLayer(new QuadKeyLayer(this.proj, 0, 19, 14, "http://ecn.t3.tiles.virtualearth.net/tiles/a",".jpeg?g=471&mkt=en-US"));
-   }
-   
-     private void baseMapOpenAerial() {
-       mapView.getLayers().setBaseLayer(new TMSMapLayer(this.proj, 0, 11, 15,
-               "http://otile1.mqcdn.com/tiles/1.0.0/sat/", "/", ".png"));
-   }
-     
-     private void singleNmlModelLayer(){
-         
-         ModelStyle modelStyle = ModelStyle.builder().build();
-         StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(null);
-         modelStyleSet.setZoomStyle(14, modelStyle);
-
-         // create layer and an model
-         MapPos mapPos1 = proj.fromWgs84(20.466027f, 44.810537f);
-         
-         // set it to fly abit
-         MapPos mapPos = new MapPos(mapPos1.x, mapPos1.y, 0.1f);
-         NMLModelLayer nmlModelLayer = new NMLModelLayer(new EPSG3857());
-         try {
-             InputStream is = this.getResources().openRawResource(R.raw.milktruck);
-             NMLPackage.Model nmlModel = NMLPackage.Model.parseFrom(is);
-             // set initial position for the milk truck
-             
-             NMLModel model = new NMLModel(mapPos, null, modelStyleSet, nmlModel, null);
-
-             // set size, 10 is clear oversize, but this makes it visible
-             model.setScale(new Vector(10, 10, 10));
-             
-             nmlModelLayer.add(model);
-         }
-         catch (Exception e) {
-             e.printStackTrace();
-         }
-         mapView.getLayers().addLayer(nmlModelLayer);
-         
-         mapView.setFocusPoint(mapPos);
-         mapView.setTilt(45);
-         
-     }
-
-    public MapView getMapView() {
-        return mapView;
-    }
-    
+  
     @Override
     protected void onStop() {
         super.onStop();
@@ -480,7 +318,7 @@ public class AdvancedMapActivity extends Activity {
             break;
             
         case R.id.menu_tileborders:
-            addTestLayer(256);
+            addTileBorderLayer(256);
             break;
 
        // Locations
@@ -517,7 +355,159 @@ public class AdvancedMapActivity extends Activity {
           
     }
 
+    private void addTileBorderLayer(int size) {
+        mapView.getLayers().addLayer(new TileDebugMapLayer(this.proj, 0, 22, 17, size, this));
+        
+    }
+
+
+    private void basePackagedLayer() {
+        PackagedMapLayer packagedMapLayer = new PackagedMapLayer(this.proj, 0, 3, 16, "t", this);
+        mapView.getLayers().setBaseLayer(packagedMapLayer);
+    }
+
+    private void addStoredBaseLayer(String dir) {
+        StoredMapLayer storedMapLayer = new StoredMapLayer(this.proj, 256, 0,
+                17, 135, "OpenStreetMap", dir);
+        
+        mapView.getLayers().setBaseLayer(storedMapLayer);
+        
+        mapView.setFocusPoint(storedMapLayer.center);
+        mapView.setZoom((float) storedMapLayer.center.z);
+    }
+
+    // ** Add simple marker to map.
+    private void addMarkerLayer(MapPos markerLocation) {
+        // define marker style (image, size, color)
+        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.olmarker);
+        MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.5f).setColor(Color.WHITE).build();
+        // define label what is shown when you click on marker
+        
+        LabelStyle labelStyle = 
+                LabelStyle.builder()
+                    .setEdgePadding(24)
+                    .setLinePadding(12)
+                    .setTitleFont(Typeface.create("Arial", Typeface.BOLD), 38)
+                    .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), 32)
+                    .build();
+        
+        Label markerLabel = new DefaultLabel("San Francisco", "Here is a marker", labelStyle);
+        
+
+        // create layer and add object to the layer, finally add layer to the map. 
+        // All overlay layers must be same projection as base layer, so we reuse it
+        MarkerLayer markerLayer = new MarkerLayer(proj);
+        Marker marker = new Marker(markerLocation, markerLabel, markerStyle, null);
+        markerLayer.add(marker);
+        mapView.getLayers().addLayer(markerLayer);
+        mapView.selectVectorElement(marker);
+    }
+
+    // Load online simple building 3D boxes
+    private void addOsmPolygonLayer() {
+        // Set style visible from zoom 15
+        // note: & 0xaaffffff makes the color a bit transparent
+        Polygon3DStyle polygon3DStyle = Polygon3DStyle.builder().setColor(Color.WHITE & 0xaaffffff).build();
+        StyleSet<Polygon3DStyle> polygon3DStyleSet = new StyleSet<Polygon3DStyle>(null);
+        polygon3DStyleSet.setZoomStyle(15, polygon3DStyle);
+
+        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 0.3f, new FlatRoof(),  Color.WHITE, Color.GRAY, 1500, polygon3DStyleSet);
+        mapView.getLayers().addLayer(osm3dLayer);
+    }
+
+    private void addWmsLayer( String url, String layers, Projection dataProjection){
+        WmsLayer wmsLayer = new WmsLayer(proj, 0, 19, 1012, url, "", layers, "image/png", dataProjection);
+        wmsLayer.setFetchPriority(-5);
+        mapView.getLayers().addLayer(wmsLayer);
+    }
+     
+
+    private void addBingBaseLayer(String url, String extension){
+         QuadKeyLayer bingMap = new QuadKeyLayer(proj, 0, 19, 1013, url, extension);
+         mapView.getLayers().setBaseLayer(bingMap);
+    }
+
+    private void baseLayerMapBoxSatelliteLayer(boolean retina){
+        String mapId;
+        int cacheID;
+        if(retina){
+              mapId = "nutiteq.map-78tlnlmb";
+              cacheID = 24;
+         }else{
+              mapId = "nutiteq.map-f0sfyluv";
+              cacheID = 25;
+         }
+         
+         mapView.getLayers().setBaseLayer(new TMSMapLayer(proj, 0, 19, cacheID,
+                 "http://api.tiles.mapbox.com/v3/"+mapId+"/", "/", ".png"));
+    }
+
+    private void baseLayerMapBoxStreetsLayer(boolean retina){
+        String mapId;
+        int cacheID;
+        if(retina){
+             mapId = "nutiteq.map-aasha5ru";
+             cacheID = 22;
+         }else{
+             mapId = "nutiteq.map-j6a1wkx0";
+             cacheID = 23;
+         }
+         mapView.getLayers().setBaseLayer(new TMSMapLayer(proj, 0, 19, cacheID,
+                 "http://api.tiles.mapbox.com/v3/"+mapId+"/", "/", ".png"));
+    }
 
      
+    private void baseMapQuest() {
+        mapView.getLayers().setBaseLayer(new TMSMapLayer(this.proj, 0, 20, 11,
+                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png"));
+    }
+
+    private void baseBingAerial() {
+        mapView.getLayers().setBaseLayer(new QuadKeyLayer(this.proj, 0, 19, 14, "http://ecn.t3.tiles.virtualearth.net/tiles/a",".jpeg?g=471&mkt=en-US"));
+    }
+   
+    private void baseMapOpenAerial() {
+        mapView.getLayers().setBaseLayer(new TMSMapLayer(this.proj, 0, 11, 15,
+               "http://otile1.mqcdn.com/tiles/1.0.0/sat/", "/", ".png"));
+    }
+     
+     private void singleNmlModelLayer(){
+         
+         ModelStyle modelStyle = ModelStyle.builder().build();
+         StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(null);
+         modelStyleSet.setZoomStyle(14, modelStyle);
+
+         // create layer and an model
+         MapPos mapPos1 = proj.fromWgs84(20.466027f, 44.810537f);
+         
+         // set it to fly abit
+         MapPos mapPos = new MapPos(mapPos1.x, mapPos1.y, 0.1f);
+         NMLModelLayer nmlModelLayer = new NMLModelLayer(new EPSG3857());
+         try {
+             InputStream is = this.getResources().openRawResource(R.raw.milktruck);
+             NMLPackage.Model nmlModel = NMLPackage.Model.parseFrom(is);
+             // set initial position for the milk truck
+             
+             NMLModel model = new NMLModel(mapPos, null, modelStyleSet, nmlModel, null);
+
+             // set size, 10 is clear oversize, but this makes it visible
+             model.setScale(new Vector(10, 10, 10));
+             
+             nmlModelLayer.add(model);
+         }
+         catch (Exception e) {
+             e.printStackTrace();
+         }
+         mapView.getLayers().addLayer(nmlModelLayer);
+         
+         mapView.setFocusPoint(mapPos);
+         mapView.setTilt(45);
+         
+     }
+
+    public MapView getMapView() {
+        return mapView;
+    }
+    
 }
 

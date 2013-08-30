@@ -199,10 +199,7 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
-		// 4. Start the map - mandatory
-		mapView.startMapping();
-
-		// 5. zoom buttons using Android widgets - optional
+		// 4. zoom buttons using Android widgets - optional
 		// get the zoomcontrols that was defined in main.xml
 		ZoomControls zoomControls = (ZoomControls) findViewById(R.id.zoomcontrols);
 		// set zoomcontrols listeners to enable zooming
@@ -220,33 +217,23 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
         Toast.makeText(getApplicationContext(), "Click on map to set route start and end", Toast.LENGTH_SHORT).show();
 
 	}
-
 	
-	@Override
-    public void showRoute(final double fromLat, final double fromLon,
-            final double toLat, final double toLon) {
-
-        Log.debug("calculating path " + fromLat + "," + fromLon + " to "
-                + toLat + "," + toLon);
-
-        Projection proj = mapView.getLayers().getBaseLayer().getProjection();
-        stopMarker.setMapPos(proj.fromWgs84(toLon, toLat));
-
-        CloudMadeDirections directionsService = new CloudMadeDirections(this, new MapPos(fromLon, fromLat), new MapPos(toLon, toLat), CloudMadeDirections.ROUTE_TYPE_CAR, CloudMadeDirections.ROUTE_TYPE_MODIFIER_FASTEST, CLOUDMADE_KEY, proj);
-        directionsService.route();
+    @Override
+    protected void onStart() {
+        mapView.startMapping();
+        super.onStart();
     }
 
-    public MapView getMapView() {
-        return mapView;
-    }
-    
     @Override
     protected void onStop() {
         super.onStop();
         mapView.stopMapping();
     }
 
-
+    public MapView getMapView() {
+        return mapView;
+    }
+  
     @Override
     public void setStartMarker(MapPos startPos) {
         routeLayer.clear();
@@ -264,6 +251,19 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
         stopMarker.setVisible(true);
     }
 
+    @Override
+    public void showRoute(final double fromLat, final double fromLon,
+            final double toLat, final double toLon) {
+
+        Log.debug("calculating path " + fromLat + "," + fromLon + " to "
+                + toLat + "," + toLon);
+
+        Projection proj = mapView.getLayers().getBaseLayer().getProjection();
+        stopMarker.setMapPos(proj.fromWgs84(toLon, toLat));
+
+        CloudMadeDirections directionsService = new CloudMadeDirections(this, new MapPos(fromLon, fromLat), new MapPos(toLon, toLat), CloudMadeDirections.ROUTE_TYPE_CAR, CloudMadeDirections.ROUTE_TYPE_MODIFIER_FASTEST, CLOUDMADE_KEY, proj);
+        directionsService.route();
+    }
     
     @Override
     public void routeResult(Route route) {

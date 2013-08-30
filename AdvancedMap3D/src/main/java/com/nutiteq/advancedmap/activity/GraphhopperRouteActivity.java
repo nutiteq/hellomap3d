@@ -200,10 +200,7 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
-		// 4. Start the map - mandatory
-		mapView.startMapping();
-
-		// 5. zoom buttons using Android widgets - optional
+		// 4. zoom buttons using Android widgets - optional
 		// get the zoomcontrols that was defined in main.xml
 		ZoomControls zoomControls = (ZoomControls) findViewById(R.id.zoomcontrols);
 		// set zoomcontrols listeners to enable zooming
@@ -219,7 +216,18 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
 		});
 	}
 
-	
+    @Override
+    protected void onStart() {
+        mapView.startMapping();
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.stopMapping();
+    }
+
 	@Override
     public void showRoute(final double fromLat, final double fromLon,
             final double toLat, final double toLon) {
@@ -322,13 +330,6 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
     }
     
     @Override
-    protected void onStop() {
-        super.onStop();
-        mapView.stopMapping();
-    }
-
-
-    @Override
     public String getFileSelectMessage() {
         return "Select .map file in graphhopper graph (<mapname>_gh folder)";
     }
@@ -377,6 +378,5 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
         // without using Route object and separate service class
     }
 
-     
 }
 

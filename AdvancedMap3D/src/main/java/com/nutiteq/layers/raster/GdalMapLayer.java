@@ -231,7 +231,7 @@ public class GdalMapLayer extends RasterLayer {
         
         if(reproject){
             // on the fly reprojection - slower reading, but fast open and less memory
-            openData = gdal.AutoCreateWarpedVRT(originalData,null, layerProjection.ExportToWkt(),VRT_RESAMPLER, VRT_MAXERROR);
+            openData = gdal.AutoCreateWarpedVRT(originalData, osr.SRS_WKT_WGS84, layerProjection.ExportToWkt(),VRT_RESAMPLER, VRT_MAXERROR);
 
             fullGdalInfo(openData);
             originalData.delete();
@@ -364,6 +364,7 @@ public class GdalMapLayer extends RasterLayer {
             // some extensions are known to be missing from GDAL
             exts.add("kap");
             exts.add("geotiff");
+            exts.add("gif");
             
         }
         return exts;

@@ -90,10 +90,7 @@ public class WfsMapActivity extends Activity {
         // add label layer for WFS streets
         // 1. define style callback for labels
         // disabled - requires experimental SDK
-
-     WfsTextLayer textLayer = new WfsTextLayer(
-                mapView.getLayers().getBaseLayer().getProjection(),
-                wfsLayer) {
+        WfsTextLayer textLayer = new WfsTextLayer(mapView.getLayers().getBaseLayer().getProjection(), wfsLayer) {
         
             private StyleSet<TextStyle> styleSetRoad = new StyleSet<TextStyle>(
                     TextStyle.builder().setAllowOverlap(false)
@@ -105,8 +102,7 @@ public class WfsMapActivity extends Activity {
                     TextStyle
                             .builder()
                             .setAllowOverlap(false)
-                            .setOrientation(
-                                    TextStyle.CAMERA_BILLBOARD_ORIENTATION)
+                            .setOrientation(TextStyle.CAMERA_BILLBOARD_ORIENTATION)
                             .setSize(30)
                             .setColor(Color.argb(255, 100, 100, 100))
                             .setPlacementPriority(5).build());
@@ -121,6 +117,7 @@ public class WfsMapActivity extends Activity {
             }
 
         };
+
         // 2. set properties for texts
         textLayer.setZOrdered(false);
         textLayer.setMaxVisibleElements(30);
@@ -169,10 +166,7 @@ public class WfsMapActivity extends Activity {
         // set persistent raster cache limit to 100MB
         mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 		
-		// 4. Start the map - mandatory
-		mapView.startMapping();
-        
-		// 5. zoom buttons using Android widgets - optional
+		// 4. zoom buttons using Android widgets - optional
 		// get the zoomcontrols that was defined in main.xml
 		ZoomControls zoomControls = (ZoomControls) findViewById(R.id.zoomcontrols);
 		// set zoomcontrols listeners to enable zooming
@@ -189,11 +183,12 @@ public class WfsMapActivity extends Activity {
 
 	}
 
-
-    public MapView getMapView() {
-        return mapView;
+    @Override
+    protected void onStart() {
+        mapView.startMapping();
+        super.onStart();
     }
-     
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -206,5 +201,9 @@ public class WfsMapActivity extends Activity {
         return this.mapView.getComponents();
     }
 
+    public MapView getMapView() {
+        return mapView;
+    }
+   
 }
 

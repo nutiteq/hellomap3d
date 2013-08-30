@@ -137,10 +137,7 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
 		// set persistent raster cache limit to 100MB
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
-		// 4. Start the map - mandatory
-		mapView.startMapping();
-        
-		// 5. zoom buttons using Android widgets - optional
+		// 4. zoom buttons using Android widgets - optional
 		// get the zoomcontrols that was defined in main.xml
 		ZoomControls zoomControls = (ZoomControls) findViewById(R.id.zoomcontrols);
 		// set zoomcontrols listeners to enable zooming
@@ -171,52 +168,61 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
         
 	}
 
-	   private void addOgrLayer(Projection proj, String dbPath, String table, int color) {
+    @Override
+    protected void onStart() {
+        mapView.startMapping();
+        super.onStart();
+    }
 
-	        // set styles for all 3 object types: point, line and polygon
-	       int minZoom = 5;
-	       
-	        StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
-	        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
-	        PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(color).setPickingSize(0.2f).build();
-	        pointStyleSet.setZoomStyle(minZoom, pointStyle);
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.stopMapping();
+    }
 
-	        StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
-	        LineStyle lineStyle = LineStyle.builder().setWidth(0.05f).setColor(color).build();
-	        lineStyleSet.setZoomStyle(minZoom, lineStyle);
+    private void addOgrLayer(Projection proj, String dbPath, String table, int color) {
+        // set styles for all 3 object types: point, line and polygon
+        int minZoom = 5;
 
-	        PolygonStyle polygonStyle = PolygonStyle.builder().setColor(color & 0x80FFFFFF).setLineStyle(lineStyle).build();
-	        StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
-	        polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
+        StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
+        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
+        PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(color).setPickingSize(0.2f).build();
+        pointStyleSet.setZoomStyle(minZoom, pointStyle);
 
-	        OgrLayer ogrLayer;
-            try {
-                ogrLayer = new OgrLayer(proj, dbPath, table,
-                        500, pointStyleSet, lineStyleSet, polygonStyleSet);
-                ogrLayer.printSupportedDrivers();
-                mapView.getLayers().addLayer(ogrLayer);
- 
-                Envelope extent = ogrLayer.getDataExtent();
-                DisplayMetrics metrics = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(metrics);   
-                int screenHeight = metrics.heightPixels;
-                int screenWidth = metrics.widthPixels;
+        StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
+        LineStyle lineStyle = LineStyle.builder().setWidth(0.05f).setColor(color).build();
+        lineStyleSet.setZoomStyle(minZoom, lineStyle);
 
-                double zoom = Math.log((screenWidth * (Math.PI * 6378137.0f * 2.0f)) 
-                        / ((extent.maxX-extent.minX) * 256.0)) / Math.log(2);
-                
-                MapPos centerPoint = new MapPos((extent.maxX+extent.minX)/2,(extent.maxY+extent.minY)/2);
-                Log.debug("found extent "+extent+", zoom "+zoom+", centerPoint "+centerPoint);
-                
-                mapView.setZoom((float) zoom);
-                mapView.setFocusPoint(centerPoint); 
-                
-            } catch (IOException e) {
-                Log.error(e.getLocalizedMessage());
-                Toast.makeText(this, "ERROR "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-            }
+        PolygonStyle polygonStyle = PolygonStyle.builder().setColor(color & 0x80FFFFFF).setLineStyle(lineStyle).build();
+        StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
+        polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
 
-	    }
+        OgrLayer ogrLayer;
+        try {
+            ogrLayer = new OgrLayer(proj, dbPath, table, 500, pointStyleSet, lineStyleSet, polygonStyleSet);
+            ogrLayer.printSupportedDrivers();
+            mapView.getLayers().addLayer(ogrLayer);
+
+            Envelope extent = ogrLayer.getDataExtent();
+            DisplayMetrics metrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(metrics);   
+            int screenHeight = metrics.heightPixels;
+            int screenWidth = metrics.widthPixels;
+
+            double zoom = Math.log((screenWidth * (Math.PI * 6378137.0f * 2.0f)) 
+                / ((extent.maxX-extent.minX) * 256.0)) / Math.log(2);
+
+            MapPos centerPoint = new MapPos((extent.maxX+extent.minX)/2,(extent.maxY+extent.minY)/2);
+            Log.debug("found extent "+extent+", zoom "+zoom+", centerPoint "+centerPoint);
+
+            mapView.setZoom((float) zoom);
+            mapView.setFocusPoint(centerPoint); 
+
+        } catch (IOException e) {
+            Log.error(e.getLocalizedMessage());
+            Toast.makeText(this, "ERROR "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
 	
     public MapView getMapView() {
         return mapView;
@@ -237,12 +243,5 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
         };
     }
     
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mapView.stopMapping();
-    }
-
-     
 }
 

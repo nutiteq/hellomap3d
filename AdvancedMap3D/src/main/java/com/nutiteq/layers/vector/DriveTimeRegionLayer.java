@@ -41,6 +41,7 @@ public class DriveTimeRegionLayer extends GeometryLayer {
     private float distance;
     private Activity activity;
     private LinkedList<Geometry> currentVisibleElementsList = new LinkedList<Geometry>();
+//    private final CancelableThreadPool dataPool = new CancelableThreadPool(1);
     private final CancelableThreadPoolExecutor dataPool = new CancelableThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new TaskPoolThreadFactory("Data"));
 
     protected class LoadDataTask implements Task {
