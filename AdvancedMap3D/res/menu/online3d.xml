@@ -32,11 +32,17 @@
                         android:title="Blom London"
                         />
 				<item android:id="@+id/menu3d_tomtomlod3"
-                        android:title="TomTom LOD3 SF"
+                        android:title="San Francisco LOD3 TomTom"
                         />
 				<item android:id="@+id/menu3d_seattle"
-                        android:title="TomTom Seattle LOD4"
+                        android:title="Seattle LOD4 TomTom"
                         />
-				
+				<item android:id="@+id/menu3d_chicago"
+                        android:title="Chicago LOD4 TomTom"
+                        />
+				<item android:id="@+id/menu3d_la"
+                        android:title="Los Angeles LOD4 TomTom"
+                        />
+												
 				
 </menu>
