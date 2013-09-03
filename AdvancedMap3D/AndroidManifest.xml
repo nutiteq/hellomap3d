@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
  
-  <application android:icon="@drawable/icon" android:label="@string/app_name">
+  <application android:icon="@drawable/icon" android:label="@string/app_name" android:largeHeap="true" android:allowBackup="false">
     <activity android:name="com.nutiteq.advancedmap.activity.LauncherList">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />

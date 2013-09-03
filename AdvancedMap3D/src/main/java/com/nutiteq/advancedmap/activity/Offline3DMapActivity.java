@@ -1,34 +1,47 @@
 package com.nutiteq.advancedmap.activity;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.StringEntity;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.R.drawable;
-import com.nutiteq.advancedmap.R.id;
-import com.nutiteq.advancedmap.R.layout;
+import com.nutiteq.components.Bounds;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
+import com.nutiteq.components.Vector;
 import com.nutiteq.filepicker.FilePickerActivity;
+import com.nutiteq.geometry.NMLModel;
 import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.log.Log;
+import com.nutiteq.nmlpackage.NMLPackage;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.style.ModelStyle;
 import com.nutiteq.style.StyleSet;
+import com.nutiteq.utils.IOUtils;
+import com.nutiteq.utils.NetUtils;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.NMLModelDbLayer;
+import com.nutiteq.vectorlayers.NMLModelLayer;
 
 /**
  * 
@@ -45,6 +58,8 @@ import com.nutiteq.vectorlayers.NMLModelDbLayer;
 public class Offline3DMapActivity extends Activity implements FilePickerActivity {
 
 	private MapView mapView;
+    private EPSG3857 proj;
+    private StyleSet<ModelStyle> modelStyleSet;
 
     
 	@Override
@@ -81,14 +96,16 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
 
 		// 3. Define map layer for basemap - mandatory.
 
-		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
+		this.proj = new EPSG3857();
+		
+		TMSMapLayer mapLayer = new TMSMapLayer(proj, 5, 18, 0,
                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
         mapView.getLayers().setBaseLayer(mapLayer);
 		
 
         // define style for 3D to define minimum zoom = 14
         ModelStyle modelStyle = ModelStyle.builder().build();
-        StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(null);
+        modelStyleSet = new StyleSet<ModelStyle>(null);
         modelStyleSet.setZoomStyle(14, modelStyle);
 
         // ** 3D Model layer
@@ -96,28 +113,21 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
             Bundle b = getIntent().getExtras();
             String mapFile = b.getString("selectedFile");
             
-            NMLModelDbLayer modelLayer = new NMLModelDbLayer(new EPSG3857(),
-                    mapFile, modelStyleSet);
-            modelLayer.setMemoryLimit(20*1024*1024);
-            mapView.getLayers().addLayer(modelLayer);
+            if(mapFile.endsWith("nml")){
+                // single model nml file
+                addNml(new BufferedInputStream(new FileInputStream(new File(mapFile))));
+                
+            }else if(mapFile.endsWith("dae") || mapFile.endsWith("zip")){
+                // convert dae to NML using online API
+                new DaeConverterServiceTask(this, mapFile).execute(IOUtils.readFully(new BufferedInputStream(new FileInputStream(new File(mapFile)))));
+                
+            }else{
+                // nmlDB, if sqlite or nmldb file extension
+                addNmlDb(mapFile);
+
+            }
             
 
-            // set initial map view camera from database
-            Envelope extent = modelLayer.getDataExtent();
-            
-            DisplayMetrics metrics = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(metrics);   
-            int screenHeight = metrics.heightPixels;
-            int screenWidth = metrics.widthPixels;
-
-            double zoom = Math.log((screenWidth * (Math.PI * 6378137.0f * 2.0f)) 
-                    / ((extent.maxX-extent.minX) * 256.0)) / Math.log(2);
-            
-            MapPos centerPoint = new MapPos((extent.maxX+extent.minX)/2,(extent.maxY+extent.minY)/2);
-            Log.debug("found extent "+extent+", zoom "+zoom+", centerPoint "+centerPoint);
-            
-            mapView.setZoom((float) zoom);
-            mapView.setFocusPoint(centerPoint); 
             
         } catch (IOException e) {
             e.printStackTrace();
@@ -178,6 +188,57 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
 
 	}
 
+    private void addNmlDb(String mapFile) throws IOException {
+        
+        NMLModelDbLayer modelLayer = new NMLModelDbLayer(proj,
+                mapFile, modelStyleSet);
+        modelLayer.setMemoryLimit(20*1024*1024);
+        mapView.getLayers().addLayer(modelLayer);
+        
+
+        // set initial map view camera from database
+        Envelope extent = modelLayer.getDataExtent();
+        
+        // or you can just set map view bounds directly 
+        mapView.setBoundingBox(new Bounds(extent.minX, extent.maxY, extent.maxX, extent.minY), false);
+    }
+
+    /**
+     * adds Nml to map
+     * 
+     * @param modelStyleSet
+     * @param mapFile
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    private void addNml(InputStream is)
+            throws FileNotFoundException, IOException {
+
+        // create layer and an model
+        MapPos mapPos1 = proj.fromWgs84(20.466027f, 44.810537f);
+        
+        // set it to fly a bit with Z = 0.1f
+        MapPos mapPos = new MapPos(mapPos1.x, mapPos1.y, 1.0f);
+        NMLModelLayer nmlModelLayer = new NMLModelLayer(proj);
+        mapView.getLayers().addLayer(nmlModelLayer);
+        
+        
+        NMLPackage.Model nmlModel = NMLPackage.Model.parseFrom(new BufferedInputStream(is));
+        // set initial position for the milk truck
+        Log.debug("nmlModel loaded");
+        
+        NMLModel model = new NMLModel(mapPos, null, modelStyleSet, nmlModel, null);
+
+        // set size, 10 is clear oversize, but this makes it visible
+        model.setScale(new Vector(10, 10, 10));
+        
+        nmlModelLayer.add(model);
+        
+        mapView.setFocusPoint(mapPos);
+        mapView.setTilt(45);
+        mapView.setZoom(17.0f);
+    }
+
     @Override
     protected void onStart() {
         mapView.startMapping();
@@ -202,6 +263,8 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
                         return true;
                     } else if (file.isFile()
                             && (file.getName().endsWith(".db") ||
+                                    file.getName().endsWith(".dae") ||
+                                    file.getName().endsWith(".zip") || // zipped dae file
                                     file.getName().endsWith(".nml") ||
                                     file.getName().endsWith(".nmldb")||
                                     file.getName().endsWith(".sqlite"))) {
@@ -220,8 +283,46 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
 
     @Override
     public String getFileSelectMessage() {
-        return "Select 3D file (.nmldb)";
+        return "Select 3D file (NML or DAE)";
     }
+    
+    
+    public class DaeConverterServiceTask extends AsyncTask<byte[], Void, InputStream> {
 
+        private Offline3DMapActivity offlineActivity;
+        private String mapFile;
+
+        public DaeConverterServiceTask(Offline3DMapActivity offlineActivity, String mapFile){
+            this.offlineActivity = offlineActivity;
+            // replace .zip -> .dae in end of dae file name, and remove folder
+            this.mapFile = mapFile.substring(mapFile.lastIndexOf("/")+1, mapFile.length()-4);
+        }
+        
+        protected InputStream doInBackground(byte[]... dae) {
+
+            String url = "http://aws-lb.nutiteq.com/daeconvert/?key=Aq7M28a93Huik&dae="+mapFile+".dae&max-single-texture-size=2048";
+            Log.debug("connecting "+url);
+            ByteArrayEntity daeEntity;
+            daeEntity = new ByteArrayEntity(dae[0]);
+
+            InputStream nmlStream = NetUtils.postUrlasStream(url, null, false, daeEntity);
+            return nmlStream;
+        }
+
+        protected void onPostExecute(InputStream nml) {
+                try {
+                    offlineActivity.addNml(nml);
+                } catch (FileNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+        }
+    
+    }
 }
+
+
 
