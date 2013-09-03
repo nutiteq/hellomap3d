@@ -1,7 +1,9 @@
 This is a demo project for **Nutiteq 3D Android mapping SDK**. Nutiteq SDK is a replacement for Google Maps API (MapView) for Android, so it has all your usual mapping SDK features (map panning, vector/raster overlays etc) plus some extras: 
 * 2.5/3D view: map tilting, rotating and 3D models
-* offline mapping (MBTiles, persistent caching etc)
-* supports any map projection, which makes it more usable for GIS apps
+* offline maps (MBTiles, persistent caching etc)
+* Vector editing with online and offline backend
+* Many datasources built-in: raster and vector, online and offline
+* supports map projections, usable for GIS apps
 
 ![Screenshot with 3D models](https://dl.dropbox.com/u/3573333/mapxt_3d_tallinn_device-2012-07-25-124845.png)
 
@@ -18,21 +20,21 @@ There are currently following options:
 * Commercial license, (c) Nutiteq Llc. Request nutiteq@nutiteq.com for details
 
 Third party software licenses for core library:
-* Colt -  MIT-style and LGPL licenses http://acs.lbl.gov/software/colt/license.html
 * JavaProj - Apache License 2.0 http://sourceforge.net/projects/jproj4/ 
 * Poly2tri - New BSD License http://code.google.com/p/poly2tri/
+* Google Protobuf library - used for 3D layers
 
 Some additional layers use free and open source 3rd party software libraries:
 * Mapsforge - used for respective layer
 * OGR/GDAL and Proj.4 - used for OGR and GDAL layers
-* Google Protobuf library - used for 3D layers
 * Spatialite lib - used in Spatialite and 3DPolygon layers. 
-
-All these libraries are free and open source, and non-viral (GPL or LGPL software is not used).
+* JTS - used in 3D Polygon layer with OSM Roofs (Simple 3D)
+ 
+All these libraries are free and open source.
 
 The Hello Map 3D application code is free and licensed under MIT license terms:
 
-Copyright (C) 2012 Nutiteq Llc
+Copyright (C) 2012-2013 Nutiteq Llc
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
