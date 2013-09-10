@@ -12,12 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import android.graphics.Typeface;
-import android.graphics.Paint.Align;
 import android.net.ParseException;
 import android.net.Uri;
-import android.renderscript.Font;
-
 import com.nutiteq.utils.Utils;
 import com.nutiteq.utils.WkbRead;
 import com.nutiteq.components.Envelope;

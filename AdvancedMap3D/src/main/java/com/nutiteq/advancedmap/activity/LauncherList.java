@@ -44,7 +44,8 @@ public class LauncherList extends ListActivity{
             {GraphhopperRouteActivity.class,FilePicker.class},
             {Offline3DMapActivity.class,FilePicker.class},
             {WmsMapActivity.class, null},
-            {WfsMapActivity.class, null}
+            {WfsMapActivity.class, null},
+            {com.nutiteq.fragmentmap.FragmentMapActivity.class,null},
     };
 
     @Override
