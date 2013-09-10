@@ -136,10 +136,8 @@ public class WmsLayer extends RasterLayer {
         Log.debug("wmsmap original envelope bbox " + bbox);
         if (!dataProjection.name().equals(projection.name())) {
             // recalculate to WMS dataProjection via WGS84
-            MapPos bottomLeft = projection.toWgs84((float) envelope.getMinX(),
-                    (float) envelope.getMinY());
-            MapPos topRight = projection.toWgs84((float) envelope.getMaxX(),
-                    (float) envelope.getMaxY());
+            MapPos bottomLeft = projection.toWgs84(envelope.getMinX(), envelope.getMinY());
+            MapPos topRight = projection.toWgs84(envelope.getMaxX(), envelope.getMaxY());
             Log.debug("WmsMap bottomLeft " + bottomLeft + " topRight "
                     + topRight);
             if(dataProjection.name().equals(new EPSG4326().name())){
