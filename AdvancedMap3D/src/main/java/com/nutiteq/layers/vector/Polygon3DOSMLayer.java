@@ -12,14 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import android.graphics.Typeface;
-import android.graphics.Paint.Align;
 import android.net.ParseException;
 import android.net.Uri;
-import android.renderscript.Font;
 
-import com.nutiteq.utils.Utils;
-import com.nutiteq.utils.WkbRead;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Geometry;
@@ -34,11 +29,11 @@ import com.nutiteq.roofs.HippedRoof;
 import com.nutiteq.roofs.Polygon3DRoof;
 import com.nutiteq.roofs.PyramidalRoof;
 import com.nutiteq.roofs.Roof;
-import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.tasks.Task;
 import com.nutiteq.ui.DefaultLabel;
+import com.nutiteq.utils.WkbRead;
 import com.nutiteq.vectorlayers.Polygon3DLayer;
 
 /**
