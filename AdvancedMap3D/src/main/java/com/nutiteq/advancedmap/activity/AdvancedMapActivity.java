@@ -27,6 +27,7 @@ import com.nutiteq.geometry.Marker;
 import com.nutiteq.geometry.NMLModel;
 import com.nutiteq.layers.raster.PackagedMapLayer;
 import com.nutiteq.layers.raster.QuadKeyLayer;
+import com.nutiteq.layers.raster.Regio;
 import com.nutiteq.layers.raster.StoredMapLayer;
 import com.nutiteq.layers.raster.TMSMapLayer;
 import com.nutiteq.layers.raster.TileDebugMapLayer;
@@ -34,6 +35,7 @@ import com.nutiteq.layers.raster.WmsLayer;
 import com.nutiteq.layers.vector.Polygon3DOSMLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.nmlpackage.NMLPackage;
+import com.nutiteq.projections.EPSG3301;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.projections.Projection;
@@ -284,7 +286,12 @@ public class AdvancedMapActivity extends Activity {
             break;
             
         case R.id.menu_mgm:
+            // NB! path is hardcoded here
             addStoredBaseLayer("/sdcard/mapxt/mgm/est_tallinn/");
+            break;
+            
+        case R.id.menu_regio:
+            baseCustomProjectionLayer();
             break;
 
         // overlays
@@ -353,6 +360,45 @@ public class AdvancedMapActivity extends Activity {
     
        return true;
           
+    }
+
+    private void baseCustomProjectionLayer() {
+      // FIXME jaak: here map base projection changes, but the other base maps will not set it back to correct one. 
+        //  So changing to any EPSG3857 base map will result undefined map location
+        //  It should have 3 steps: change this.proj, recalculate center and zoom for any base map change with projection change 
+        
+      // remember map center before projection change
+      MapPos center = this.proj.toWgs84(mapView.getFocusPoint().x,mapView.getFocusPoint().y); 
+      float zoom = mapView.getZoom();
+      
+      // calculate projection bound width in Wgs84 (should be 360.0 degrees with EPSG3857)
+      // will be needed for zoom recalculation
+      double worldWidth = this.proj.toWgs84(this.proj.getBounds().right,this.proj.getBounds().bottom).x 
+              - this.proj.toWgs84(this.proj.getBounds().left,this.proj.getBounds().bottom).x;
+      
+      // change the base projection. NB! this will not be changed back with other base maps  
+      this.proj = new EPSG3301();
+      
+      // use custom layer with Quadtree tile numbering
+      Regio baseMapLayer = new Regio(this.proj, 0, 19, 1007, "");
+      mapView.getLayers().setBaseLayer(baseMapLayer);
+      
+      // restore center location
+      mapView.setFocusPoint(this.proj.fromWgs84(center.x, center.y));
+      
+      // Zoom needs to be changed also, so we change zoom it based on global map bounds
+      // calculate new projection bound width in Wgs84
+      double newWidth = this.proj.toWgs84(this.proj.getBounds().right,this.proj.getBounds().bottom).x 
+              - this.proj.toWgs84(this.proj.getBounds().left,this.proj.getBounds().bottom).x;
+      
+      // how much different bounds differ in terms of zoom steps
+      // following is equal to log2(worldWidth/newWidth)
+      float zoomShift = (float) (Math.log(worldWidth/newWidth) / Math.log(2));
+      
+      // shift zoom accordingly
+      float newZoom = zoom - zoomShift;
+      mapView.setZoom(newZoom);
+        
     }
 
     private void addTileBorderLayer(int size) {

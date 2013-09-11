@@ -52,6 +52,9 @@
                 <item android:id="@+id/menu_mgm"
                         android:title="OSM MGM files"
                         />
+                <item android:id="@+id/menu_regio"
+                        android:title="Regio Estonia"
+                        />
                 <item android:id="@+id/menu_openaerial"
                         android:title="OpenAerial MapQuest"
                         />
