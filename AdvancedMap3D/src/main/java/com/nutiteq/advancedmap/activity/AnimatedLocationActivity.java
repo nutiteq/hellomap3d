@@ -1,5 +1,7 @@
 package com.nutiteq.advancedmap.activity;
 
+import java.util.List;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
@@ -247,8 +249,15 @@ public class AnimatedLocationActivity extends Activity {
         
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 500, locationListener);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 500, locationListener);
+        // dynamic: just fire all providers with same parameters
+        for(String provider : locationManager.getProviders(true)){
+            Log.debug("adding location provider "+provider);
+            locationManager.requestLocationUpdates(provider, 10000, 500, locationListener);    
+        }
+
+        // fixed providers - may not work on some devices
+//        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 500, locationListener);
+//        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 500, locationListener);
 
     } 
     
