@@ -128,9 +128,11 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
         // set initial map view camera from database
         MapFileInfo fileInfo = mapLayer.getMapDatabase().getMapFileInfo();
         GeoPoint center = fileInfo.startPosition;
-        MapPos mapCenter = new MapPos(center.getLongitude(), center.getLatitude(),0);
-        Log.debug("center: "+mapCenter);
-        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(mapCenter.x,mapCenter.y));
+        if(center != null){
+            MapPos mapCenter = new MapPos(center.getLongitude(), center.getLatitude(),0);
+            Log.debug("center: "+mapCenter);
+            mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(mapCenter.x,mapCenter.y));
+        }
         
         if(fileInfo.startZoomLevel != null){
             mapView.setZoom(fileInfo.startZoomLevel);
@@ -249,7 +251,7 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
             protected GHResponse doInBackground(Void... v) {
                 StopWatch sw = new StopWatch().start();
                 GHRequest req = new GHRequest(fromLat, fromLon, toLat, toLon)
-                        .algorithm("dijkstrabi");
+                        .setAlgorithm("dijkstrabi");
                 GHResponse resp = gh.route(req);
                 time = sw.stop().getSeconds();
                 return resp;
@@ -257,11 +259,11 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
 
             protected void onPostExecute(GHResponse res) {
                 Log.debug("from:" + fromLat + "," + fromLon + " to:" + toLat + ","
-                        + toLon + " found path with distance:" + res.distance()
-                        / 1000f + ", nodes:" + res.points().size() + ", time:"
-                        + time + " " + res.debugInfo());
-                Toast.makeText(getApplicationContext(), "the route is " + (int) (res.distance() / 100) / 10f
-                        + "km long, time:" + res.time() / 60f + "min, calculation time:" + time, Toast.LENGTH_LONG).show();
+                        + toLon + " found path with distance:" + res.getDistance()
+                        / 1000f + ", nodes:" + res.getPoints().getSize() + ", time:"
+                        + time + " " + res.getDebugInfo());
+                Toast.makeText(getApplicationContext(), "the route is " + (int) (res.getDistance() / 100) / 10f
+                        + "km long, time:" + res.getTime() / 60f + "min, calculation time:" + time, Toast.LENGTH_LONG).show();
 
                 routeLayer.clear();
                 routeLayer.add(createPolyline(startMarker.getMapPos(), stopMarker.getMapPos(), res));
@@ -279,32 +281,32 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
         StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>(LineStyle.builder().setWidth(0.05f).setColor(Color.BLUE).build());
 
         Projection proj = mapView.getLayers().getBaseLayer().getProjection();
-        int points = response.points().size();
+        int points = response.getPoints().getSize();
         List<MapPos> geoPoints = new ArrayList<MapPos>(points+2);
-        PointList tmp = response.points();
+        PointList tmp = response.getPoints();
         geoPoints.add(start);
         for (int i = 0; i < points; i++) {
-            geoPoints.add(proj.fromWgs84(tmp.longitude(i), tmp.latitude(i)));
+            geoPoints.add(proj.fromWgs84(tmp.getLongitude(i), tmp.getLatitude(i)));
         }
         geoPoints.add(end);
 
-        String labelText = "" + (int) (response.distance() / 100) / 10f
-                + "km, time:" + response.time() / 60f + "min";
+        String labelText = "" + (int) (response.getDistance() / 100) / 10f
+                + "km, time:" + response.getTime() / 60f + "min";
         
         return new Line(geoPoints, new DefaultLabel("Route", labelText), lineStyleSet, null);
     }
 
     // opens GraphHopper graph file
     void openGraph(final String graphFile) {
-        Log.debug("loading graph (" + Helper.VERSION + "|" + Helper.VERSION_FILE
+        Log.debug("loading graph (" + graphFile
                 + ") ... ");
         new AsyncTask<Void, Void, Path>() {
             protected Path doInBackground(Void... v) {
                 try {
-                    GraphHopper tmpHopp = new GraphHopper().forAndroid();
-                    tmpHopp.contractionHierarchies(true);
+                    GraphHopper tmpHopp = new GraphHopper().forMobile();
+                    tmpHopp.setCHShortcuts(true, true);
                     tmpHopp.load(graphFile);
-                    Log.debug("found graph with " + tmpHopp.getGraph().nodes() + " nodes");
+                    Log.debug("found graph with " + tmpHopp.getGraph().getNodes() + " nodes");
                     gh = tmpHopp;
                     graphLoaded = true;
                 } catch (Throwable t) {
