@@ -2,8 +2,6 @@ package com.nutiteq.layers.vector;
 
 import java.util.LinkedList;
 import java.util.Vector;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,9 +20,8 @@ import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
-import com.nutiteq.tasks.CancelableThreadPoolExecutor;
+import com.nutiteq.tasks.CancelableThreadPool;
 import com.nutiteq.tasks.Task;
-import com.nutiteq.tasks.TaskPoolThreadFactory;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.utils.NetUtils;
 import com.nutiteq.vectorlayers.GeometryLayer;
@@ -41,8 +38,8 @@ public class DriveTimeRegionLayer extends GeometryLayer {
     private float distance;
     private Activity activity;
     private LinkedList<Geometry> currentVisibleElementsList = new LinkedList<Geometry>();
-//    private final CancelableThreadPool dataPool = new CancelableThreadPool(1);
-    private final CancelableThreadPoolExecutor dataPool = new CancelableThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new TaskPoolThreadFactory("Data"));
+    private final CancelableThreadPool dataPool = new CancelableThreadPool(1);
+//    private final CancelableThreadPoolExecutor dataPool = new CancelableThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new TaskPoolThreadFactory("Data"));
 
     protected class LoadDataTask implements Task {
         final MapPos pos;
