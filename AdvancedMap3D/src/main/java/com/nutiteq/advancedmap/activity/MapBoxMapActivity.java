@@ -47,7 +47,7 @@ public class MapBoxMapActivity extends Activity {
 
     // Please configure your ID and account here
     
-	private static final String MAPBOX_MAPID = "map-f0sfyluv";
+	private static final String MAPBOX_MAPID = "geography-class";
     private static final String MAPBOX_ACCOUNT = "nutiteq";
     private MapView mapView;
 
