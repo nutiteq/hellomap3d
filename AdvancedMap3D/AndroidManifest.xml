@@ -15,6 +15,7 @@
     </activity>
     <activity android:name=".activity.AdvancedMapActivity"></activity>
     <activity android:name="com.nutiteq.fragmentmap.FragmentMapActivity"></activity>
+    <activity android:name="com.nutiteq.fragmentmap.InfoActivity"></activity>
     <activity android:name=".activity.MBTilesMapActivity"></activity>
     <activity android:name=".activity.BasicMapActivity"></activity>
     <activity android:name=".activity.VectorFileMapActivity"></activity>
@@ -52,7 +53,7 @@
 	       android:exported="false">
 	</provider>
     
-	<activity android:name="AddressSearchActivity">
+	<activity android:name=".activity.AddressSearchActivity">
 	                <meta-data
                 android:name="android.app.default_searchable"
                 android:value="com.nutiteq.advancedmap.mapquest.SearchQueryResults" />
