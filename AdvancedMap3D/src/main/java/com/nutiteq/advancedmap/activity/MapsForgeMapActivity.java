@@ -65,20 +65,19 @@ public class MapsForgeMapActivity extends Activity implements FilePickerActivity
 		if (retainObject != null) {
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
-			mapView.startMapping();
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
-		      Components components = new Components();
-		      // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
-		      mapView.setComponents(components);
-		      }
+		    Components components = new Components();
+		    // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
+		    mapView.setComponents(components);
+		}
 
 
 		// 3. Define map layer for basemap - mandatory.
         // read filename from extras
-       Bundle b = getIntent().getExtras();
-       String mapFile = b.getString("selectedFile");
+        Bundle b = getIntent().getExtras();
+        String mapFile = b.getString("selectedFile");
        
         JobTheme renderTheme = MapsforgeMapLayer.InternalRenderTheme.OSMARENDER;
 

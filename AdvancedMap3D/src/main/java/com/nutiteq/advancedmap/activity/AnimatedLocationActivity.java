@@ -87,13 +87,12 @@ public class AnimatedLocationActivity extends Activity {
 		if (retainObject != null) {
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
-			mapView.startMapping();
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
-		      Components components = new Components();
-		      mapView.setComponents(components);
-		      }
+		    Components components = new Components();
+		    mapView.setComponents(components);
+		}
 
 
         // 3. Define map layer for basemap - mandatory.

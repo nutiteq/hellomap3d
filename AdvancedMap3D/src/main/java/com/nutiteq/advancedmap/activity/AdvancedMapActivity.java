@@ -102,18 +102,17 @@ public class AdvancedMapActivity extends Activity {
 		if (retainObject != null) {
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
-			mapView.startMapping();
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
-		      Components components = new Components();
-		      // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
-		      // Optional - adjust stereo base. Default 1.0
-//		      components.options.setStereoModeStrength(1.0f);
-		      // Set rendering mode to stereo
-//		      components.options.setRenderMode(Options.STEREO_RENDERMODE);
-		      mapView.setComponents(components);
-		      }
+		    Components components = new Components();
+		    // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
+		    // Optional - adjust stereo base. Default 1.0
+//		    components.options.setStereoModeStrength(1.0f);
+		    // Set rendering mode to stereo
+//		    components.options.setRenderMode(Options.STEREO_RENDERMODE);
+		    mapView.setComponents(components);
+		}
 
 		// add event listener
 		MapEventListener mapListener = new MapEventListener(this);
@@ -229,6 +228,14 @@ public class AdvancedMapActivity extends Activity {
     protected void onStop() {
         super.onStop();
         mapView.stopMapping();
+    }
+    
+    @Override
+    protected void onDestroy() {
+      super.onDestroy();
+      mapView.setComponents(null);
+      mapView = null;
+      proj = null;
     }
     
     @Override
