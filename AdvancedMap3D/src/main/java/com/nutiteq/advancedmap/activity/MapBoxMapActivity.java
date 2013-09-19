@@ -71,7 +71,15 @@ public class MapBoxMapActivity extends Activity {
 		if (retainObject != null) {
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
-			return;
+			// recreate listener
+			UtfGridLayerEventListener oldListener = (UtfGridLayerEventListener ) mapView.getOptions().getMapListener();
+	        UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, oldListener.getLayer(), oldListener.getClickMarker());
+	        mapView.getOptions().setMapListener(mapListener);
+			mapView.getOptions().setMapListener(null);
+
+			LoadMetadataTask task = new MapBoxMapLayer.LoadMetadataTask(this, mapListener, MAPBOX_ACCOUNT, MAPBOX_MAPID);
+	        task.execute();
+	        return;
 		} else {
 			// 2. create and set MapView components - mandatory
 		    Components components = new Components();
@@ -109,14 +117,12 @@ public class MapBoxMapActivity extends Activity {
         mapView.getLayers().addLayer(clickMarkerLayer);
 		
         // add event listener
-		final UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, mapLayer, clickMarker);
+		UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, mapLayer, clickMarker);
         mapView.getOptions().setMapListener(mapListener);
 
 		// download Metadata, add legend and tooltip listener hooks
-
         LoadMetadataTask task = new MapBoxMapLayer.LoadMetadataTask(this, mapListener, MAPBOX_ACCOUNT, MAPBOX_MAPID);
         task.execute();
-        
         
 		// set initial map view camera - optional. "World view" is default
 		// Location: Estonia

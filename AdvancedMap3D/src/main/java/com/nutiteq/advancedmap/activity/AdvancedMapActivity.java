@@ -94,7 +94,8 @@ public class AdvancedMapActivity extends Activity {
 		Log.setTag("advancedmap");
 
 		// 1. Get the MapView from the Layout xml - mandatory
-		mapView = (MapView) findViewById(R.id.mapView);
+		this.mapView = (MapView) findViewById(R.id.mapView);
+        this.proj = new EPSG3857();
 
 		// Optional, but very useful: restore map state during device rotation,
 		// it is saved in onRetainNonConfigurationInstance() below
@@ -102,6 +103,9 @@ public class AdvancedMapActivity extends Activity {
 		if (retainObject != null) {
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
+            // add event listener
+            MapEventListener mapListener = new MapEventListener(this);
+            mapView.getOptions().setMapListener(mapListener);
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
@@ -112,18 +116,16 @@ public class AdvancedMapActivity extends Activity {
 		    // Set rendering mode to stereo
 //		    components.options.setRenderMode(Options.STEREO_RENDERMODE);
 		    mapView.setComponents(components);
+	        // add event listener
+	        MapEventListener mapListener = new MapEventListener(this);
+	        mapView.getOptions().setMapListener(mapListener);
 		}
 
-		// add event listener
-		MapEventListener mapListener = new MapEventListener(this);
-		mapView.getOptions().setMapListener(mapListener);
 
 		// 3. Define map layer for basemap - mandatory.
 		// Here we use MapQuest open tiles
 		// Almost all online tiled maps use EPSG3857 projection.
 		
-		this.proj = new EPSG3857();
-
 		baseMapQuest();
 
 		
@@ -228,14 +230,6 @@ public class AdvancedMapActivity extends Activity {
     protected void onStop() {
         super.onStop();
         mapView.stopMapping();
-    }
-    
-    @Override
-    protected void onDestroy() {
-      super.onDestroy();
-      mapView.setComponents(null);
-      mapView = null;
-      proj = null;
     }
     
     @Override
