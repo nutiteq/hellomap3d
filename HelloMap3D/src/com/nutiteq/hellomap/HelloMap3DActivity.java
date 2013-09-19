@@ -34,8 +34,8 @@ import com.nutiteq.vectorlayers.MarkerLayer;
  */
 public class HelloMap3DActivity extends Activity {
 
-
     private MapView mapView;
+    private LocationListener locationListener;
 
     @SuppressLint("NewApi")
     @Override
@@ -55,9 +55,9 @@ public class HelloMap3DActivity extends Activity {
         Components retainObject = (Components) getLastNonConfigurationInstance();
         if (retainObject != null) {
             // just restore configuration and update listener, skip other initializations
-          	mapView.setComponents(retainObject);
-          	MyLocationMapEventListener mapListener = (MyLocationMapEventListener) mapView.getOptions().getMapListener();
-          	mapListener.reset(this, mapView);
+            mapView.setComponents(retainObject);
+            MyLocationMapEventListener mapListener = (MyLocationMapEventListener) mapView.getOptions().getMapListener();
+            mapListener.reset(this, mapView);
             mapView.startMapping();
             return;
         } else {
@@ -141,11 +141,6 @@ public class HelloMap3DActivity extends Activity {
         // add event listener
         MyLocationMapEventListener mapListener = new MyLocationMapEventListener(this, mapView);
         mapView.getOptions().setMapListener(mapListener);
-   
-        // add GPS My Location functionality 
-        MyLocationCircle locationCircle = new MyLocationCircle();
-        mapListener.setLocationCircle(locationCircle);
-        initGps(locationCircle);
     }
 
     @Override
@@ -160,21 +155,34 @@ public class HelloMap3DActivity extends Activity {
         super.onStart();
         // 4. Start the map - mandatory.
         mapView.startMapping();
+
+        // add GPS My Location functionality 
+        MyLocationCircle locationCircle = new MyLocationCircle();
+        MyLocationMapEventListener mapListener = (MyLocationMapEventListener) mapView.getOptions().getMapListener();
+        mapListener.setLocationCircle(locationCircle);
+        initGps(locationCircle);
     }
 
     @Override
     protected void onStop() {
+        // remove GPS support, otherwise we will leak memory
+        deinitGps();
+
         super.onStop();
         // Note: it is recommended to move startMapping() call to onStart method and implement onStop method (call MapView.stopMapping() from onStop). 
         mapView.stopMapping();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
     
     protected void initGps(final MyLocationCircle locationCircle) {
         final Projection proj = mapView.getLayers().getBaseLayer().getProjection();
         
-        LocationListener locationListener = new LocationListener() 
-        {
+        locationListener = new LocationListener() {
+            @Override
             public void onLocationChanged(Location location) {
                  if (locationCircle != null) {
                      locationCircle.setLocation(proj, location);
@@ -186,14 +194,17 @@ public class HelloMap3DActivity extends Activity {
                  }
             }
 
+            @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
                 Log.debug("GPS onStatusChanged "+provider+" to "+status);
             }
 
+            @Override
             public void onProviderEnabled(String provider) {
                 Log.debug("GPS onProviderEnabled");
             }
 
+            @Override
             public void onProviderDisabled(String provider) {
                 Log.debug("GPS onProviderDisabled");
             }
@@ -206,6 +217,12 @@ public class HelloMap3DActivity extends Activity {
 
     }
     
+    protected void deinitGps() {
+        // remove listeners from location manager - otherwise we will leak memory
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        locationManager.removeUpdates(locationListener);    
+    }
+
     // adjust zooming to DPI, so texts on rasters will be not too small
     // useful for non-retina rasters, they would look like "digitally zoomed"
     private void adjustMapDpi() {

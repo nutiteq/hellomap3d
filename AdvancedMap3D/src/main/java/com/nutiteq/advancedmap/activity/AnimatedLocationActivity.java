@@ -58,6 +58,7 @@ public class AnimatedLocationActivity extends Activity {
 
 	private MapView mapView;
     private DriveTimeRegionLayer driveTimeLayer;
+    private LocationListener locationListener;
     
     int[] timeValues = new int[] { 1, 5, 10, 15, 30, 60, 90, 120, 240, 480 };
     
@@ -87,11 +88,19 @@ public class AnimatedLocationActivity extends Activity {
 		if (retainObject != null) {
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
+
+			// add map event listener
+            MyLocationMapEventListener mapListener = new MyLocationMapEventListener(this, mapView);
+            mapView.getOptions().setMapListener(mapListener);
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
 		    Components components = new Components();
 		    mapView.setComponents(components);
+
+		    // add map event listener
+	        MyLocationMapEventListener mapListener = new MyLocationMapEventListener(this, mapView);
+	        mapView.getOptions().setMapListener(mapListener);
 		}
 
 
@@ -172,27 +181,22 @@ public class AnimatedLocationActivity extends Activity {
         
         seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
+            @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
 
+            @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
 
+            @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 Log.debug("progress to "+progress+" time to "+timeValues[progress]);
                 textView.setText(timeLabels[progress]);
                 driveTimeLayer.setDistance((float)timeValues[progress]/60.0f);
             }
-        });
-        
+        });     
 		
-        // add map event listener to redraw map
-        MyLocationMapEventListener mapListener = new MyLocationMapEventListener(this, mapView);
-        mapView.getOptions().setMapListener(mapListener);
-   
-        // add GPS My Location functionality 
-        initGps(mapListener.getLocationCircle());
-
         // drivetime region layer
         StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(PolygonStyle.builder().setColor(Color.GREEN & 0x80FFFFFF).build());
         
@@ -210,37 +214,52 @@ public class AnimatedLocationActivity extends Activity {
     protected void onStart() {
         mapView.startMapping();
         super.onStart();
+
+        // add GPS My Location functionality 
+        initGps(((MyLocationMapEventListener) mapView.getOptions().getMapListener()).getLocationCircle());
     }
     
     @Override
     protected void onStop() {
+        // remove GPS listener, otherwise we will leak memory
+        deinitGps();
+
         super.onStop();
         mapView.stopMapping();
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     protected void initGps(final MyLocationMapEventListener.MyLocationCircle locationCircle) {
         final Projection proj = mapView.getLayers().getBaseLayer().getProjection();
         
-        LocationListener locationListener = new LocationListener() 
-        {
+        // create location listener
+        locationListener = new LocationListener() {
+            @Override
             public void onLocationChanged(Location location) {
                 Log.debug("GPS onLocationChanged "+location);
-                 if (locationCircle != null) {
-                     locationCircle.setLocation(proj, location);
-                     locationCircle.setVisible(true);
-                     mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(location.getLongitude(), location.getLatitude()));
-                     driveTimeLayer.setMapPos(new MapPos(location.getLongitude(), location.getLatitude()));
-                 }
+                if (locationCircle != null) {
+                    locationCircle.setLocation(proj, location);
+                    locationCircle.setVisible(true);
+                    mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(location.getLongitude(), location.getLatitude()));
+                    driveTimeLayer.setMapPos(new MapPos(location.getLongitude(), location.getLatitude()));
+                }
             }
 
+            @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
                 Log.debug("GPS onStatusChanged "+provider+" to "+status);
             }
 
+            @Override
             public void onProviderEnabled(String provider) {
                 Log.debug("GPS onProviderEnabled");
             }
 
+            @Override
             public void onProviderDisabled(String provider) {
                 Log.debug("GPS onProviderDisabled");
             }
@@ -258,7 +277,13 @@ public class AnimatedLocationActivity extends Activity {
 //        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 500, locationListener);
 //        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 500, locationListener);
 
-    } 
+    }
+    
+    protected void deinitGps() {
+        // remove listeners from location manager - otherwise we will leak memory
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        locationManager.removeUpdates(locationListener);    
+    }
     
     public MapView getMapView() {
         return mapView;
