@@ -47,7 +47,7 @@
   		<dependency>
 			<groupId>com.nutiteq</groupId>
 			<artifactId>nutiteq-3d-sdk</artifactId>
-			<version>2.3-SNAPSHOT</version>
+			<version>2.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jhlabs</groupId>
