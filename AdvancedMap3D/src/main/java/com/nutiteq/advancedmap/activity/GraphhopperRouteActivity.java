@@ -95,18 +95,15 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
 	        // add event listener
 	        RouteMapEventListener mapListener = new RouteMapEventListener(this);
 	        mapView.getOptions().setMapListener(mapListener);
-
-			mapView.startMapping();
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
-		      Components components = new Components();
-		      mapView.setComponents(components);
-		        // add event listener
-		        RouteMapEventListener mapListener = new RouteMapEventListener(this);
-		        mapView.getOptions().setMapListener(mapListener);
-
-		      }
+		    Components components = new Components();
+		    mapView.setComponents(components);
+		    // add event listener
+		    RouteMapEventListener mapListener = new RouteMapEventListener(this);
+		    mapView.getOptions().setMapListener(mapListener);
+		}
 
 
         // read filename from extras

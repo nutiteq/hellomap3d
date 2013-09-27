@@ -138,7 +138,6 @@ public class EditableCartoDbMapActivity extends Activity {
 				dbLayerLines = (EditableGeometryDbLayer) retainObject.layers.getLayers().get(1);
 			if (retainObject.layers.getLayers().size() > 2)
 				dbLayerPolygons = (EditableGeometryDbLayer) retainObject.layers.getLayers().get(2);
-			mapView.startMapping();
 			createEditorListener();
 			createUIButtons();
 			return;

@@ -68,14 +68,13 @@ public class RasterFileMapActivity extends Activity implements FilePickerActivit
 		if (retainObject != null) {
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
-			mapView.startMapping();
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
-		      Components components = new Components();
-		      // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
-		      mapView.setComponents(components);
-		      }
+		    Components components = new Components();
+		    // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
+		    mapView.setComponents(components);
+		}
 
 		
         TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
@@ -111,13 +110,11 @@ public class RasterFileMapActivity extends Activity implements FilePickerActivit
                 mapView.setZoom(1.0f);
                 
             }
-
     
     		// rotation - 0 = north-up
     		mapView.setRotation(0f);
             // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
     		mapView.setTilt(90.0f);
-    
     
     		// Activate some mapview options to make it smoother - optional
     		mapView.getOptions().setPreloading(false);
@@ -166,11 +163,8 @@ public class RasterFileMapActivity extends Activity implements FilePickerActivit
     		});
 
         } catch (IOException e) {
-
             Toast.makeText(this, "ERROR "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
         }
-
-		
 
 	}
 

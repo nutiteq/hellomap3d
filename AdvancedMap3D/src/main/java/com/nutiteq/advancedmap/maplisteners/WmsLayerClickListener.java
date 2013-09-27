@@ -3,6 +3,7 @@ package com.nutiteq.advancedmap.maplisteners;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
+import android.os.Handler;
 import android.webkit.WebView;
 
 import com.nutiteq.MapView;
@@ -11,6 +12,7 @@ import com.nutiteq.components.MapTile;
 import com.nutiteq.components.MutableMapPos;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.geometry.VectorElement;
+import com.nutiteq.layers.raster.UtfGridLayerInterface;
 import com.nutiteq.layers.raster.WmsLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
@@ -32,10 +34,11 @@ public class WmsLayerClickListener extends MapListener {
     private WmsLayer layer;
     private Marker clickMarker;
     private MapView mapView;
+    private Handler handler = new Handler();
 
 	// activity is often useful to handle click events
-	public WmsLayerClickListener(Activity activity, MapView mapView, WmsLayer mapLayer, Marker clickMarker) {
-		this.layer = mapLayer;
+	public WmsLayerClickListener(Activity activity, MapView mapView, WmsLayer layer, Marker clickMarker) {
+		this.layer = layer;
 		this.clickMarker = clickMarker;
 		this.mapView = mapView;
 	}
@@ -74,23 +77,31 @@ public class WmsLayerClickListener extends MapListener {
 		Log.debug("onMapClicked " + (new EPSG3857()).toWgs84(x, y).x + " "
 				+ (new EPSG3857()).toWgs84(x, y).y + " longClick: " + longClick);
 		
-		MutableMapPos tilePos = new MutableMapPos();
-		MapTile clickedTile = mapView.worldToMapTile(x, y, tilePos);
+		final MutableMapPos tilePos = new MutableMapPos();
+		final MapTile clickedTile = mapView.worldToMapTile(x, y, tilePos);
 
 		Log.debug("clicked tile "+clickedTile+" pos:"+tilePos);
-		
-        // TODO: getFeatureInfo does network request, so call it from another thread
 
-        String featureInfo = layer.getFeatureInfo(clickedTile, tilePos);
+		// perform network query to get feature info. This must be done in separate thread!
+		new Thread(new Runnable() {
+		  @Override
+		  public void run() {
+	          final String featureInfo = layer.getFeatureInfo(clickedTile, tilePos);
 
-        if (featureInfo == null) {
-            return;
-        } else {
-            updateMarker(new MapPos(x, y), featureInfo);
-        }
-		
+	          if (featureInfo == null) {
+	              return;
+	          } else {
+	              // update marker in UI thread 
+	              handler.post(new Runnable() {
+                      @Override
+                      public void run() {
+                          updateMarker(new MapPos(x, y), featureInfo);
+                      }
+	              });
+	          }
+		  }
+		}).start();
 	}
-	
 
     private void updateMarker(MapPos pos, String text) {
         
@@ -108,5 +119,13 @@ public class WmsLayerClickListener extends MapListener {
 	@Override
 	public void onMapMoved() {
 	}
+
+    public WmsLayer getLayer() {
+      return layer;
+    }
+    
+    public Marker getClickMarker() {
+      return clickMarker;
+    }
 
 }

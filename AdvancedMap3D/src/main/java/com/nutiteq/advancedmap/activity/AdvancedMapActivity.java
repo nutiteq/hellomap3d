@@ -94,7 +94,8 @@ public class AdvancedMapActivity extends Activity {
 		Log.setTag("advancedmap");
 
 		// 1. Get the MapView from the Layout xml - mandatory
-		mapView = (MapView) findViewById(R.id.mapView);
+		this.mapView = (MapView) findViewById(R.id.mapView);
+        this.proj = new EPSG3857();
 
 		// Optional, but very useful: restore map state during device rotation,
 		// it is saved in onRetainNonConfigurationInstance() below
@@ -102,29 +103,29 @@ public class AdvancedMapActivity extends Activity {
 		if (retainObject != null) {
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
-			mapView.startMapping();
+            // add event listener
+            MapEventListener mapListener = new MapEventListener(this);
+            mapView.getOptions().setMapListener(mapListener);
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
-		      Components components = new Components();
-		      // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
-		      // Optional - adjust stereo base. Default 1.0
-//		      components.options.setStereoModeStrength(1.0f);
-		      // Set rendering mode to stereo
-//		      components.options.setRenderMode(Options.STEREO_RENDERMODE);
-		      mapView.setComponents(components);
-		      }
+		    Components components = new Components();
+		    // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
+		    // Optional - adjust stereo base. Default 1.0
+//		    components.options.setStereoModeStrength(1.0f);
+		    // Set rendering mode to stereo
+//		    components.options.setRenderMode(Options.STEREO_RENDERMODE);
+		    mapView.setComponents(components);
+	        // add event listener
+	        MapEventListener mapListener = new MapEventListener(this);
+	        mapView.getOptions().setMapListener(mapListener);
+		}
 
-		// add event listener
-		MapEventListener mapListener = new MapEventListener(this);
-		mapView.getOptions().setMapListener(mapListener);
 
 		// 3. Define map layer for basemap - mandatory.
 		// Here we use MapQuest open tiles
 		// Almost all online tiled maps use EPSG3857 projection.
 		
-		this.proj = new EPSG3857();
-
 		baseMapQuest();
 
 		

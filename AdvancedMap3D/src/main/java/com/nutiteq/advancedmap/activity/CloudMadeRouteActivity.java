@@ -89,18 +89,15 @@ public class CloudMadeRouteActivity extends Activity implements RouteActivity{
 	        // add event listener
 	        RouteMapEventListener mapListener = new RouteMapEventListener(this);
 	        mapView.getOptions().setMapListener(mapListener);
-
-			mapView.startMapping();
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
-		      Components components = new Components();
-		      mapView.setComponents(components);
-		        // add event listener
-		        RouteMapEventListener mapListener = new RouteMapEventListener(this);
-		        mapView.getOptions().setMapListener(mapListener);
-
-		      }
+		    Components components = new Components();
+		    mapView.setComponents(components);
+		    // add event listener
+		    RouteMapEventListener mapListener = new RouteMapEventListener(this);
+		    mapView.getOptions().setMapListener(mapListener);
+	    }
 
 		// use special style for high-density devices
 		DisplayMetrics metrics = new DisplayMetrics();

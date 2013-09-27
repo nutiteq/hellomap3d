@@ -56,7 +56,6 @@ import com.nutiteq.vectorlayers.MarkerLayer;
 public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 
 	private MapView mapView;
-    private Marker clickMarker;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -77,13 +76,16 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 		if (retainObject != null) {
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
-			mapView.startMapping();
+			// recreate listener
+            UtfGridLayerEventListener oldListener = (UtfGridLayerEventListener ) mapView.getOptions().getMapListener();
+            UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, oldListener.getLayer(), oldListener.getClickMarker());
+            mapView.getOptions().setMapListener(mapListener);
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
-		      Components components = new Components();
-		      mapView.setComponents(components);
-		      }
+		    Components components = new Components();
+		    mapView.setComponents(components);
+		}
 
 
 		// 3. Define map layer for basemap - mandatory
@@ -147,7 +149,7 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
             labelView.layout(0, 0, 150, 150);
             Label label = new ViewLabel("", labelView, new Handler());
             
-            clickMarker = new Marker(new MapPos(0,0), label, markerStyle, null);
+            Marker clickMarker = new Marker(new MapPos(0,0), label, markerStyle, null);
             
             MarkerLayer clickMarkerLayer = new MarkerLayer(new EPSG3857());
             clickMarkerLayer.add(clickMarker);

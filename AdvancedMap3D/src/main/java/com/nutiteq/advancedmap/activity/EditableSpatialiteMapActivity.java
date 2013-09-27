@@ -147,7 +147,6 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 			// just restore configuration and update listener, skip other initializations
 			mapView.setComponents(retainObject);
 			dbEditableLayer = (EditableSpatialiteLayer) retainObject.layers.getLayers().get(0);
-			mapView.startMapping();
 			createEditorListener();
 			createUIButtons();
 			return;

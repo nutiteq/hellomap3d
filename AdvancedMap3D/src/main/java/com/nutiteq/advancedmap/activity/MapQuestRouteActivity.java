@@ -91,18 +91,15 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
 	        // add event listener
 	        RouteMapEventListener mapListener = new RouteMapEventListener(this);
 	        mapView.getOptions().setMapListener(mapListener);
-
-			mapView.startMapping();
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
-		      Components components = new Components();
-		      mapView.setComponents(components);
-		        // add event listener
-		        RouteMapEventListener mapListener = new RouteMapEventListener(this);
-		        mapView.getOptions().setMapListener(mapListener);
-
-		      }
+		    Components components = new Components();
+		    mapView.setComponents(components);
+		    // add event listener
+		    RouteMapEventListener mapListener = new RouteMapEventListener(this);
+		    mapView.getOptions().setMapListener(mapListener);
+		}
 
         TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 12,
                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");

@@ -14,6 +14,7 @@ import com.nutiteq.advancedmap.R;
 import com.nutiteq.advancedmap.R.drawable;
 import com.nutiteq.advancedmap.R.id;
 import com.nutiteq.advancedmap.R.layout;
+import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
 import com.nutiteq.advancedmap.maplisteners.WmsLayerClickListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
@@ -70,14 +71,17 @@ public class WmsMapActivity extends Activity {
 		if (retainObject != null) {
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
-			mapView.startMapping();
+			// re-create listener
+			WmsLayerClickListener oldListener = (WmsLayerClickListener) mapView.getOptions().getMapListener();
+	        WmsLayerClickListener mapListener = new WmsLayerClickListener(this, mapView, oldListener.getLayer(), oldListener.getClickMarker());
+	        mapView.getOptions().setMapListener(mapListener);
 			return;
 		} else {
 			// 2. create and set MapView components - mandatory
-		      Components components = new Components();
-		      // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
-		      mapView.setComponents(components);
-		      }
+		    Components components = new Components();
+		    // set stereo view: works if you rotate to landscape and device has HTC 3D or LG Real3D
+		    mapView.setComponents(components);
+		}
 
 
 		// 3. Define map layer for basemap - mandatory.
@@ -115,7 +119,7 @@ public class WmsMapActivity extends Activity {
         mapView.getLayers().addLayer(wmsLayer);
         
         // add event listener for clicks on WMS map
-		final WmsLayerClickListener mapListener = new WmsLayerClickListener(this, mapView, wmsLayer, clickMarker);
+		WmsLayerClickListener mapListener = new WmsLayerClickListener(this, mapView, wmsLayer, clickMarker);
         mapView.getOptions().setMapListener(mapListener);
 
 

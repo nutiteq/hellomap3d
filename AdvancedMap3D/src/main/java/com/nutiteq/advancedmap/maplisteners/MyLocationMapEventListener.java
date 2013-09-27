@@ -88,7 +88,7 @@ public class MyLocationMapEventListener extends MapListener {
         // this method is also called from non-UI thread
     }
 
-    public class MyLocationCircle {
+    public static class MyLocationCircle {
         private static final int NR_OF_CIRCLE_VERTS = 24;
         private FloatBuffer circleVertBuf;
         private float circleX;
