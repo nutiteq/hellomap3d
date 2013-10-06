@@ -166,7 +166,7 @@ public class AdvancedMapActivity extends Activity {
 		adjustMapDpi();
 		//mapView.getOptions().setTileSize(512);
 //		mapView.getOptions().setFPSIndicator(true);
-//		mapView.getOptions().setRasterTaskPoolSize(4);
+		mapView.getOptions().setRasterTaskPoolSize(8);
 		
 		// set sky bitmap - optional, default - white
 		mapView.getOptions().setSkyDrawMode(Options.DRAW_BITMAP);
@@ -267,6 +267,10 @@ public class AdvancedMapActivity extends Activity {
             baseLayerMapBoxStreetsLayer(true);
             break;
 
+        case R.id.menu_stamenterrain:
+            baseLayerStamenTerrainLayer();
+            break;
+
             
         case R.id.menu_bing:
             addBingBaseLayer("http://ecn.t3.tiles.virtualearth.net/tiles/r",
@@ -362,6 +366,7 @@ public class AdvancedMapActivity extends Activity {
        return true;
           
     }
+
 
     private void baseCustomProjectionLayer() {
       // FIXME jaak: here map base projection changes, but the other base maps will not set it back to correct one. 
@@ -509,6 +514,13 @@ public class AdvancedMapActivity extends Activity {
                  "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png"));
     }
 
+    private void baseLayerStamenTerrainLayer() {
+        mapView.getLayers().setBaseLayer(new TMSMapLayer(this.proj, 0, 19, 18,
+                "http://tile.stamen.com/terrain/", "/", ".png"));
+
+    }
+
+    
     private void baseBingAerial() {
         mapView.getLayers().setBaseLayer(new QuadKeyLayer(this.proj, 0, 19, 14, "http://ecn.t3.tiles.virtualearth.net/tiles/a",".jpeg?g=471&mkt=en-US"));
     }
