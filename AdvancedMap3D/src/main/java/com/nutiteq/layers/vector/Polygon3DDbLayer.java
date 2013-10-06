@@ -25,7 +25,7 @@ import com.nutiteq.vectorlayers.Polygon3DLayer;
  */
 public class Polygon3DDbLayer extends Polygon3DLayer {
   private static final float DEFAULT_HEIGHT = 2.0f;
-  private SpatialLiteDb spatialLite;
+  private SpatialLiteDbHelper spatialLite;
   private DBLayer dbLayer;
 
   private StyleSet<Polygon3DStyle> styleSet;
@@ -54,7 +54,7 @@ public class Polygon3DDbLayer extends Polygon3DLayer {
     this.heightFactor = heightFactor;
     this.maxObjects = maxObjects;
     minZoom = styleSet.getFirstNonNullZoomStyleZoom();
-    spatialLite = new SpatialLiteDb(dbPath);
+    spatialLite = new SpatialLiteDbHelper(dbPath);
     Map<String, DBLayer> dbLayers = spatialLite.qrySpatialLayerMetadata();
     for (String layerKey : dbLayers.keySet()) {
       DBLayer layer = dbLayers.get(layerKey);
