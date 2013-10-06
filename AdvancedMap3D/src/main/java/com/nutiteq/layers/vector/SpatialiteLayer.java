@@ -32,7 +32,7 @@ import com.nutiteq.vectorlayers.GeometryLayer;
  */
 public class SpatialiteLayer extends GeometryLayer {
 
-    private SpatialLiteDb spatialLite;
+    private SpatialLiteDbHelper spatialLite;
     private DBLayer dbLayer;
 
     private StyleSet<PointStyle> pointStyleSet;
@@ -68,7 +68,7 @@ public class SpatialiteLayer extends GeometryLayer {
             StyleSet<LineStyle> lineStyleSet,
             StyleSet<PolygonStyle> polygonStyleSet) {
         
-        this(proj, new SpatialLiteDb(dbPath), tableName, geomColumnName,
+        this(proj, new SpatialLiteDbHelper(dbPath), tableName, geomColumnName,
                 userColumns, maxObjects, pointStyleSet, lineStyleSet,
                 polygonStyleSet);
     }
@@ -87,7 +87,7 @@ public class SpatialiteLayer extends GeometryLayer {
      * @param polygonStyleSet Style for polygons
      */
 
-    public SpatialiteLayer(Projection proj, SpatialLiteDb spatialLiteDb,
+    public SpatialiteLayer(Projection proj, SpatialLiteDbHelper spatialLiteDb,
             String tableName, String geomColumnName, String[] userColumns,
             int maxObjects, StyleSet<PointStyle> pointStyleSet,
             StyleSet<LineStyle> lineStyleSet,
@@ -111,7 +111,7 @@ public class SpatialiteLayer extends GeometryLayer {
      * @param lineStyleSet Style for lines
      * @param polygonStyleSet Style for polygons
      */
-    public SpatialiteLayer(Projection proj, SpatialLiteDb spatialLiteDb,
+    public SpatialiteLayer(Projection proj, SpatialLiteDbHelper spatialLiteDb,
                 String tableName, String geomColumnName, String[] userColumns,
                 String filter, int maxObjects, StyleSet<PointStyle> pointStyleSet,
                 StyleSet<LineStyle> lineStyleSet,

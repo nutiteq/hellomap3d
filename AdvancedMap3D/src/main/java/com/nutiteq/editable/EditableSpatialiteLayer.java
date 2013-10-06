@@ -10,7 +10,7 @@ import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Geometry;
-import com.nutiteq.layers.vector.SpatialLiteDb;
+import com.nutiteq.layers.vector.SpatialLiteDbHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LineStyle;
@@ -29,7 +29,7 @@ import com.nutiteq.utils.LongHashMap;
  *
  */
 public class EditableSpatialiteLayer extends EditableGeometryDbLayer {
-	private SpatialLiteDb spatialLite;
+	private SpatialLiteDbHelper spatialLite;
 	private DBLayer dbLayer;
 
 	private int maxObjects;
@@ -55,7 +55,7 @@ public class EditableSpatialiteLayer extends EditableGeometryDbLayer {
 		this.userColumns = userColumns;
 		this.maxObjects = maxObjects;
 
-		spatialLite = new SpatialLiteDb(dbPath);
+		spatialLite = new SpatialLiteDbHelper(dbPath);
 		Map<String, DBLayer> dbLayers = spatialLite.qrySpatialLayerMetadata();
         for (String layerKey : dbLayers.keySet()) {
             DBLayer layer = dbLayers.get(layerKey);

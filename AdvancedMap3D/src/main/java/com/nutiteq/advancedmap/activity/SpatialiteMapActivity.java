@@ -30,7 +30,7 @@ import com.nutiteq.components.Options;
 import com.nutiteq.db.DBLayer;
 import com.nutiteq.filepicker.FilePickerActivity;
 import com.nutiteq.layers.raster.TMSMapLayer;
-import com.nutiteq.layers.vector.SpatialLiteDb;
+import com.nutiteq.layers.vector.SpatialLiteDbHelper;
 import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
@@ -63,7 +63,7 @@ public class SpatialiteMapActivity extends Activity implements FilePickerActivit
     private MapView mapView;
     private String[] tableList = new String[1];
     private EPSG3857 proj;
-    private SpatialLiteDb spatialLite;
+    private SpatialLiteDbHelper spatialLite;
     private Map<String, DBLayer> dbMetaData;
 
     
@@ -184,7 +184,7 @@ public class SpatialiteMapActivity extends Activity implements FilePickerActivit
 
     private void showSpatialiteTableList(String dbPath) {
 
-        spatialLite = new SpatialLiteDb(dbPath);
+        spatialLite = new SpatialLiteDbHelper(dbPath);
         dbMetaData = spatialLite.qrySpatialLayerMetadata();
 
         ArrayList<String> tables = new ArrayList<String>();

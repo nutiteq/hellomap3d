@@ -31,7 +31,7 @@ import com.nutiteq.utils.WktWriter;
  * @author jaak
  * 
  */
-public class SpatialLiteDb {
+public class SpatialLiteDbHelper {
     private static final int DEFAULT_SRID = 4326;
     private static final int SDK_SRID = 3857;
 
@@ -40,7 +40,7 @@ public class SpatialLiteDb {
     private String sdk_proj4text;
     private String spatialiteVersion;
 
-    public SpatialLiteDb(String dbPath) {
+    public SpatialLiteDbHelper(String dbPath) {
 
         if (!new File(dbPath).exists()) {
             Log.error("File not found: " + dbPath);

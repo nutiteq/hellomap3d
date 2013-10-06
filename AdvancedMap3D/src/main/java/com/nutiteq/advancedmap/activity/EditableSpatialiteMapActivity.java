@@ -48,7 +48,7 @@ import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.geometry.VectorElement;
-import com.nutiteq.layers.vector.SpatialLiteDb;
+import com.nutiteq.layers.vector.SpatialLiteDbHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterlayers.TMSMapLayer;
@@ -115,7 +115,7 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 	private ImageButton addPointBtn;
 	private ImageButton deletePointBtn;
 
-    private SpatialLiteDb spatialLite;
+    private SpatialLiteDbHelper spatialLite;
 
     private Map<String, DBLayer> dbMetaData;
 
@@ -233,7 +233,7 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 
 
 	private void showSpatialiteTableList() {
-	    spatialLite = new SpatialLiteDb(dbPath);
+	    spatialLite = new SpatialLiteDbHelper(dbPath);
 	    dbMetaData = spatialLite.qrySpatialLayerMetadata();
 
 	    ArrayList<String> tables = new ArrayList<String>();
