@@ -21,6 +21,7 @@
     <activity android:name=".activity.VectorFileMapActivity"></activity>
     <activity android:name=".activity.EditableCartoDbMapActivity"></activity>
     <activity android:name=".activity.EditableSpatialiteMapActivity"></activity>
+    <activity android:name=".activity.EditableVectorMapActivity"></activity>
     <activity android:name=".activity.CartoDbVectorMapActivity"></activity>
     <activity android:name=".activity.MapBoxMapActivity"></activity>
     <activity android:name=".activity.MapsForgeMapActivity"></activity>

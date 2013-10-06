@@ -199,7 +199,6 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
         OgrLayer ogrLayer;
         try {
             ogrLayer = new OgrLayer(proj, dbPath, table, 500, pointStyleSet, lineStyleSet, polygonStyleSet);
-            ogrLayer.printSupportedDrivers();
             mapView.getLayers().addLayer(ogrLayer);
 
             Envelope extent = ogrLayer.getDataExtent();
