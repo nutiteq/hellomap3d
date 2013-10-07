@@ -200,6 +200,7 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 	}
 
 	private synchronized void onElementChanged(Geometry element) {
+	    element.setLabel(createLabel(element.userData));
 		for (long id : currentElementMap.keys().toArray()) {
 			if (currentElementMap.get(id) == element) {
 				editedElementMap.put(id, element);
