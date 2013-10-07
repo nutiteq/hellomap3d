@@ -106,7 +106,7 @@ public class UtfGridLayerEventListener extends MapListener {
 
 		Log.debug("clicked tile "+clickedTile+" pos:"+tilePos);
 		
-		if(layer instanceof UtfGridLayerInterface){
+		if(layer instanceof UtfGridLayerInterface && layer.hasUtfGridTooltips()){
 
 		    Map<String, String> toolTips =  layer.getUtfGridTooltips(clickedTile, tilePos, this.template);
 

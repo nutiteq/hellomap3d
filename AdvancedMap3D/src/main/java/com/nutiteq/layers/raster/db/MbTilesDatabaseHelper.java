@@ -200,20 +200,13 @@ public class MbTilesDatabaseHelper {
     return ret;
   }
 
-  private Cursor getGridValue(int x, int y, int zoom, String key, int radius) {
-    if(radius==0){
+  private Cursor getGridValue(int x, int y, int zoom, String key) {
       return database.query(DATA_TABLE, new String[] { KEY_GRID_JSON }, KEY_ZOOM + " = ? and " + KEY_X + " = ? and "
           + KEY_Y + " = ?" + " and " + KEY_GRID_NAME + " = ? AND " + KEY_GRID_JSON + "<>'{\"NAME\":\"\"}'",
           new String[] { String.valueOf(zoom),
           String.valueOf(x), String.valueOf(y), key}, null, null,
           null);
-    }else{
-      return database.query(DATA_TABLE, new String[] { KEY_GRID_JSON }, KEY_ZOOM + " = ? AND " + KEY_X + " >= ? AND "
-          + KEY_X + " <= ? AND " + KEY_Y + " >= ? AND " + KEY_Y + " <= ? AND " + KEY_GRID_NAME + " = ?",
-          new String[] { String.valueOf(zoom),
-          String.valueOf(x-radius),String.valueOf(x+radius), String.valueOf(y-radius), String.valueOf(y+radius), key}, null, null,
-          null);
-    }
+ 
   }
 
   public Cursor getTables(){
@@ -265,9 +258,9 @@ public Map<String, String> getUtfGridTooltips(MapTile clickedTile, MutableMapPos
           return null;
       }
 
-      int id = UtfGridHelper.utfGridCode(tileSize, clickedX, clickedY, grid);
+      int id = UtfGridHelper.utfGridCode(tileSize, clickedX, clickedY, grid, UTFGRID_RADIUS);
 
-      String gridDataJson = getUTFGridValue(clickedTile.x, clickedTile.y, (int)zoom, grid.keys[id], UTFGRID_RADIUS);
+      String gridDataJson = getUTFGridValue(clickedTile.x, (1 << (zoom)) - 1 - clickedTile.y, (int)zoom, grid.keys[id]);
       if(gridDataJson == null){
           Log.d(LOG_TAG, "no gridDataJson value for "+id+ " in "+Arrays.toString(grid.keys)+ " tile:"+clickedTile.x +" "+ clickedTile.y);
           return null;
@@ -350,14 +343,15 @@ public Map<String, String> getUtfGridTooltips(MapTile clickedTile, MutableMapPos
   }
 
 
-  private String getUTFGridValue(int x, int y, int zoom, String string, int radius) {
+  // decodes grid value for particular tile
+  private String getUTFGridValue(int x, int y, int zoom, String string) {
    //   for (AndroidTileDatabaseHelper db: databases){
-          Cursor c = getGridValue(x, y , zoom, string, radius);
+          Cursor c = getGridValue(x, y , zoom, string);
           while (c.moveToNext()){
               return c.getString(c.getColumnIndex(KEY_GRID_JSON));
           }
      // }
       return null; // if not found from any of the db-s
   }
-  
+
 }

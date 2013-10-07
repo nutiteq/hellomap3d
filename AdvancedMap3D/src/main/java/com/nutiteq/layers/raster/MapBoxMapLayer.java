@@ -147,7 +147,7 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
             return null;
         }
 
-        int id = UtfGridHelper.utfGridCode(256, clickedX, clickedY, grid);
+        int id = UtfGridHelper.utfGridCode(256, clickedX, clickedY, grid, 0);
         if(grid.keys[id].equals("")){
             Log.debug("no utfGrid data here");
             return null;
@@ -270,6 +270,11 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
                 e.printStackTrace();
             }
         return null;
+    }
+
+    @Override
+    public boolean hasUtfGridTooltips() {
+        return true;
     }
 
     

@@ -7,7 +7,6 @@ import java.util.Map;
 import android.content.Context;
 
 import com.nutiteq.components.Components;
-import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MapTile;
 import com.nutiteq.components.MutableMapPos;
 import com.nutiteq.layers.raster.db.MbTilesDatabaseHelper;
@@ -28,6 +27,7 @@ public class MBTilesMapLayer extends RasterLayer implements UtfGridLayerInterfac
 
     private MbTilesDatabaseHelper db;
     private boolean tmsY;
+    private boolean hasUtfGrid = false;
     
     private class DbFetchTileTask extends FetchTileTask {
 
@@ -89,6 +89,8 @@ public class MBTilesMapLayer extends RasterLayer implements UtfGridLayerInterfac
         db = new MbTilesDatabaseHelper(ctx, path);
         db.open();
 
+        hasUtfGrid = db.getMetadata().containsKey("template");
+        
     }
 
     @Override
@@ -140,5 +142,10 @@ public class MBTilesMapLayer extends RasterLayer implements UtfGridLayerInterfac
     public Map<String, String> getUtfGridTooltips(MapTile clickedTile, MutableMapPos tilePos, String template) {
         // template will be loaded in database request, ignored here
         return db.getUtfGridTooltips(clickedTile, tilePos);
+    }
+
+    @Override
+    public boolean hasUtfGridTooltips() {
+        return hasUtfGrid;
     }
 }

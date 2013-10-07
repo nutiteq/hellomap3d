@@ -78,15 +78,34 @@ public class UtfGridHelper {
      * @param clickedX 
      * @param clickedY
      * @param grid
+     * @param utfgridRadius 
      * @return
      */
     public static int utfGridCode(int tileSize, int clickedX, int clickedY,
-            MBTileUTFGrid grid) {
+            MBTileUTFGrid grid, int utfgridRadius) {
         
         double factor = tileSize / grid.grid.length;
-        int row = (int) (clickedY / factor);
-        int col = (int) (clickedX / factor);
-        int id = grid.grid[row].codePointAt(col);
+        
+        int id = 0;
+        if(utfgridRadius == 0){
+            // quick lookup
+            int row = (int) Math.round(clickedY / factor);
+            int col = (int) Math.round(clickedX / factor);
+            
+            id = grid.grid[row].codePointAt(col);
+        }else{
+            // search with pixel tolerance
+            int rowMin = (int) Math.round((clickedY - utfgridRadius) / factor);
+            int rowMax = (int) Math.round((clickedY + utfgridRadius)  / factor);
+            int colMin = (int) Math.round((clickedX - utfgridRadius) / factor);
+            int colMax = (int) Math.round((clickedX + utfgridRadius)  / factor);
+            
+            // find first match, may be not the closest one really
+            for(int row = rowMin; row<=rowMax && id == 0;row++)
+                for(int col = colMin; col<=colMax && id == 0;col++){
+                    id = grid.grid[row].codePointAt(col);        
+                }
+        }
         
         // decode id
         if(id >= 93) --id;
