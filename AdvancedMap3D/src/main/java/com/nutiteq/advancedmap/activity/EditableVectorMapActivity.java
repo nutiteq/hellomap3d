@@ -92,9 +92,6 @@ public class EditableVectorMapActivity extends Activity implements FilePickerAct
 
 	private EditableMapView mapView;
 
-    private static final int DIALOG_TABLE_LIST = 1;
-    private static final int DIALOG_NO_TABLES = 2;
-	
 	private Stack<Memento> undoStack = new Stack<Memento>(); 
 	private Stack<Memento> redoStack = new Stack<Memento>(); 
 
@@ -110,15 +107,7 @@ public class EditableVectorMapActivity extends Activity implements FilePickerAct
 	private ImageButton addPointBtn;
 	private ImageButton deletePointBtn;
 
-    private OgrHelper ogrSource;
-
-    private Map<String, DBLayer> dbMetaData;
-
-    private String[] tableList;
-
     private EditableOgrVectorLayer dbEditableLayer;
-
-    private String dbFileName;
 
     private String dbPath;
 
@@ -542,7 +531,6 @@ public class EditableVectorMapActivity extends Activity implements FilePickerAct
 	}
 
 	private void modifyElementProperties(final VectorElement selectedElement) {
-		final EditableOgrVectorLayer layer = (EditableOgrVectorLayer) selectedElement.getLayer();
 		if (selectedElement.userData == null) {
 			selectedElement.userData = new HashMap<String, String>();
 		}
