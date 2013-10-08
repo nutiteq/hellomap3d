@@ -26,6 +26,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.ZoomControls;
 
 import com.nutiteq.advancedmap.R;
 import com.nutiteq.components.Bounds;
@@ -35,7 +36,6 @@ import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.components.Vector;
-import com.nutiteq.db.DBLayer;
 import com.nutiteq.editable.EditableMapView;
 import com.nutiteq.editable.EditableOgrVectorLayer;
 import com.nutiteq.filepicker.FilePickerActivity;
@@ -44,7 +44,6 @@ import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.geometry.VectorElement;
-import com.nutiteq.layers.vector.OgrHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterlayers.TMSMapLayer;
@@ -76,6 +75,12 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
  */
 @SuppressLint("NewApi")
 public class EditableVectorMapActivity extends Activity implements FilePickerActivity{
+    
+    // about 2000 lines/polygons for high-end devices is fine, for older devices <1000
+    // for points 5000 would work fine with almost any device
+    
+    private static final int MAX_OBJECTS = 500;
+
     /**
      * Keeps state of editable elements to enable undo/redo functions
      * 
@@ -190,6 +195,19 @@ public class EditableVectorMapActivity extends Activity implements FilePickerAct
 		mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
 
+        ZoomControls zoomControls = (ZoomControls) findViewById(R.id.zoomcontrols);
+        // set zoomcontrols listeners to enable zooming
+        zoomControls.setOnZoomInClickListener(new View.OnClickListener() {
+            public void onClick(final View v) {
+                mapView.zoomIn();
+            }
+        });
+        zoomControls.setOnZoomOutClickListener(new View.OnClickListener() {
+            public void onClick(final View v) {
+                mapView.zoomOut();
+            }
+        });
+		
 	    // read filename from extras
         Bundle b = getIntent().getExtras();
         dbPath = b.getString("selectedFile");
@@ -207,7 +225,7 @@ public class EditableVectorMapActivity extends Activity implements FilePickerAct
             this.userColumns = new String[]{"name"};
             
             dbEditableLayer = new EditableOgrVectorLayer(new EPSG3857(), dbPath, null,
-                    false, 2000, new StyleSet<PointStyle>(pointStyle), 
+                    false, MAX_OBJECTS, new StyleSet<PointStyle>(pointStyle), 
                     new StyleSet<LineStyle>(lineStyle), 
                     new StyleSet<PolygonStyle>(polygonStyle), this);
             mapView.getLayers().addLayer(dbEditableLayer);

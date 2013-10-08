@@ -244,7 +244,7 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
             String legend = metaData.optString("legend");
             if(legend != null && !legend.equals("")){
                 Log.debug("legend: "+legend);
-                UiUtils.addWebView((RelativeLayout) this.activity.findViewById(R.id.mainView), this.activity, legend);
+                UiUtils.addWebView((RelativeLayout) this.activity.findViewById(R.id.mainView), this.activity, legend, 320, 300);
             }else{
                 Log.debug("no legend found");
             }
