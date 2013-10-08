@@ -4,18 +4,18 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.HashMap;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 import android.widget.ZoomControls;
-
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
 import com.nutiteq.advancedmap.R.drawable;
@@ -57,7 +57,7 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 
 	private MapView mapView;
 
-	@Override
+    @Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
@@ -65,7 +65,7 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 
 		// enable logging for troubleshooting - optional
 		Log.enableAll();
-		Log.setTag("hellomap");
+		Log.setTag("mbtilesmap");
 
 		// 1. Get the MapView from the Layout xml - mandatory
 		mapView = (MapView) findViewById(R.id.mapView);
@@ -101,7 +101,7 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
             HashMap<String, String> dbMetaData = dbLayer.getDatabase().getMetadata();
             String legend = dbMetaData.get("legend");
             if(legend != null && !legend.equals("")){
-                UiUtils.addWebView((RelativeLayout) findViewById(R.id.mainView), this, legend);
+                UiUtils.addWebView((RelativeLayout) findViewById(R.id.mainView), this, legend, 320, 300);
             }
             
             String center = dbMetaData.get("center");
@@ -146,7 +146,13 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
             
             
             // It is important to set size, exception will come otherwise
-            labelView.layout(0, 0, 150, 150);
+            // we adjust it to the DPI density
+            
+            DisplayMetrics metrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            float density = metrics.density;
+            
+            labelView.layout(0, 0, (int) (150 * density), (int) (120 * density));
             Label label = new ViewLabel("", labelView, new Handler());
             
             Marker clickMarker = new Marker(new MapPos(0,0), label, markerStyle, null);

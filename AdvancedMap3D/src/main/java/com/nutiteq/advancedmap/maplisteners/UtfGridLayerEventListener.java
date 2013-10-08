@@ -127,7 +127,7 @@ public class UtfGridLayerEventListener extends MapListener {
             
             String text = "";
             if(toolTips.containsKey(UtfGridHelper.TEMPLATED_TEASER_KEY)){
-                // strio HTML from the teaser, so it can be shown in normal 
+                // strip HTML from the teaser, so it can be shown in normal 
 //              String strippedTeaser = android.text.Html.fromHtml(toolTips.get(UtfGridHelper.TEMPLATED_TEASER_KEY).replaceAll("\\<.*?>","")).toString().replaceAll("\\p{C}", "").trim();
 //              Toast.makeText(activity, strippedTeaser, Toast.LENGTH_SHORT).show();
 //                Log.debug("show label ")
@@ -141,7 +141,11 @@ public class UtfGridLayerEventListener extends MapListener {
             WebView webView = ((WebView)((ViewLabel)clickMarker.getLabel()).getView());
             Log.debug("showing html: "+text);
             webView.loadDataWithBaseURL("file:///android_asset/",UiUtils.HTML_HEAD+text+UiUtils.HTML_FOOT, "text/html", "UTF-8",null);
-            
+            Log.debug("webView.getWidth() = "+webView.getWidth());
+            Log.debug("webView.getHeight() = "+webView.getHeight());
+            Log.debug("webView.getContentHeight() = "+webView.getContentHeight());
+            // try to resize view based on real content, but this does not work properly
+            //webView.layout(0, 0, webView.getWidth(), webView.getContentHeight());
             clickMarker.userData = toolTips;
             
         }

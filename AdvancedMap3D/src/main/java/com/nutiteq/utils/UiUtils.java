@@ -11,12 +11,12 @@ public class UiUtils {
     public static final String HTML_FOOT = "</body></html>";
 
     // add WebView to a layout (for the map legend)
-    public static void addWebView(RelativeLayout mainLayout, Activity activity, String html){
+    public static void addWebView(RelativeLayout mainLayout, Activity activity, String html, int w, int h){
 
      // first container layout
      RelativeLayout legendLayout = new RelativeLayout(activity);
      RelativeLayout.LayoutParams legendLayoutparams = 
-             new RelativeLayout.LayoutParams(320, 300);
+             new RelativeLayout.LayoutParams(w, h);
      legendLayoutparams.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
      legendLayoutparams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
      legendLayoutparams.setMargins(15, 15, 0, 0);
@@ -32,7 +32,7 @@ public class UiUtils {
               return super.shouldOverrideUrlLoading(view, url);
            }
        });
-     webView.layout(0, 0, 320, 300);
+     webView.layout(0, 0, w, h);
      webView.loadDataWithBaseURL("file:///android_asset/",HTML_HEAD+html+HTML_FOOT, "text/html", "UTF-8",null);
      legendLayout.addView(webView);
      

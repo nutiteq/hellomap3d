@@ -53,7 +53,7 @@ public class MbTilesDatabaseHelper {
 
   private static final String TABLE_WHERE = KEY_ZOOM + " = ? and " + KEY_X + " = ? and " + KEY_Y + " = ?";
   
-  private static final int UTFGRID_RADIUS = 10; // pixels
+  private static final int UTFGRID_RADIUS = 20; // pixels
 
   private static class DatabaseHelper extends SQLiteOpenHelper {
     public DatabaseHelper(final Context context, final String databaseName) {
@@ -254,15 +254,18 @@ public Map<String, String> getUtfGridTooltips(MapTile clickedTile, MutableMapPos
       MBTileUTFGrid grid = getUTFGrid((int)zoom, clickedTile.x, (1 << (zoom)) - 1 - clickedTile.y);
 
       if(grid == null){ // no grid found
-          Log.d(LOG_TAG,"no UTFgrid in the MBTiles database");
+          Log.w(LOG_TAG,"no UTFgrid in the MBTiles database");
           return null;
       }
 
       int id = UtfGridHelper.utfGridCode(tileSize, clickedX, clickedY, grid, UTFGRID_RADIUS);
-
+      if(id<0){
+          Log.w(LOG_TAG, "not valid "+id+ " as grid code");
+          return null;
+      }
       String gridDataJson = getUTFGridValue(clickedTile.x, (1 << (zoom)) - 1 - clickedTile.y, (int)zoom, grid.keys[id]);
       if(gridDataJson == null){
-          Log.d(LOG_TAG, "no gridDataJson value for "+id+ " in "+Arrays.toString(grid.keys)+ " tile:"+clickedTile.x +" "+ clickedTile.y);
+          Log.w(LOG_TAG, "no gridDataJson value for "+id+ " in "+Arrays.toString(grid.keys)+ " tile:"+clickedTile.x +" "+ clickedTile.y);
           return null;
       }
       try {

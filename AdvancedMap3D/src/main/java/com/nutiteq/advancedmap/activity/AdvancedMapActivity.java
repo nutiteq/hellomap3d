@@ -1,7 +1,7 @@
 package com.nutiteq.advancedmap.activity;
 
 import java.io.InputStream;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -15,7 +15,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.ZoomControls;
-
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
 import com.nutiteq.advancedmap.maplisteners.MapEventListener;
@@ -80,7 +79,8 @@ public class AdvancedMapActivity extends Activity {
 		}
 	}
 
-	@Override
+	@SuppressLint("NewApi")
+    @Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
@@ -166,7 +166,7 @@ public class AdvancedMapActivity extends Activity {
 		adjustMapDpi();
 		//mapView.getOptions().setTileSize(512);
 //		mapView.getOptions().setFPSIndicator(true);
-		mapView.getOptions().setRasterTaskPoolSize(8);
+		mapView.getOptions().setRasterTaskPoolSize(4);
 		
 		// set sky bitmap - optional, default - white
 		mapView.getOptions().setSkyDrawMode(Options.DRAW_BITMAP);

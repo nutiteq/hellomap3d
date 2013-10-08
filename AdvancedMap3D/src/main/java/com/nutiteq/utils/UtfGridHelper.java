@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 public class UtfGridHelper {
 
+    private static final int UTFGRID_NODATA = 32;
     public static final String TEMPLATED_FULL_KEY = "templated_full";
     public static final String TEMPLATED_TEASER_KEY = "templated_teaser";
     public static final String TEMPLATED_LOCATION_KEY = "templated_location";
@@ -86,31 +87,32 @@ public class UtfGridHelper {
         
         double factor = tileSize / grid.grid.length;
         
-        int id = 0;
-        if(utfgridRadius == 0){
-            // quick lookup
-            int row = (int) Math.round(clickedY / factor);
-            int col = (int) Math.round(clickedX / factor);
+        // quick lookup with exact location
+        int row = (int) Math.round(clickedY / factor);
+        int col = (int) Math.round(clickedX / factor);
+
+        int id = grid.grid[row].codePointAt(col);
+      
+        // search nearby if not found
+        // TODO: approximate search works within one tile only, so if click is near tile border, and data is in neighbor tile, then it will not be found
+        if(utfgridRadius > 0 && id == UTFGRID_NODATA){
+            // search with pixel tolerance, limit to range [0...grid.grid.length[
+            int rowMin = Math.max((int) Math.round((clickedY - utfgridRadius) / factor), 0);
+            int rowMax = Math.min((int) Math.round((clickedY + utfgridRadius)  / factor), grid.grid.length-1);
+            int colMin = Math.max((int) Math.round((clickedX - utfgridRadius) / factor), 0);
+            int colMax = Math.min((int) Math.round((clickedX + utfgridRadius)  / factor), grid.grid.length-1);
             
-            id = grid.grid[row].codePointAt(col);
-        }else{
-            // search with pixel tolerance
-            int rowMin = (int) Math.round((clickedY - utfgridRadius) / factor);
-            int rowMax = (int) Math.round((clickedY + utfgridRadius)  / factor);
-            int colMin = (int) Math.round((clickedX - utfgridRadius) / factor);
-            int colMax = (int) Math.round((clickedX + utfgridRadius)  / factor);
-            
-            // find first match, may be not the closest one really
-            for(int row = rowMin; row<=rowMax && id == 0;row++)
-                for(int col = colMin; col<=colMax && id == 0;col++){
-                    id = grid.grid[row].codePointAt(col);        
+            // find first match, may be not the closest one really.
+            for(row = rowMin; row<=rowMax && id == UTFGRID_NODATA;row++)
+                for(col = colMin; col<=colMax && id == UTFGRID_NODATA;col++){
+                    id = grid.grid[row].codePointAt(col);
                 }
         }
         
         // decode id
         if(id >= 93) --id;
         if(id >= 35) --id;
-        id -= 32;
+        id -= UTFGRID_NODATA;
         return id;
     }
 }
