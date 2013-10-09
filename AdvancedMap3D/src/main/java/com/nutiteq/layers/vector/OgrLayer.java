@@ -7,6 +7,7 @@ import org.gdal.ogr.ogr;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
@@ -76,13 +77,14 @@ public class OgrLayer extends GeometryLayer {
 	 * @param pointStyleSet styleset for point objects
 	 * @param lineStyleSet styleset for line objects
 	 * @param polygonStyleSet styleset for polygon objects
+	 * @param labelStyle 
 	 * @throws IOException file not found or other problem opening OGR datasource
 	 */
 	public OgrLayer(Projection proj, String fileName, String tableName, 
-			int maxElements, StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet) throws IOException {
+			int maxElements, StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, LabelStyle labelStyle) throws IOException {
 		super(proj);
 		
-		this.ogrHelper = new OgrHelper(fileName, tableName, proj, this, pointStyleSet, lineStyleSet, polygonStyleSet, maxElements, false);
+		this.ogrHelper = new OgrHelper(fileName, tableName, proj, this, pointStyleSet, lineStyleSet, polygonStyleSet, labelStyle, maxElements, false);
 		
 		// ogr stdout redirect
 		new Thread() {

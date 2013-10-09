@@ -17,7 +17,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -47,6 +49,7 @@ import com.nutiteq.geometry.VectorElement;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterlayers.TMSMapLayer;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
@@ -216,7 +219,18 @@ public class EditableVectorMapActivity extends Activity implements FilePickerAct
         PointStyle pointStyle = PointStyle.builder().setColor(Color.GREEN).setSize(0.2f).build();
         LineStyle lineStyle = LineStyle.builder().setWidth(0.1f).setColor(Color.BLUE).build();
         PolygonStyle polygonStyle = PolygonStyle.builder().setColor(Color.BLUE | Color.GREEN).build();
-
+        
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        float dpi = metrics.density;
+        
+        LabelStyle labelStyle = 
+                LabelStyle.builder()
+                       .setEdgePadding((int) (12 * dpi))
+                       .setLinePadding((int) (6 * dpi))
+                       .setTitleFont(Typeface.create("Arial", Typeface.BOLD), (int) (16 * dpi))
+                       .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), (int) (13 * dpi))
+                       .build();
         
         // create editable layer
         try {
@@ -227,7 +241,7 @@ public class EditableVectorMapActivity extends Activity implements FilePickerAct
             dbEditableLayer = new EditableOgrVectorLayer(new EPSG3857(), dbPath, null,
                     false, MAX_OBJECTS, new StyleSet<PointStyle>(pointStyle), 
                     new StyleSet<LineStyle>(lineStyle), 
-                    new StyleSet<PolygonStyle>(polygonStyle), this);
+                    new StyleSet<PolygonStyle>(polygonStyle), labelStyle, this);
             mapView.getLayers().addLayer(dbEditableLayer);
 
             // zoom map to data extent

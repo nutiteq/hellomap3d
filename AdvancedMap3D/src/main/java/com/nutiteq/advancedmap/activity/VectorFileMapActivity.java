@@ -7,6 +7,7 @@ import java.io.IOException;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -29,6 +30,7 @@ import com.nutiteq.layers.vector.OgrLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
@@ -183,6 +185,10 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
         // set styles for all 3 object types: point, line and polygon
         int minZoom = 5;
 
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        float dpi = metrics.density;
+        
         StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
         Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
         PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(color).setPickingSize(0.2f).build();
@@ -196,14 +202,21 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
         StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
         polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
 
+        LabelStyle labelStyle = 
+                LabelStyle.builder()
+                       .setEdgePadding((int) (12 * dpi))
+                       .setLinePadding((int) (6 * dpi))
+                       .setTitleFont(Typeface.create("Arial", Typeface.BOLD), (int) (16 * dpi))
+                       .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), (int) (13 * dpi))
+                       .build();
+
+        
         OgrLayer ogrLayer;
         try {
-            ogrLayer = new OgrLayer(proj, dbPath, table, 500, pointStyleSet, lineStyleSet, polygonStyleSet);
+            ogrLayer = new OgrLayer(proj, dbPath, table, 500, pointStyleSet, lineStyleSet, polygonStyleSet, labelStyle);
             mapView.getLayers().addLayer(ogrLayer);
 
             Envelope extent = ogrLayer.getDataExtent();
-            DisplayMetrics metrics = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(metrics);   
             int screenHeight = metrics.heightPixels;
             int screenWidth = metrics.widthPixels;
 

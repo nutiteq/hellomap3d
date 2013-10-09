@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ZoomControls;
@@ -58,6 +59,10 @@ public class WmsMapActivity extends Activity {
 
 		setContentView(R.layout.main);
 
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        float dpi = metrics.density;
+		
 		// enable logging for troubleshooting - optional
 		Log.enableAll();
 		Log.setTag("mapbox");
@@ -98,7 +103,7 @@ public class WmsMapActivity extends Activity {
         //  define label as WebView to show HTML
         WebView labelView = new WebView(this); 
         // It is important to set size, exception will come otherwise
-        labelView.layout(0, 0, 300, 150);
+        labelView.layout(0, 0, (int)(300 * dpi), (int)(150 * dpi));
         Label label = new ViewLabel("", labelView, new Handler());
         
         Marker clickMarker = new Marker(new MapPos(0,0), label, markerStyle, null);

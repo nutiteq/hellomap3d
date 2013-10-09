@@ -30,6 +30,7 @@ import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
@@ -61,6 +62,7 @@ public class OgrHelper {
     private StyleSet<LineStyle> lineStyleSet;
     private StyleSet<PolygonStyle> polygonStyleSet;
     private int maxElements;
+    private LabelStyle labelStyle;
     private static Vector<String> knownExtensions = new Vector<String>();
     
     private static final String EPSG_3785_WKT = "PROJCS[\"Google Maps Global Mercator\",    GEOGCS[\"WGS 84\",        DATUM[\"WGS_1984\",            SPHEROID[\"WGS 84\",6378137,298.257223563,                AUTHORITY[\"EPSG\",\"7030\"]],            AUTHORITY[\"EPSG\",\"6326\"]],        PRIMEM[\"Greenwich\",0,            AUTHORITY[\"EPSG\",\"8901\"]],        UNIT[\"degree\",0.01745329251994328,            AUTHORITY[\"EPSG\",\"9122\"]],        AUTHORITY[\"EPSG\",\"4326\"]],    PROJECTION[\"Mercator_2SP\"],    PARAMETER[\"standard_parallel_1\",0],    PARAMETER[\"latitude_of_origin\",0],    PARAMETER[\"central_meridian\",0],    PARAMETER[\"false_easting\",0],    PARAMETER[\"false_northing\",0],    UNIT[\"Meter\",1],    EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs\"],    AUTHORITY[\"EPSG\",\"3785\"]]";
@@ -75,12 +77,14 @@ public class OgrHelper {
     public OgrHelper(String fileName, String tableName, Projection proj,
             VectorLayer vectorLayer, StyleSet<PointStyle> pointStyleSet,
             StyleSet<LineStyle> lineStyleSet,
-            StyleSet<PolygonStyle> polygonStyleSet, int maxElements, boolean update) throws IOException {
+            StyleSet<PolygonStyle> polygonStyleSet, LabelStyle labelStyle, int maxElements, boolean update) throws IOException {
         this.projection = proj;
         this.vectorLayer = vectorLayer;
         this.pointStyleSet = pointStyleSet;
         this.lineStyleSet = lineStyleSet;
         this.polygonStyleSet = polygonStyleSet;
+        this.labelStyle = labelStyle;
+        
         this.maxElements = maxElements;
         
         // open dataset
@@ -358,7 +362,7 @@ public class OgrHelper {
             labelTxt.append(entry.getKey() + ": " + entry.getValue()+"\n");
         }
         
-        return new DefaultLabel(layer.GetName(), labelTxt.toString());
+        return new DefaultLabel(layer.GetName(), labelTxt.toString(), labelStyle);
     }
     
 

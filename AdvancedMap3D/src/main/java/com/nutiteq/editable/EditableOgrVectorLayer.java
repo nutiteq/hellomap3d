@@ -18,6 +18,7 @@ import com.nutiteq.geometry.Polygon;
 import com.nutiteq.layers.vector.OgrHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
@@ -38,6 +39,7 @@ public class EditableOgrVectorLayer extends EditableGeometryDbLayer {
 
 
     private OgrHelper ogrHelper;
+    private LabelStyle labelStyle;
 
     static {
         ogr.RegisterAll();
@@ -65,15 +67,17 @@ public class EditableOgrVectorLayer extends EditableGeometryDbLayer {
      * @param pointStyleSet required if layer has points
      * @param lineStyleSet required if layer has lines
      * @param polygonStyleSet required if layer has lines
+	 * @param labelStyle 
      * @param context Activity who controls the layer
 	 * @throws IOException 
 	 */
 	public EditableOgrVectorLayer(Projection proj, String fileName, String tableName, boolean multiGeometry, int maxObjects, 
-			StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, Context context) throws IOException {
+			StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, LabelStyle labelStyle, Context context) throws IOException {
 		super(proj, pointStyleSet, lineStyleSet, polygonStyleSet, context);
 
-		this.ogrHelper = new OgrHelper(fileName, tableName, proj, this, pointStyleSet, lineStyleSet, polygonStyleSet, maxObjects, true);
-	       
+		this.ogrHelper = new OgrHelper(fileName, tableName, proj, this, pointStyleSet, lineStyleSet, polygonStyleSet, labelStyle, maxObjects, true);
+	    this.labelStyle = labelStyle;
+	    
 	       if (pointStyleSet != null) {
 	            minZoom = Math.min(minZoom, pointStyleSet.getFirstNonNullZoomStyleZoom());
 	        }
@@ -143,7 +147,7 @@ public class EditableOgrVectorLayer extends EditableGeometryDbLayer {
 			labelTxt.append(entry.getKey() + ": " + entry.getValue() + "\n");
 		}
 
-		return new DefaultLabel("Data:", labelTxt.toString());
+		return new DefaultLabel("Data:", labelTxt.toString(), labelStyle);
 	}
 	
 	@SuppressWarnings("unchecked")

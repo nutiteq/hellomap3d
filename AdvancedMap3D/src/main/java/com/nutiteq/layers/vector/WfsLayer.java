@@ -28,19 +28,17 @@ import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
-import com.nutiteq.geometry.Text;
 import com.nutiteq.layers.Layer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.tasks.Task;
 import com.nutiteq.ui.DefaultLabel;
-import com.nutiteq.ui.Label;
 import com.nutiteq.vectorlayers.GeometryLayer;
-import com.nutiteq.vectorlayers.VectorLayer;
 
 /**
  * Reads WFS using json format 
@@ -55,6 +53,7 @@ public class WfsLayer extends GeometryLayer {
   private float minZoom = Float.MAX_VALUE;
   private String baseUrl;
   private List<Feature> visibleFeatures = new LinkedList<Feature>();
+  private LabelStyle labelStyle;
 
   // classes for GSON
   public static class Properties {
@@ -109,7 +108,7 @@ public class WfsLayer extends GeometryLayer {
 
       for(Feature feature : features.features){
         com.nutiteq.geometry.Geometry newObject = null;
-        DefaultLabel label = new DefaultLabel(feature.properties.name, "OSM Id: "+feature.properties.osm_id+" type:"+feature.properties.type);
+        DefaultLabel label = new DefaultLabel(feature.properties.name, "OSM Id: "+feature.properties.osm_id+" type:"+feature.properties.type, labelStyle);
 
         if (feature.geometry.type.equals("LineString")) {
           List<MapPos> linePos = new ArrayList<MapPos>();
@@ -171,13 +170,15 @@ public class WfsLayer extends GeometryLayer {
    * @throws IOException file not found or other problem opening OGR datasource
    */
   public WfsLayer(Projection proj, String baseUrl,
-      StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet) {
+      StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, LabelStyle labelStyle) {
     super(proj);
     this.baseUrl = baseUrl;
     this.pointStyleSet = pointStyleSet;
     this.lineStyleSet = lineStyleSet;
     this.polygonStyleSet = polygonStyleSet;
-
+    this.labelStyle = labelStyle;
+    
+    
     if (pointStyleSet != null) {
       minZoom = Math.min(minZoom, pointStyleSet.getFirstNonNullZoomStyleZoom());
     }

@@ -3,22 +3,23 @@ package com.nutiteq.advancedmap.activity;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.R.drawable;
-import com.nutiteq.advancedmap.R.id;
-import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.components.Components;
+import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.layers.vector.WfsLayer;
 import com.nutiteq.layers.vector.WfsLayer.Feature;
 import com.nutiteq.layers.vector.WfsTextLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.StyleSet;
@@ -40,12 +41,17 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
 public class WfsMapActivity extends Activity {
 
 	private MapView mapView;
+    private float dpi;
 
     
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        dpi = metrics.density;
+		
 		setContentView(R.layout.main);
 
 		// enable logging for troubleshooting - optional
@@ -82,26 +88,38 @@ public class WfsMapActivity extends Activity {
         Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
         StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>(PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(Color.BLUE).setPickingSize(0.2f).build());
         
-        WfsLayer wfsLayer = new WfsLayer(new EPSG3857(), wfsUrl, pointStyleSet, roadLineStyleSet, null);
+        LabelStyle labelStyle = 
+                LabelStyle.builder()
+                       .setEdgePadding((int) (12 * dpi))
+                       .setLinePadding((int) (6 * dpi))
+                       .setTitleFont(Typeface.create("Arial", Typeface.BOLD), (int) (16 * dpi))
+                       .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), (int) (13 * dpi))
+                       .build();
+        
+        WfsLayer wfsLayer = new WfsLayer(new EPSG3857(), wfsUrl, pointStyleSet, roadLineStyleSet, null, labelStyle);
         mapView.getLayers().setBaseLayer(wfsLayer);
 
         // add label layer for WFS streets
         // 1. define style callback for labels
         // disabled - requires experimental SDK
+        
+
+
+        
         WfsTextLayer textLayer = new WfsTextLayer(mapView.getLayers().getBaseLayer().getProjection(), wfsLayer) {
         
             private StyleSet<TextStyle> styleSetRoad = new StyleSet<TextStyle>(
                     TextStyle.builder().setAllowOverlap(false)
                             .setOrientation(TextStyle.GROUND_ORIENTATION)
                             .setAnchorY(TextStyle.CENTER)
-                            .setSize(25).build());
+                            .setSize((int) (25 * dpi)).build());
             
             private StyleSet<TextStyle> styleSetAmenity = new StyleSet<TextStyle>(
                     TextStyle
                             .builder()
                             .setAllowOverlap(false)
                             .setOrientation(TextStyle.CAMERA_BILLBOARD_ORIENTATION)
-                            .setSize(30)
+                            .setSize((int) (30 * dpi))
                             .setColor(Color.argb(255, 100, 100, 100))
                             .setPlacementPriority(5).build());
 
@@ -126,6 +144,7 @@ public class WfsMapActivity extends Activity {
         
 		// Location: San Francisco
         mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.416667f, 37.766667f));
+        mapView.setFocusPoint(new MapPos(2753791.3f, 8275296.0f)); // Tallinn
         
 		// rotation - 0 = north-up
 		mapView.setRotation(0f);
