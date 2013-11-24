@@ -9,6 +9,7 @@ import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MutableEnvelope;
 import com.nutiteq.components.Vector;
+import com.nutiteq.components.Vector3D;
 import com.nutiteq.geometry.Polygon3D;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
@@ -287,7 +288,7 @@ public class Polygon3DRoof extends Polygon3D {
           float roofHeight1 = (float) roof.calculateRoofPointHeight(mapPos0.x, mapPos0.y) + height;
           float roofHeight2 = (float) roof.calculateRoofPointHeight(mapPos1.x, mapPos1.y) + height;
           
-          // Caclulate the vertex coordinates
+          // Calculate the vertex coordinates
           verts[index + 0] = (float) (mapPos0.x - originMapPosInternal.x);
           verts[index + 1] = (float) (mapPos0.y - originMapPosInternal.y);
           verts[index + 2] = roofHeight1;
@@ -310,7 +311,7 @@ public class Polygon3DRoof extends Polygon3D {
 
           // Calculate lighting intensity for the wall
           Vector surface = new Vector(mapPos1.x - mapPos0.x, mapPos1.y - mapPos0.y, 0).getNormalized2D();
-          float intensity = calculateIntensity(new Vector(-surface.y, surface.x));
+          float intensity = calculateIntensity(new Vector(-surface.y, surface.x, 0));
           index = sideIndex * 3;
           for (int tsj2 = 0; tsj2 < 6; tsj2++) {
         	int index2 = index + tsj2 * 3;
@@ -369,6 +370,12 @@ public class Polygon3DRoof extends Polygon3D {
 
     setInternalState(new Polygon3DInternalState(originMapPosInternal, originMapPosInternal, 
         verts, colors, new Envelope(envInternal)));
+  }
+  
+  protected float calculateIntensity(Vector norm) {
+    Vector3D lightDir = Const.LIGHT_DIR;
+    float intensity = (float) -Vector3D.dotProduct(new Vector3D(norm.x, norm.y, norm.z), lightDir) * 0.5f + 0.5f;
+    return (1 - Const.AMBIENT_FACTOR) * intensity + Const.AMBIENT_FACTOR;
   }
  
   private void scaleGeometry(Geometry geometry, float scale) {

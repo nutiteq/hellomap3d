@@ -46,7 +46,7 @@ public class SearchQueryResults extends ListActivity
     private ProgressDialog progressDialog;
     private Marker[] searchResultPlaces;
 
-    private ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();;
+    private ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
     
     /** Called with the activity is first created.
     * 
@@ -65,15 +65,14 @@ public class SearchQueryResults extends ListActivity
         }
         getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
         	
-    @Override
-    public void onItemClick(AdapterView aparent, View v, int position, long id) {
-        Log.debug("Clicked: " + position );
-        AddressSearchActivity.setSearchResult(searchResultPlaces[position]);
-        finish();
+          @Override
+          public void onItemClick(AdapterView aparent, View v, int position, long id) {
+            Log.debug("Clicked: " + position );
+            AddressSearchActivity.setSearchResult(searchResultPlaces[position]);
+            finish();
+          }
 
-    }
-
-} );
+        } );
 
     }
     

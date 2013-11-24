@@ -53,7 +53,7 @@ public class OgrLayer extends GeometryLayer {
 	        
 	        @Override
 	        public void run() {
-	          setVisibleElementsList(ogrHelper.loadData(envelope, zoom));
+	          setVisibleElements(ogrHelper.loadData(envelope, zoom));
 	        }
 
 	        @Override

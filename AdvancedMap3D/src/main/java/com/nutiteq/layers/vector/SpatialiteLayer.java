@@ -182,7 +182,7 @@ public class SpatialiteLayer extends GeometryLayer {
         }
 
         if (zoom < minZoom) {
-            setVisibleElementsList(null);
+            setVisibleElements(null);
             return;
         }
 
@@ -287,7 +287,7 @@ public class SpatialiteLayer extends GeometryLayer {
         }
 
         Log.debug("added verteces: "+numVert);
-        setVisibleElementsList(objects);
+        setVisibleElements(objects);
         
     }
 }

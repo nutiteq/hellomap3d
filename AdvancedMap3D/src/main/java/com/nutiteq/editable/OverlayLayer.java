@@ -26,12 +26,8 @@ public class OverlayLayer extends GeometryLayer {
 	}
 
 	public List<Geometry> getAll() {
-		modifyLock.lock();
-		try {
+		synchronized (elements) {
 			return new ArrayList<Geometry>(elements);
-		}
-		finally {
-			modifyLock.unlock();
 		}
 	}
 
@@ -45,25 +41,17 @@ public class OverlayLayer extends GeometryLayer {
 			element.attachToLayer(this);
 			element.setActiveStyle(getCurrentZoomLevel());
 		}
-		modifyLock.lock();
-		try {
+        synchronized (elements) {
 			this.elements = new ArrayList<Geometry>(elements);
-			setVisibleElementsList(this.elements);
-		}
-		finally {
-			modifyLock.unlock();
+			setVisibleElements(this.elements);
 		}
 	}
 
 	@Override
 	public void clear() {
-		modifyLock.lock();
-		try {
+		synchronized (elements) {
 			this.elements.clear();
-			setVisibleElementsList(this.elements);
-		}
-		finally {
-			modifyLock.unlock();
+			setVisibleElements(this.elements);
 		}
 
 		for (Geometry element : this.elements) {
@@ -78,25 +66,17 @@ public class OverlayLayer extends GeometryLayer {
 			element.setActiveStyle(getCurrentZoomLevel());
 		}
 
-		modifyLock.lock();
-		try {
+		synchronized (elements) {
 			this.elements.addAll(elements);
-			setVisibleElementsList(this.elements);
-		}
-		finally {
-			modifyLock.unlock();
+			setVisibleElements(this.elements);
 		}
 	}
 
 	@Override
 	public void removeAll(Collection<? extends Geometry> elements) {
-		modifyLock.lock();
-		try {
+		synchronized (elements) {
 			this.elements.removeAll(elements);
-			setVisibleElementsList(this.elements);
-		}
-		finally {
-			modifyLock.unlock();
+			setVisibleElements(this.elements);
 		}
 
 		for (Geometry element : elements) {
@@ -107,8 +87,7 @@ public class OverlayLayer extends GeometryLayer {
 	@Override
 	public Envelope getDataExtent() {
 		MutableEnvelope envelope = new MutableEnvelope(super.getDataExtent());
-		modifyLock.lock();
-		try {
+		synchronized (elements) {
 			for (Geometry element : elements) {
 				Envelope internalEnv = element.getInternalState().envelope;
 				envelope.add(projection.fromInternal(internalEnv.minX, internalEnv.minY));
@@ -116,9 +95,6 @@ public class OverlayLayer extends GeometryLayer {
 				envelope.add(projection.fromInternal(internalEnv.maxX, internalEnv.maxY));
 				envelope.add(projection.fromInternal(internalEnv.minX, internalEnv.maxY));
 			}
-		}
-		finally {
-			modifyLock.unlock();
 		}
 		return new Envelope(envelope);
 	}
@@ -138,12 +114,8 @@ public class OverlayLayer extends GeometryLayer {
 
 	@Override
 	public void calculateVisibleElements(Envelope envelope, int zoom) {
-		modifyLock.lock();
-		try {
-			setVisibleElementsList(elements);
-		}
-		finally {
-			modifyLock.unlock();
+		synchronized (elements) {
+			setVisibleElements(elements);
 		}
 	}
 }

@@ -21,7 +21,7 @@ import com.nutiteq.advancedmap.maplisteners.MapEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
-import com.nutiteq.components.Vector;
+import com.nutiteq.components.Vector3D;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.geometry.NMLModel;
 import com.nutiteq.layers.raster.PackagedMapLayer;
@@ -142,7 +142,7 @@ public class AdvancedMapActivity extends Activity {
 //        mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(26.483230800000037, 42.550218000000044));
 
 		// rotation - 0 = north-up
-		mapView.setRotation(0f);
+		mapView.setMapRotation(0f);
 		// zoom - 0 = world, like on most web maps
 		mapView.setZoom(16.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
@@ -152,7 +152,7 @@ public class AdvancedMapActivity extends Activity {
 		// Estonia 
 //		mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.74314f,59.43635f));
 //        mapView.setZoom(6.0f);
-//        mapView.setRotation(0);
+//        mapView.setMapRotation(0);
 //        mapView.setTilt(90f);
 
 		// Activate some mapview options to make it smoother - optional
@@ -550,7 +550,7 @@ public class AdvancedMapActivity extends Activity {
              NMLModel model = new NMLModel(mapPos, null, modelStyleSet, nmlModel, null);
 
              // set size, 10 is clear oversize, but this makes it visible
-             model.setScale(new Vector(10, 10, 10));
+             model.setScale(new Vector3D(10, 10, 10));
              
              nmlModelLayer.add(model);
          }

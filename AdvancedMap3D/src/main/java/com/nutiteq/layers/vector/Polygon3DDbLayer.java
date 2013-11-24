@@ -86,7 +86,7 @@ public class Polygon3DDbLayer extends Polygon3DLayer {
     }
 
     if (zoom < minZoom) {
-      setVisibleElementsList(null);
+      setVisibleElements(null);
       return;
     }
 
@@ -113,6 +113,6 @@ public class Polygon3DDbLayer extends Polygon3DLayer {
     }
     Log.debug("Triangulation time: " + (System.currentTimeMillis() - start));
 
-    setVisibleElementsList(newVisibleElementsList);
+    setVisibleElements(newVisibleElementsList);
   }
 }

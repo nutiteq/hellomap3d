@@ -65,7 +65,7 @@ public class LauncherList extends ListActivity{
     private String[] getStringArray() {
         String[] sampleNames = new String[samples.length];
         for(int i=0; i < samples.length; i++) {
-            sampleNames[i] = ((Class) samples[i][0]).getSimpleName();
+            sampleNames[i] = ((Class<?>) samples[i][0]).getSimpleName();
         }
         return sampleNames;
     }
@@ -76,9 +76,9 @@ public class LauncherList extends ListActivity{
             try {
 
                 Intent myIntent = new Intent(LauncherList.this,
-                        (Class) samples[position][1]);
+                        (Class<?>) samples[position][1]);
 
-                Class activityToRun = (Class) samples[position][0];
+                Class<?> activityToRun = (Class<?>) samples[position][0];
                 FilePickerActivity activityInstance = (FilePickerActivity) activityToRun
                         .newInstance();
 
@@ -88,7 +88,7 @@ public class LauncherList extends ListActivity{
                         .getFileFilter());
 
                 Bundle b = new Bundle();
-                b.putString("class", ((Class) samples[position][0]).getName());
+                b.putString("class", ((Class<?>) samples[position][0]).getName());
                 myIntent.putExtras(b);
                 startActivityForResult(myIntent, 1);
             } catch (IllegalAccessException e) {
@@ -99,7 +99,7 @@ public class LauncherList extends ListActivity{
 
         } else {
             Intent myIntent = new Intent(LauncherList.this,
-                    (Class) samples[position][0]);
+                    (Class<?>) samples[position][0]);
             this.startActivity(myIntent);
         }
     }

@@ -132,7 +132,7 @@ public class WfsLayer extends GeometryLayer {
         newVisibleElementsList.add(newObject);
         newVisibleFeatureMap.put(feature.properties.osm_id, feature);
       }
-      setVisibleElementsList(newVisibleElementsList);
+      setVisibleElements(newVisibleElementsList);
       visibleFeatures = new ArrayList<Feature>(newVisibleFeatureMap.values());
 
       Components components = getComponents();

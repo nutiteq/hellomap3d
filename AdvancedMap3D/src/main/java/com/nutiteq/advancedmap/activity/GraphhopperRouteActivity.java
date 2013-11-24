@@ -164,7 +164,7 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
         markerLayer.add(stopMarker);
 
         // rotation - 0 = north-up
-        mapView.setRotation(0f);
+        mapView.setMapRotation(0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
         mapView.setTilt(90.0f);
 

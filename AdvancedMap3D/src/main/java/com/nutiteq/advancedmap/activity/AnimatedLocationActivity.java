@@ -1,7 +1,5 @@
 package com.nutiteq.advancedmap.activity;
 
-import java.util.List;
-
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
@@ -18,9 +16,6 @@ import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.R.drawable;
-import com.nutiteq.advancedmap.R.id;
-import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.advancedmap.maplisteners.MyLocationMapEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
@@ -116,7 +111,7 @@ public class AnimatedLocationActivity extends Activity {
         mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.5f, 58.3f));
 
         // rotation - 0 = north-up
-        mapView.setRotation(0f);
+        mapView.setMapRotation(0f);
         // zoom - 0 = world, like on most web maps
         mapView.setZoom(5.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.

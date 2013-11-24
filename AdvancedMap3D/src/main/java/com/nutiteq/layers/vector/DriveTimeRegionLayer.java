@@ -160,7 +160,7 @@ public class DriveTimeRegionLayer extends GeometryLayer {
         
         long timeEnd = System.currentTimeMillis();
         Log.debug("DriveTimeRegionLayer loaded dist:"+ distance+" h, calc time ms:"+(timeEnd-timeStart));
-        setVisibleElementsList(currentVisibleElementsList);
+        setVisibleElements(currentVisibleElementsList);
         
         // stop spinner status bar
         activity.runOnUiThread(new Runnable() {

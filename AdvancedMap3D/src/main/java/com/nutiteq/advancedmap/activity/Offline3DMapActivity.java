@@ -1,17 +1,14 @@
 package com.nutiteq.advancedmap.activity;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.StringEntity;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -28,7 +25,7 @@ import com.nutiteq.components.Components;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
-import com.nutiteq.components.Vector;
+import com.nutiteq.components.Vector3D;
 import com.nutiteq.filepicker.FilePickerActivity;
 import com.nutiteq.geometry.NMLModel;
 import com.nutiteq.layers.raster.TMSMapLayer;
@@ -135,7 +132,7 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
         
 
 		// rotation - 0 = north-up
-		mapView.setRotation(0f);
+		mapView.setMapRotation(0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
 		mapView.setTilt(90.0f);
 
@@ -229,7 +226,7 @@ public class Offline3DMapActivity extends Activity implements FilePickerActivity
         NMLModel model = new NMLModel(mapPos, null, modelStyleSet, nmlModel, null);
 
         // set size, 10 is clear oversize, but this makes it visible
-        model.setScale(new Vector(10, 10, 10));
+        model.setScale(new Vector3D(10, 10, 10));
         
         nmlModelLayer.add(model);
         

@@ -194,7 +194,7 @@ public class MapFragment extends Fragment {
     // Save camera/viewpoint state
     state.putDoubleArray("focusPoint", mapView.getFocusPoint().toArray());
     state.putFloat("zoom", mapView.getZoom());
-    state.putFloat("rotation", mapView.getRotation());
+    state.putFloat("rotation", mapView.getMapRotation());
     state.putFloat("tilt", mapView.getTilt());
 
     // Save markers
@@ -214,7 +214,7 @@ public class MapFragment extends Fragment {
       // Restore camera state
       mapView.setFocusPoint(new MapPos(savedInstanceState.getDoubleArray("focusPoint")));
       mapView.setZoom(savedInstanceState.getFloat("zoom"));
-      mapView.setRotation(savedInstanceState.getFloat("rotation"));
+      mapView.setMapRotation(savedInstanceState.getFloat("rotation"));
       mapView.setTilt(savedInstanceState.getFloat("tilt"));
 
       // Restore markers
@@ -227,7 +227,7 @@ public class MapFragment extends Fragment {
       // Initialize camera state 
       mapView.setFocusPoint(baseLayer.getProjection().fromWgs84(25.4426f, 42.7026f));
       mapView.setZoom(8.0f);
-      mapView.setRotation(0f);
+      mapView.setMapRotation(0f);
       mapView.setTilt(90.0f);
 
       // Create random markers, centered around focus point

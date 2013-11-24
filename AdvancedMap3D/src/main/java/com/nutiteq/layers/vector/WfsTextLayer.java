@@ -75,7 +75,7 @@ public abstract class WfsTextLayer extends TextLayer {
     }
 
     // Update visible elements 
-    setVisibleElementsList(newVisibleElementsList);
+    setVisibleElements(newVisibleElementsList);
 
     // Release visible elements from last frame that are no longer used
     oldVisibleElementsSet.removeAll(newVisibleElementsList);

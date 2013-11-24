@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.HashMap;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -18,9 +17,6 @@ import android.widget.RelativeLayout;
 import android.widget.ZoomControls;
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.R.drawable;
-import com.nutiteq.advancedmap.R.id;
-import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
 import com.nutiteq.components.Bounds;
 import com.nutiteq.components.Components;
@@ -172,7 +168,7 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
         
 		// set initial map view camera - optional. "World view" is default
         		// rotation - 0 = north-up
-		mapView.setRotation(0f);
+		mapView.setMapRotation(0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
 		mapView.setTilt(90.0f);
 

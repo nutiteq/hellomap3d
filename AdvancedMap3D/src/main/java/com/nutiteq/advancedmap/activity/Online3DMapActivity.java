@@ -95,7 +95,7 @@ public class Online3DMapActivity extends Activity {
         online3DLayer(DATASET);
         
 		// rotation - 0 = north-up
-		//mapView.setRotation(-96.140175f);
+		//mapView.setMapRotation(-96.140175f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
 		//mapView.setTilt(30.0f);
 
@@ -159,7 +159,7 @@ public class Online3DMapActivity extends Activity {
         Log.debug("x " + getMapView().getFocusPoint().x);
         Log.debug("y " + getMapView().getFocusPoint().y);
         Log.debug("tilt " + getMapView().getTilt());
-        Log.debug("rotation " + getMapView().getRotation());
+        Log.debug("rotation " + getMapView().getMapRotation());
         Log.debug("zoom " + getMapView().getZoom());
         
         mapView.stopMapping();

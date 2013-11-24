@@ -147,7 +147,7 @@ public class WfsMapActivity extends Activity {
         mapView.setFocusPoint(new MapPos(2753791.3f, 8275296.0f)); // Tallinn
         
 		// rotation - 0 = north-up
-		mapView.setRotation(0f);
+		mapView.setMapRotation(0f);
 		// zoom - 0 = world, like on most web maps
 		mapView.setZoom(16.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.

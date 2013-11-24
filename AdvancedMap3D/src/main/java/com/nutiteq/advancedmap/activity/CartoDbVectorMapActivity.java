@@ -9,9 +9,6 @@ import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.R.drawable;
-import com.nutiteq.advancedmap.R.id;
-import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
@@ -85,7 +82,7 @@ public class CartoDbVectorMapActivity extends Activity {
         //mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.5f, 58.3f));
         mapView.setFocusPoint(new MapPos(2745202.3f, 8269676.0f));
 		// rotation - 0 = north-up
-		mapView.setRotation(0f);
+		mapView.setMapRotation(0f);
 		// zoom - 0 = world, like on most web maps
 		mapView.setZoom(9.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.

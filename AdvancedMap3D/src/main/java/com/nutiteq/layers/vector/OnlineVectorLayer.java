@@ -161,7 +161,7 @@ public class OnlineVectorLayer extends GeometryLayer {
         
         long timeEnd = System.currentTimeMillis();
         Log.debug("OnlineVector loaded N:"+ newVisibleElementsList.size()+" time ms:"+(timeEnd-timeStart));
-        setVisibleElementsList(newVisibleElementsList);
+        setVisibleElements(newVisibleElementsList);
         
         
     }

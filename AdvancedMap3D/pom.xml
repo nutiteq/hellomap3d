@@ -9,8 +9,7 @@
 	<name>AdvancedMap3D</name>
 
 	<properties>
-		<platform.version> 4.1.1.4
-		</platform.version>
+		<platform.version>2.2</platform.version>
 	</properties>
 
 	<repositories>
@@ -31,12 +30,13 @@
 	</repositories>
 	
 	<dependencies>
-		<dependency>
+<!--  		<dependency> 
 			<groupId>com.google.android</groupId>
 			<artifactId>android</artifactId>
 			<version>${platform.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		-->
 	    <!--  Gson: Java to Json conversion -->
 	    <dependency>
 	      <groupId>com.google.code.gson</groupId>
@@ -44,11 +44,13 @@
 	      <version>2.2.3</version>
 	      <scope>compile</scope>
 	    </dependency>
+	    <!--  
   		<dependency>
 			<groupId>com.nutiteq</groupId>
 			<artifactId>nutiteq-3d-sdk</artifactId>
 			<version>2.2.1</version>
 		</dependency>
+		-->
 		<dependency>
 			<groupId>com.jhlabs</groupId>
 			<artifactId>javaproj-noawt</artifactId>
@@ -115,14 +117,14 @@
 			<plugin>
 				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
 				<artifactId>android-maven-plugin</artifactId>
-				<version>3.6.0</version>
+				<version>3.1.1</version>
 				<configuration>
 					<androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
 					<assetsDirectory>${project.basedir}/assets</assetsDirectory>
 					<resourceDirectory>${project.basedir}/res</resourceDirectory>
 					<nativeLibrariesDirectory>${project.basedir}/libs</nativeLibrariesDirectory>
 					<sdk>
-						<platform>16</platform>
+						<platform>8</platform>
 					</sdk>
 					<undeployBeforeDeploy>true</undeployBeforeDeploy>
 					<downloadJavadocs>true</downloadJavadocs>

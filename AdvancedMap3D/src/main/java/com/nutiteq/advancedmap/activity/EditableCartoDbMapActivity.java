@@ -305,8 +305,8 @@ public class EditableCartoDbMapActivity extends Activity {
 								}
 								MapPos vertexMapPos = vertexList.get(i);
 								MapPos vertexScreenPos = mapView.worldToScreen(vertexMapPos.x, vertexMapPos.y, 0);
-								Vector delta = new Vector(vertexScreenPos.x - screenPos.x, vertexScreenPos.y - screenPos.y, 0);
-								if (delta.getLength2D() < 30) {
+								double dx = vertexScreenPos.x - screenPos.x, dy = vertexScreenPos.y - screenPos.y;
+								if (dx * dx + dy * dy < 30 * 30) {
 									return vertexMapPos;
 								}
 							}

@@ -127,7 +127,7 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 	@Override
 	public void calculateVisibleElements(Envelope envelope, int zoom) {
 		if (zoom < minZoom) {
-		    setVisibleElementsList(null);
+		    setVisibleElements(null);
 			return;
 		}
 		
@@ -226,7 +226,7 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
          
           List<Polygon> polygons = loadGeom(envelope, maxObjects, serverUrl);
           List<Polygon3D> newVisibleElementsList = convert3D(polygons, zoom);
-          setVisibleElementsList(newVisibleElementsList); 
+          setVisibleElements(newVisibleElementsList); 
           
         }
 

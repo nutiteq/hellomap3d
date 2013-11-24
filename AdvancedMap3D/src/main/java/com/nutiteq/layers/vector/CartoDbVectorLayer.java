@@ -215,9 +215,7 @@ public class CartoDbVectorLayer extends GeometryLayer {
         
         long timeEnd = System.currentTimeMillis();
         Log.debug("CartoDbLayer loaded N:"+ newVisibleElementsList.size()+" time ms:"+(timeEnd-timeStart));
-        setVisibleElementsList(newVisibleElementsList);
-        
-        
+        setVisibleElements(newVisibleElementsList);
     }
     
 }

@@ -58,7 +58,7 @@ public class MapQuestDirections  {
 
   private StyleSet<LineStyle> lineStyleSet;
 
-private RouteInstruction[] instructions;
+  private RouteInstruction[] instructions;
 
   /**
    * @param routeActivity listener for directions result (callback)
@@ -69,8 +69,7 @@ private RouteInstruction[] instructions;
    */
   public MapQuestDirections(final RouteActivity routeActivity, final MapPos start,
       final MapPos end, final Map<String,String> routeParameters, final String apiKey, 
-      Projection projection, StyleSet<LineStyle> lineStyleSet
-      ) {
+      Projection projection, StyleSet<LineStyle> lineStyleSet) {
     this.routeActivity = routeActivity;
     this.start = start;
     this.end = end;
@@ -271,6 +270,6 @@ private RouteInstruction[] instructions;
         float markerSize) {
     new MqLoadInstructionImagesTask(markerLayer, markerSize).execute();
     
-}
+  }
   
 }
