@@ -75,20 +75,22 @@ public class HelloMap3DActivity extends Activity {
 
         adjustMapDpi();
         
-//        mapView.getOptions().setFPSIndicator(true);
-//        mapView.getOptions().setRasterTaskPoolSize(4);
+        // Show performance indicator
+        //mapView.getOptions().setFPSIndicator(true);
+        
+        // Increase raster tile download speed by doing 4 downloads in parallel
+        //mapView.getOptions().setRasterTaskPoolSize(4);
         
         // set initial map view camera - optional. "World view" is default
         // Location: San Francisco 
         // NB! it must be in base layer projection (EPSG3857), so we convert it from lat and long
         mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
         // rotation - 0 = north-up
-        mapView.setRotation(0f);
+        mapView.setMapRotation(0f);
         // zoom - 0 = world, like on most web maps
         mapView.setZoom(16.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
         mapView.setTilt(65.0f);
-
 
         // Activate some mapview options to make it smoother - optional
         mapView.getOptions().setPreloading(true);
@@ -119,13 +121,13 @@ public class HelloMap3DActivity extends Activity {
         // define online map persistent caching - optional, suggested. Default - no caching
         //mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache").getPath());
         // set persistent raster cache limit to 100MB
-        mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
-
+        //mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 
         // 5. Add simple marker to map. 
         // define marker style (image, size, color)
         Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.olmarker);
         MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.5f).setColor(Color.WHITE).build();
+
         // define label what is shown when you click on marker
         Label markerLabel = new DefaultLabel("San Francisco", "Here is a marker");
         
