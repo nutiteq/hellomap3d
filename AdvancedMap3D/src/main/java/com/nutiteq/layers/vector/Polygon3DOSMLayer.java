@@ -133,12 +133,12 @@ public class Polygon3DOSMLayer extends Polygon3DLayer {
 		
 		// here we calculate bounding box, so it is in projection coordinates instead of internal 
 		// coordinates of the envelope
+		// TODO: use fromInternal(Envelope) here
 		MapPos bottomLeft = projection.fromInternal((float) envelope.getMinX(), (float) envelope.getMinY());
 		MapPos topRight = projection.fromInternal((float) envelope.getMaxX(), (float) envelope.getMaxY());
 
-        Envelope box = new Envelope(bottomLeft.x, topRight.x, bottomLeft.y, topRight.y);
-		executeVisibilityCalculationTask(new Load3DDataTask(box,zoom, maxObjects,
-                baseUrl));
+		Envelope box = new Envelope(bottomLeft.x, topRight.x, bottomLeft.y, topRight.y);
+		executeVisibilityCalculationTask(new Load3DDataTask(box,zoom, maxObjects, baseUrl));
 		
 		
 	}

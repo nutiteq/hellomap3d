@@ -90,10 +90,7 @@ public class OverlayLayer extends GeometryLayer {
 		synchronized (elements) {
 			for (Geometry element : elements) {
 				Envelope internalEnv = element.getInternalState().envelope;
-				envelope.add(projection.fromInternal(internalEnv.minX, internalEnv.minY));
-				envelope.add(projection.fromInternal(internalEnv.maxX, internalEnv.minY));
-				envelope.add(projection.fromInternal(internalEnv.maxX, internalEnv.maxY));
-				envelope.add(projection.fromInternal(internalEnv.minX, internalEnv.maxY));
+				envelope.add(projection.fromInternal(internalEnv));
 			}
 		}
 		return new Envelope(envelope);

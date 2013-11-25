@@ -208,6 +208,7 @@ public class WfsLayer extends GeometryLayer {
     String json = "";
     long startTime = System.currentTimeMillis();
 
+    // TODO: use fromInternal(Envelope) here
     MapPos envMin = projection.fromInternal(env.minX, env.minY);
     MapPos envMax = projection.fromInternal(env.maxX, env.maxY);
 

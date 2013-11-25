@@ -141,6 +141,7 @@ public class CartoDbVectorLayer extends GeometryLayer {
 
         long timeStart = System.currentTimeMillis();
         
+	// TODO: use fromInternal(Envelope) here
         MapPos minPos = projection.fromInternal(envelope.getMinX(), envelope.getMinY());
         MapPos maxPos = projection.fromInternal(envelope.getMaxX(), envelope.getMaxY());
         

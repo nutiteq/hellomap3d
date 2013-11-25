@@ -27,6 +27,7 @@ public class LauncherList extends ListActivity{
     private Object[][] samples={
             {AdvancedMapActivity.class,null},
             {BasicMapActivity.class,null},
+            {GlobeRenderingActivity.class,null},
             {AddressSearchActivity.class,null},
             {AnimatedLocationActivity.class,null},
             {EditableCartoDbMapActivity.class,null},

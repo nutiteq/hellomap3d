@@ -91,6 +91,7 @@ public class Polygon3DDbLayer extends Polygon3DLayer {
       return;
     }
 
+    // TODO: use fromInternal(Envelope) here
     MapPos bottomLeft = projection.fromInternal(envelope.getMinX(), envelope.getMinY());
     MapPos topRight = projection.fromInternal(envelope.getMaxX(), envelope.getMaxY());
 

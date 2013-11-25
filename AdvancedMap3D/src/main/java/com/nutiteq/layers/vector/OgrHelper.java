@@ -121,6 +121,7 @@ public class OgrHelper {
     public List<com.nutiteq.geometry.Geometry> loadData(Envelope envelope, int zoom) {
         long timeStart = System.currentTimeMillis();
 
+	// TODO: use fromInternal(Envelope) here
         MapPos minPosData = projection.fromInternal(envelope.getMinX(), envelope.getMinY());
         MapPos maxPosData = projection.fromInternal(envelope.getMaxX(), envelope.getMaxY());
         

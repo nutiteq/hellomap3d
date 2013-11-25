@@ -87,6 +87,7 @@ public class EditableSpatialiteLayer extends EditableGeometryDbLayer {
 			return new LongHashMap<Geometry>();
 		}
 
+		// TODO: use fromInternal(envelope) here
 		MapPos bottomLeft = projection.fromInternal(envelope.getMinX(), envelope.getMinY());
 		MapPos topRight = projection.fromInternal(envelope.getMaxX(), envelope.getMaxY());
 		List<Geometry> objectTemp = spatialLite.qrySpatiaLiteGeom(new Envelope(bottomLeft.x, topRight.x,bottomLeft.y, topRight.y), maxObjects, dbLayer, userColumns, 0, 0);

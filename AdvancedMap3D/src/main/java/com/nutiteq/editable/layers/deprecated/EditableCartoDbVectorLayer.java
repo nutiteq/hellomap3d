@@ -97,6 +97,7 @@ public class EditableCartoDbVectorLayer extends EditableGeometryDbLayer {
 	protected LongHashMap<Geometry> queryElements(Envelope envelope, int zoom) {
 		long timeStart = System.currentTimeMillis();
 
+		// TODO: use fromInternal(envelope) here
 		MapPos minPos = projection.fromInternal(envelope.getMinX(), envelope.getMinY());
 		MapPos maxPos = projection.fromInternal(envelope.getMaxX(), envelope.getMaxY());
 

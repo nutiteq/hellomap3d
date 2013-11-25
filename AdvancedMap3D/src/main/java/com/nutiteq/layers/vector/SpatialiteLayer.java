@@ -230,6 +230,7 @@ public class SpatialiteLayer extends GeometryLayer {
       }
 
     public void loadData(Envelope envelope, int zoom) {
+	// TODO: use fromInternal(Envelope) here
         MapPos bottomLeft = projection.fromInternal(envelope.getMinX(),
                 envelope.getMinY());
         MapPos topRight = projection.fromInternal(envelope.getMaxX(),
