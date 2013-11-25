@@ -1,63 +1,40 @@
-package com.nutiteq.editable;
+package com.nutiteq.editable.layers;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-
-import android.content.Context;
-import android.widget.Toast;
+import java.util.Map;
 
 import com.nutiteq.components.Envelope;
+import com.nutiteq.editable.datasources.EditableVectorDataSource;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.log.Log;
-import com.nutiteq.projections.Projection;
-import com.nutiteq.style.LineStyle;
-import com.nutiteq.style.PointStyle;
-import com.nutiteq.style.PolygonStyle;
-import com.nutiteq.style.StyleSet;
-import com.nutiteq.ui.Label;
 import com.nutiteq.utils.LongHashMap;
+import com.nutiteq.utils.LongMap;
 import com.nutiteq.vectorlayers.GeometryLayer;
 
-
 /**
- * Vector Layer with extra functions for editing elements
- * Supports all kind of Geometries: Markers, Points, Lines and Polygons
+ * Geometry layer with extra functions for editing elements.
+ * Supports all kind of geometries: Points, Lines and Polygons
+ * Can connect to any editable data source (data source that supports EditableVectorDataSource<Geometry> interface)
  * 
  * @author mtehver
  *
  */
-public abstract class EditableGeometryDbLayer extends GeometryLayer {
-	protected StyleSet<PointStyle> pointStyleSet;
-	protected StyleSet<LineStyle> lineStyleSet;
-	protected StyleSet<PolygonStyle> polygonStyleSet;
-
-	protected int minZoom;
-
+public class EditableGeometryLayer extends GeometryLayer {
+	private final EditableVectorDataSource<Geometry> editableDataSource;
+	
 	private LongHashMap<Geometry> currentElementMap = new LongHashMap<Geometry>();
 	private LongHashMap<Geometry> editedElementMap = new LongHashMap<Geometry>();
-    private Context context;
 
-	public EditableGeometryDbLayer(Projection proj, StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, Context context) {
-		super(proj);
-		this.pointStyleSet = pointStyleSet;
-		this.lineStyleSet = lineStyleSet;
-		this.polygonStyleSet = polygonStyleSet;
-		this.context = context;
-		
-		if (pointStyleSet != null) {
-			minZoom = pointStyleSet.getFirstNonNullZoomStyleZoom();
-		}
-		if (lineStyleSet != null) {
-			minZoom = lineStyleSet.getFirstNonNullZoomStyleZoom();
-		}
-		if (polygonStyleSet != null) {
-			minZoom = polygonStyleSet.getFirstNonNullZoomStyleZoom();
-		}
+	public EditableGeometryLayer(EditableVectorDataSource<Geometry> dataSource) {
+		super(dataSource);
+		this.editableDataSource = dataSource;
 	}
 
 	public synchronized LongHashMap<Geometry> saveState() {
@@ -65,8 +42,8 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 	}
 
 	public synchronized void loadState(LongHashMap<Geometry> elementMap) {
-		for (Iterator<LongHashMap.Entry<Geometry>> it = editedElementMap.entrySetIterator(); it.hasNext(); ) {
-			LongHashMap.Entry<Geometry> entry = it.next();
+		for (Iterator<LongMap.Entry<Geometry>> it = editedElementMap.entrySetIterator(); it.hasNext(); ) {
+			LongMap.Entry<Geometry> entry = it.next();
 			long id = entry.getKey();
 			Geometry element = entry.getValue();
 			if (element != null) {
@@ -77,8 +54,8 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 
 		editedElementMap = cloneElementMap(elementMap);
 
-		for (Iterator<LongHashMap.Entry<Geometry>> it = editedElementMap.entrySetIterator(); it.hasNext(); ) {
-			LongHashMap.Entry<Geometry> entry = it.next();
+		for (Iterator<LongMap.Entry<Geometry>> it = editedElementMap.entrySetIterator(); it.hasNext(); ) {
+			LongMap.Entry<Geometry> entry = it.next();
 			long id = entry.getKey();
 			Geometry element = entry.getValue();
 			if (element != null) {
@@ -89,21 +66,9 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 				currentElementMap.remove(id);
 			}
 		}
-		setVisibleElementsList(new ArrayList<Geometry>(currentElementMap.values()));
+		setVisibleElements(new ArrayList<Geometry>(currentElementMap.values()));
 
 		updateVisibleElements();
-	}
-	
-	public StyleSet<PointStyle> getPointStyleSet() {
-	  return pointStyleSet;
-	}
-	
-	public StyleSet<LineStyle> getLineStyleSet() {
-	  return lineStyleSet;
-	}
-	
-	public StyleSet<PolygonStyle> getPolygonStyleSet() {
-	  return polygonStyleSet;
 	}
 
 	@Override
@@ -133,38 +98,24 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 
 	@Override
 	public void calculateVisibleElements(Envelope envelope, int zoom) {
-		if (zoom < minZoom) {
-			setVisibleElementsList(null);
-			return;
-		}
 
-		LongHashMap<Geometry> objectMap = queryElements(envelope, zoom);
+		LongMap<Geometry> objectMap = dataSource.loadElements(dataSource.getProjection().fromInternal(envelope), zoom);
 		LongHashMap<Geometry> newElementMap = new LongHashMap<Geometry>(); 
 
 		synchronized (this) {
 			// apply styles, create new objects for these
-			for (Iterator<LongHashMap.Entry<Geometry>> it = objectMap.entrySetIterator(); it.hasNext(); ){
-				LongHashMap.Entry<Geometry> entry = it.next();
+			for (Iterator<LongMap.Entry<Geometry>> it = objectMap.entrySetIterator(); it.hasNext(); ){
+				LongMap.Entry<Geometry> entry = it.next();
 				long id = entry.getKey();
-				Geometry object = entry.getValue();
+				Geometry newElement = entry.getValue();
 
 				Geometry oldElement = currentElementMap.get(id);
 				if (oldElement != null) {
+					oldElement.setActiveStyle(zoom);
 					newElementMap.put(id, oldElement);
 				}
 				if (currentElementMap.containsKey(id)) {
 					continue;
-				}
-
-				Label label = createLabel(object.userData);
-
-				Geometry newElement = null;
-				if (object instanceof Point) {
-					newElement = new Point(((Point) object).getMapPos(), label, pointStyleSet, object.userData);
-				} else if (object instanceof Line) {
-					newElement = new Line(((Line) object).getVertexList(), label, lineStyleSet, object.userData);
-				} else if (object instanceof Polygon) {
-					newElement = new Polygon(((Polygon) object).getVertexList(), ((Polygon) object).getHolePolygonList(), label, polygonStyleSet, object.userData);
 				}
 
 				if (newElement != null) {
@@ -186,7 +137,7 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 		}
 
 		List<Geometry> newElements = new ArrayList<Geometry>(newElementMap.values());
-		setVisibleElementsList(newElements);
+		setVisibleElements(newElements);
 		currentElementMap = newElementMap;
 	}
 
@@ -200,7 +151,6 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 	}
 
 	private synchronized void onElementChanged(Geometry element) {
-	    element.setLabel(createLabel(element.userData));
 		for (long id : currentElementMap.keys().toArray()) {
 			if (currentElementMap.get(id) == element) {
 				editedElementMap.put(id, element);
@@ -234,20 +184,16 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 			Geometry element = editedElementMap.get(id);
 			if (id < 0) {
 				if (element != null) {
-					long realId = insertElement(element);
-					if(realId > 0){
-	                    currentElementMap.remove(id);
-	                    currentElementMap.put(realId, element);
-					}else{
-					    Toast.makeText(context, "SQL Error inserting. See logcat for details", Toast.LENGTH_SHORT).show();
-					}
+					long realId = editableDataSource.insertElement(element);
+					currentElementMap.remove(id);
+					currentElementMap.put(realId, element);
 				}
 			} else {
 				if (element != null) {
-					updateElement(id, element);
+					editableDataSource.updateElement(id, element);
 					currentElementMap.put(id, element);
 				} else {
-					deleteElement(id);
+					editableDataSource.deleteElement(id);
 					currentElementMap.remove(id);
 				}
 			}
@@ -268,8 +214,8 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 
 	private LongHashMap<Geometry> cloneElementMap(LongHashMap<Geometry> oldElementMap) {
 		LongHashMap<Geometry> newElementMap = new LongHashMap<Geometry>();
-		for (Iterator<LongHashMap.Entry<Geometry>> it = oldElementMap.entrySetIterator(); it.hasNext(); ) {
-			LongHashMap.Entry<Geometry> entry = it.next();
+		for (Iterator<LongMap.Entry<Geometry>> it = oldElementMap.entrySetIterator(); it.hasNext(); ) {
+			LongMap.Entry<Geometry> entry = it.next();
 			long id = entry.getKey();
 			Geometry oldElement = entry.getValue();
 			if (oldElement == null) {
@@ -296,55 +242,19 @@ public abstract class EditableGeometryDbLayer extends GeometryLayer {
 		return newElementMap;
 	}
 
-	/**
-	 * Read Vector objects for given Envelope
-	 * 
-	 * @param env
-	 * @param zoom
-	 * @return LongHashMap of Geometry objects, 
-	 *     the key must be unique Long value for each object, it will be used as update and delete key
-	 */
-	protected abstract LongHashMap<Geometry> queryElements(Envelope env, int zoom);
-	
-	/**
-	 * Insert new object
-	 * 
-	 * @param element element to insert
-	 * @return inserted element id
-	 */
-	protected abstract long insertElement(Geometry element);
-	
-	/**
-	 * 
-	 * Update vector object with given ID
-	 * 
-	 * @param id element id to update
-	 * @param element new element state
-	 */
-	protected abstract void updateElement(long id, Geometry element);
-	
-	/**
-	 * 
-	 * Delete vectro object with given ID
-	 * 
-	 * @param id element id to delete
-	 */
-	protected abstract void deleteElement(long id);
-	
-	/**
-	 * Generate pop-up labels, shown if you click on object. 
-	 * 
-	 * @param userData object custom attributes
-	 * @return new label
-	 */
-	protected abstract Label createLabel(Object userData);
-	
-	/**
-	 * 
-	 * Create clone for userData, specific on Object type what you use
-	 * 
-	 * @param userData object to clone
-	 * @return clone of the userData
-	 */
-	protected abstract Object cloneUserData(Object userData);
+	protected Object cloneUserData(Object userData) {
+		if (userData == null) {
+			return null;
+		}
+		if (userData instanceof String) {
+			return new String((String) userData);
+		}
+		if (userData instanceof List<?>) {
+			return new ArrayList<Object>((List<?>) userData);
+		}
+		if (userData instanceof Map<?, ?>) {
+			return new HashMap<Object, Object>((Map<?, ?>) userData);
+		}
+		throw new UnsupportedOperationException();
+	}
 }

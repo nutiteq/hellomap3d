@@ -9,7 +9,7 @@ import android.content.Context;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapTile;
 import com.nutiteq.components.MutableMapPos;
-import com.nutiteq.layers.raster.db.MbTilesDatabaseHelper;
+import com.nutiteq.db.MbTilesDatabaseHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;

@@ -39,7 +39,7 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.components.Vector;
 import com.nutiteq.editable.EditableMapView;
-import com.nutiteq.editable.EditableOgrVectorLayer;
+import com.nutiteq.editable.layers.deprecated.EditableOgrVectorLayer;
 import com.nutiteq.filepicker.FilePickerActivity;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.geometry.Line;

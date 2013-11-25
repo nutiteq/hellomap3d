@@ -1,4 +1,4 @@
-package com.nutiteq.editable;
+package com.nutiteq.editable.styles;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;

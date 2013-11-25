@@ -1,4 +1,4 @@
-package com.nutiteq.editable;
+package com.nutiteq.editable.layers.deprecated;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -12,9 +12,6 @@ import android.net.ParseException;
 
 import com.nutiteq.components.Envelope;
 import com.nutiteq.geometry.Geometry;
-import com.nutiteq.geometry.Line;
-import com.nutiteq.geometry.Point;
-import com.nutiteq.geometry.Polygon;
 import com.nutiteq.layers.vector.OgrHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
@@ -26,7 +23,6 @@ import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.utils.LongHashMap;
-import com.nutiteq.utils.WktWriter;
 
 /**
  * 
@@ -35,8 +31,8 @@ import com.nutiteq.utils.WktWriter;
  * @author mtehver
  *
  */
+@Deprecated
 public class EditableOgrVectorLayer extends EditableGeometryDbLayer {
-
 
     private OgrHelper ogrHelper;
     private LabelStyle labelStyle;
@@ -49,13 +45,13 @@ public class EditableOgrVectorLayer extends EditableGeometryDbLayer {
         try {
             // force Java to load PROJ.4 library. Needed as we don't call it directly, but 
             // OGR datasource reading may need it.
-            System.loadLibrary("proj");
-            
+            System.loadLibrary("proj");        
         } catch (Throwable t) {
             System.err.println("Unable to load proj: " + t);
         }
-        }
-	/**
+    }
+
+    /**
 	 * Default constructor.
 	 * 
 	 * @param proj Layer projection
@@ -93,17 +89,14 @@ public class EditableOgrVectorLayer extends EditableGeometryDbLayer {
 
 	@Override
 	protected LongHashMap<Geometry> queryElements(Envelope envelope, int zoom) {
-
 		// load geometries
 		LongHashMap<Geometry> newElementMap = new LongHashMap<Geometry>();
 
 		try {
-
-		    List<Geometry> data = ogrHelper.loadData(envelope, zoom);		    
-		    
+		    List<Geometry> data = ogrHelper.loadData(envelope, zoom);
 			for (Geometry geom : data) {
 			    
-			    HashMap<String, String> userData = (HashMap<String, String>) geom.userData;
+			    Map<String, String> userData = (Map<String, String>) geom.userData;
 
 			    // loadData saves feature id to FID by convention
 			    long id = Long.parseLong(userData.get("FID"));
@@ -130,13 +123,11 @@ public class EditableOgrVectorLayer extends EditableGeometryDbLayer {
 	@Override
 	protected void updateElement(long id, Geometry element) {
 		ogrHelper.updateElement(id, element);
-		
 	}
 	
 	@Override
 	protected void deleteElement(long id) {
 	    ogrHelper.deleteElement(id);
-	    
 	}
 
 	@SuppressWarnings("unchecked")

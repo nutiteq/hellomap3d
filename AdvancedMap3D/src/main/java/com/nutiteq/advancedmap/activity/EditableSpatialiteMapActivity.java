@@ -40,15 +40,15 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.components.Vector;
 import com.nutiteq.db.DBLayer;
+import com.nutiteq.db.SpatialLiteDbHelper;
 import com.nutiteq.editable.EditableMapView;
-import com.nutiteq.editable.EditableSpatialiteLayer;
+import com.nutiteq.editable.layers.deprecated.EditableSpatialiteLayer;
 import com.nutiteq.filepicker.FilePickerActivity;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.geometry.VectorElement;
-import com.nutiteq.layers.vector.SpatialLiteDbHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterlayers.TMSMapLayer;
@@ -116,8 +116,7 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 	private ImageButton deletePointBtn;
 
     private SpatialLiteDbHelper spatialLite;
-
-    private Map<String, DBLayer> dbMetaData;
+    private Map<String, SpatialLiteDbHelper.DbLayer> dbMetaData;
 
     private String[] tableList;
 
@@ -239,7 +238,7 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
 	    ArrayList<String> tables = new ArrayList<String>();
 
 	    for (String layerKey : dbMetaData.keySet()) {
-	        DBLayer layer = dbMetaData.get(layerKey);
+	        SpatialLiteDbHelper.DbLayer layer = dbMetaData.get(layerKey);
 	        Log.debug("layer: " + layer.table + " " + layer.type + " geom:"
 	            + layer.geomColumn+ " SRID: "+layer.srid);
 	        tables.add(layerKey);

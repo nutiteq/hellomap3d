@@ -16,6 +16,8 @@ import com.nutiteq.MapView;
 import com.nutiteq.components.Color;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Vector;
+import com.nutiteq.editable.layers.OverlayLayer;
+import com.nutiteq.editable.styles.OverlayLayerStyle;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.geometry.Point;

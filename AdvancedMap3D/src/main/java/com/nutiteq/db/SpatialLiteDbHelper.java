@@ -1,4 +1,4 @@
-package com.nutiteq.layers.vector;
+package com.nutiteq.db;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -17,7 +17,6 @@ import jsqlite.Exception;
 
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MutableEnvelope;
-import com.nutiteq.db.DBLayer;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.log.Log;
 import com.nutiteq.utils.GeoUtils;
@@ -34,6 +33,39 @@ import com.nutiteq.utils.WktWriter;
 public class SpatialLiteDbHelper {
     private static final int DEFAULT_SRID = 4326;
     private static final int SDK_SRID = 3857;
+
+    /**
+     * Database layer description
+     */
+    public class DbLayer {
+      public String table;
+      public String geomColumn;
+      public String type;
+      public String coordDimension;
+      public int srid;
+      public boolean spatialIndex;
+      public String proj4txt;
+
+      public DbLayer(String table, String geomColumn, String type,
+          String coordDimension, int srid, boolean spatialIndex,
+          String proj4txt)
+      {
+          super();
+          this.table = table;
+          this.geomColumn = geomColumn;
+          this.type = type;
+          this.coordDimension = coordDimension;
+          this.srid = srid;
+          this.spatialIndex = spatialIndex;
+          this.proj4txt = proj4txt;
+      }
+
+      @Override
+      public String toString() {
+          return "DBLayer [" + table + "." + geomColumn + " " + type + " srid:" + srid
+                  + " dim:" + coordDimension + " index:" + spatialIndex + "]";
+      }
+    }
 
     private final Database db;
     private String dbPath;
@@ -74,8 +106,8 @@ public class SpatialLiteDbHelper {
         }
     }
 
-    public Map<String,DBLayer> qrySpatialLayerMetadata() {
-        final Map<String,DBLayer> dbLayers = new HashMap<String,DBLayer>();
+    public Map<String, DbLayer> qrySpatialLayerMetadata() {
+        final Map<String, DbLayer> dbLayers = new HashMap<String, DbLayer>();
         
         String typeColumn = "type";
         try {
@@ -115,7 +147,7 @@ public class SpatialLiteDbHelper {
                         geomType = getGeometryType(geomTypeInt);
                     }
                     
-                    DBLayer dbLayer = new DBLayer(rowdata[0], rowdata[1],
+                    DbLayer dbLayer = new DbLayer(rowdata[0], rowdata[1],
                             geomType, rowdata[3], srid, rowdata[5]
                                     .equals("1") ? true : false, rowdata[6]);
 
@@ -212,7 +244,7 @@ public class SpatialLiteDbHelper {
     }    
     
     public Vector<Geometry> qrySpatiaLiteGeom(final Envelope bbox,
-            final int limit, final DBLayer dbLayer, final String[] userColumns, String filter, int autoSimplifyPixels, int screenWidth) {
+            final int limit, final DbLayer dbLayer, final String[] userColumns, String filter, int autoSimplifyPixels, int screenWidth) {
         
         final Vector<Geometry> geoms = new Vector<Geometry>();
         final long start = System.currentTimeMillis();
@@ -370,7 +402,7 @@ public class SpatialLiteDbHelper {
         }
     }
 
-    public Envelope qryDataExtent(final DBLayer dbLayer) {
+    public Envelope qryDataExtent(final DbLayer dbLayer) {
 
         String qry = "SELECT Min(MbrMinX("+dbLayer.geomColumn+")), Min(MbrMinY("+dbLayer.geomColumn+")), Max(MbrMaxX("+dbLayer.geomColumn+")), Max(MbrMaxY("+dbLayer.geomColumn+")) FROM " +dbLayer.table;
         Log.debug(qry);
@@ -419,12 +451,10 @@ public class SpatialLiteDbHelper {
                     + e.getMessage());
         }
         
-        
         return new Envelope(mutableEnvelope);
-        
     }
     
-    public String[] qryColumns(final DBLayer dbLayer) {
+    public String[] qryColumns(final DbLayer dbLayer) {
 
         String qry = "PRAGMA table_info(" +dbLayer.table+")";
         Log.debug(qry);
@@ -470,7 +500,7 @@ public class SpatialLiteDbHelper {
        }
     }
     
-     public long insertSpatiaLiteGeom(DBLayer dbLayer, Geometry geom) {
+     public long insertSpatiaLiteGeom(DbLayer dbLayer, Geometry geom) {
         String wktGeom = WktWriter.writeWkt(geom, dbLayer.type);
         String userColumns = "";
         String userValues = "";
@@ -496,7 +526,7 @@ public class SpatialLiteDbHelper {
         return db.last_insert_rowid();
     }
 
-    public void updateSpatiaLiteGeom(DBLayer dbLayer, long id, Geometry geom) {
+    public void updateSpatiaLiteGeom(DbLayer dbLayer, long id, Geometry geom) {
         String wktGeom = WktWriter.writeWkt(geom, dbLayer.type);
         String userFields = "";
         if (geom.userData instanceof Map) {
@@ -518,7 +548,7 @@ public class SpatialLiteDbHelper {
         }
     }
 
-    public void deleteSpatiaLiteGeom(DBLayer dbLayer, long id) {
+    public void deleteSpatiaLiteGeom(DbLayer dbLayer, long id) {
         String qry = "DELETE FROM \"" + dbLayer.table + "\" WHERE rowid=" + id;
         Log.debug(qry);
         try {
@@ -542,7 +572,7 @@ public class SpatialLiteDbHelper {
     }
 
     public List<Geometry> qrySpatiaLiteGeom(Envelope envelope, int maxObjects,
-            DBLayer dbLayer, String[] strings, int i, int j) {
+            DbLayer dbLayer, String[] strings, int i, int j) {
         return qrySpatiaLiteGeom(envelope, maxObjects,
                  dbLayer, strings, null, i, j);
     }

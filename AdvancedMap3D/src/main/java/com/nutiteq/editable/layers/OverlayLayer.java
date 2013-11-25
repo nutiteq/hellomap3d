@@ -1,4 +1,4 @@
-package com.nutiteq.editable;
+package com.nutiteq.editable.layers;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -8,7 +8,7 @@ import android.graphics.Typeface;
 
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
-import com.nutiteq.db.DBLayer;
+import com.nutiteq.db.SpatialLiteDbHelper;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
@@ -33,7 +33,7 @@ import com.nutiteq.vectorlayers.GeometryLayer;
 public class SpatialiteLayer extends GeometryLayer {
 
     private SpatialLiteDbHelper spatialLite;
-    private DBLayer dbLayer;
+    private SpatialLiteDbHelper.DbLayer dbLayer;
 
     private StyleSet<PointStyle> pointStyleSet;
     private StyleSet<LineStyle> lineStyleSet;
@@ -138,9 +138,9 @@ public class SpatialiteLayer extends GeometryLayer {
         }
         
 
-        Map<String, DBLayer> dbLayers = spatialLite.qrySpatialLayerMetadata();
+        Map<String, SpatialLiteDbHelper.DbLayer> dbLayers = spatialLite.qrySpatialLayerMetadata();
         for (String layerKey : dbLayers.keySet()) {
-            DBLayer layer = dbLayers.get(layerKey);
+          SpatialLiteDbHelper.DbLayer layer = dbLayers.get(layerKey);
             if (layer.table.compareTo(tableName) == 0
                     && layer.geomColumn.compareTo(geomColumnName) == 0) {
                 this.dbLayer = layer;

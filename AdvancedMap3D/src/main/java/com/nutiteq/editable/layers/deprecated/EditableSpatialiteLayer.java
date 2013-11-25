@@ -1,4 +1,4 @@
-package com.nutiteq.editable;
+package com.nutiteq.editable.layers.deprecated;
 
 import java.util.HashMap;
 import java.util.List;
@@ -9,8 +9,8 @@ import android.content.Context;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.db.DBLayer;
+import com.nutiteq.db.SpatialLiteDbHelper;
 import com.nutiteq.geometry.Geometry;
-import com.nutiteq.layers.vector.SpatialLiteDbHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LineStyle;
@@ -28,9 +28,10 @@ import com.nutiteq.utils.LongHashMap;
  * @author mtehver
  *
  */
+@Deprecated
 public class EditableSpatialiteLayer extends EditableGeometryDbLayer {
 	private SpatialLiteDbHelper spatialLite;
-	private DBLayer dbLayer;
+	private SpatialLiteDbHelper.DbLayer dbLayer;
 
 	private int maxObjects;
 	private String[] userColumns;
@@ -56,9 +57,9 @@ public class EditableSpatialiteLayer extends EditableGeometryDbLayer {
 		this.maxObjects = maxObjects;
 
 		spatialLite = new SpatialLiteDbHelper(dbPath);
-		Map<String, DBLayer> dbLayers = spatialLite.qrySpatialLayerMetadata();
+		Map<String, SpatialLiteDbHelper.DbLayer> dbLayers = spatialLite.qrySpatialLayerMetadata();
         for (String layerKey : dbLayers.keySet()) {
-            DBLayer layer = dbLayers.get(layerKey);
+          SpatialLiteDbHelper.DbLayer layer = dbLayers.get(layerKey);
             if (layer.table.compareTo(tableName) == 0
                     && layer.geomColumn.compareTo(geomColumnName) == 0) {
                 this.dbLayer = layer;

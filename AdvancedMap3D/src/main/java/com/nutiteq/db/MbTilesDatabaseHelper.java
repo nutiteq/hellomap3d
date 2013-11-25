@@ -1,4 +1,4 @@
-package com.nutiteq.layers.raster.db;
+package com.nutiteq.db;
 
 import java.io.IOException;
 import java.util.Arrays;
