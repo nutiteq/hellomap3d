@@ -62,7 +62,7 @@ public class SpatialLiteDbHelper {
 
       @Override
       public String toString() {
-          return "DBLayer [" + table + "." + geomColumn + " " + type + " srid:" + srid
+          return "DbLayer [" + table + "." + geomColumn + " " + type + " srid:" + srid
                   + " dim:" + coordDimension + " index:" + spatialIndex + "]";
       }
     }

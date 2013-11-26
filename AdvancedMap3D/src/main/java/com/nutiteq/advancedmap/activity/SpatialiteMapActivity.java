@@ -20,14 +20,10 @@ import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.R.drawable;
-import com.nutiteq.advancedmap.R.id;
-import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
-import com.nutiteq.db.DBLayer;
 import com.nutiteq.db.SpatialLiteDbHelper;
 import com.nutiteq.filepicker.FilePickerActivity;
 import com.nutiteq.layers.raster.TMSMapLayer;

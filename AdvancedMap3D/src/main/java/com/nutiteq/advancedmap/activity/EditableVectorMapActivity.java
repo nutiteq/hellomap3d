@@ -76,7 +76,6 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
  * @author jaakl
  *
  */
-@SuppressLint("NewApi")
 public class EditableVectorMapActivity extends Activity implements FilePickerActivity{
     
     // about 2000 lines/polygons for high-end devices is fine, for older devices <1000

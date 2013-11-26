@@ -13,9 +13,6 @@ import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.R.drawable;
-import com.nutiteq.advancedmap.R.id;
-import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.advancedmap.maplisteners.RouteMapEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;

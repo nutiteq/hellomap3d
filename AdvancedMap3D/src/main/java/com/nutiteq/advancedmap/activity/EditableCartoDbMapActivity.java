@@ -67,7 +67,6 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
  * @author mtehver
  *
  */
-@SuppressLint("NewApi")
 public class EditableCartoDbMapActivity extends Activity {
 
 	/**

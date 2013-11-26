@@ -1,15 +1,9 @@
 package com.nutiteq.advancedmap.activity;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -26,37 +20,29 @@ import com.nutiteq.components.Color;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
-import com.nutiteq.components.Vector;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Marker;
-import com.nutiteq.geometry.NMLModel;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.geometry.Polygon3D;
 import com.nutiteq.geometry.Text;
 import com.nutiteq.log.Log;
-import com.nutiteq.nmlpackage.NMLPackage;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
 import com.nutiteq.rasterdatasources.RasterDataSource;
 import com.nutiteq.rasterlayers.RasterLayer;
-import com.nutiteq.rasterlayers.TMSMapLayer;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
-import com.nutiteq.style.ModelStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.PolygonStyle;
-import com.nutiteq.style.StyleSet;
 import com.nutiteq.style.TextStyle;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.GeometryLayer;
 import com.nutiteq.vectorlayers.MarkerLayer;
-import com.nutiteq.vectorlayers.NMLModelDbLayer;
-import com.nutiteq.vectorlayers.NMLModelLayer;
 import com.nutiteq.vectorlayers.Polygon3DLayer;
 import com.nutiteq.vectorlayers.TextLayer;
 
@@ -144,8 +130,6 @@ public class GlobeRenderingActivity extends Activity {
     addLineLayer();
     addPolyLayer();
     addPoly3DLayer();
-    //addDbModelLayer();
-    //addAnimatedModelLayer();
   }
 
   private void setBackdropImage() {
@@ -195,17 +179,10 @@ public class GlobeRenderingActivity extends Activity {
   }
 
   private void addLineLayer() {
-    //GeometryLayer geoLayer = new GeometryLayer(new EPSG3857());
     GeometryLayer geoLayer = new GeometryLayer(new EPSG4326());
     mapView.getComponents().layers.addLayer(geoLayer);
     LineStyle lineStyle = LineStyle.builder().setLineJoinMode(LineStyle.ROUND_LINEJOIN).build();
     Label label = new DefaultLabel("Line", "Here is a line");
-    MapPos origin = mapView.getComponents().layers.getBaseProjection().fromWgs84(-129.416667f, 80.766667f);
-/*    List<MapPos> posList = new ArrayList<MapPos>(Arrays.asList(
-        new MapPos(origin.x, origin.y + 3000000),
-        new MapPos(origin.x + 6300000, origin.y + 700000),
-        new MapPos(origin.x + 3300000, origin.y + 900000)
-        ));*/
     List<MapPos> posList = new ArrayList<MapPos>(Arrays.asList(
         new MapPos(-90, 30),
         new MapPos(90, 30)

@@ -156,7 +156,7 @@ public class CartoDbVectorMapActivity extends Activity {
         StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
         polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
 
-        StyleSet<LineStyle> roadLineStyleSet = new StyleSet<LineStyle>(LineStyle.builder().setWidth(0.07f).setColor(0xFFAAAAAA).build());
+//      StyleSet<LineStyle> roadLineStyleSet = new StyleSet<LineStyle>(LineStyle.builder().setWidth(0.07f).setColor(0xFFAAAAAA).build());
         
         //  5.2 Define layer and add to map
         

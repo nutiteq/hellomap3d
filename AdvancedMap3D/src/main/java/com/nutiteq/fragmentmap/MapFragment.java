@@ -38,7 +38,6 @@ import android.view.ViewGroup.LayoutParams;
  * @author mtehver
  *
  */
-@SuppressLint("NewApi")
 public class MapFragment extends Fragment {
 
   /**

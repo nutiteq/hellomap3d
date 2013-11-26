@@ -37,7 +37,6 @@ public class HelloMap3DActivity extends Activity {
     private MapView mapView;
     private LocationListener locationListener;
 
-    @SuppressLint("NewApi")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

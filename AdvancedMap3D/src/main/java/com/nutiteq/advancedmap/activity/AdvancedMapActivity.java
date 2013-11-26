@@ -1,7 +1,6 @@
 package com.nutiteq.advancedmap.activity;
 
 import java.io.InputStream;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -79,13 +78,12 @@ public class AdvancedMapActivity extends Activity {
 		}
 	}
 
-	@SuppressLint("NewApi")
-    @Override
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		// spinner in status bar, for progress indication
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
 		setContentView(R.layout.main);
 
@@ -95,7 +93,7 @@ public class AdvancedMapActivity extends Activity {
 
 		// 1. Get the MapView from the Layout xml - mandatory
 		this.mapView = (MapView) findViewById(R.id.mapView);
-        this.proj = new EPSG3857();
+		this.proj = new EPSG3857();
 
 		// Optional, but very useful: restore map state during device rotation,
 		// it is saved in onRetainNonConfigurationInstance() below

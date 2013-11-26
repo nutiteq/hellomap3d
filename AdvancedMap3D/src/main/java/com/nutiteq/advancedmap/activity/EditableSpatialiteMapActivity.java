@@ -29,9 +29,6 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.R.drawable;
-import com.nutiteq.advancedmap.R.id;
-import com.nutiteq.advancedmap.R.layout;
 import com.nutiteq.components.Bounds;
 import com.nutiteq.components.Color;
 import com.nutiteq.components.Components;
@@ -39,7 +36,6 @@ import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.components.Vector;
-import com.nutiteq.db.DBLayer;
 import com.nutiteq.db.SpatialLiteDbHelper;
 import com.nutiteq.editable.EditableMapView;
 import com.nutiteq.editable.layers.deprecated.EditableSpatialiteLayer;
@@ -79,7 +75,6 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
  * @author mtehver
  *
  */
-@SuppressLint("NewApi")
 public class EditableSpatialiteMapActivity extends Activity implements FilePickerActivity{
     /**
      * Keeps state of editable elements to enable undo/redo functions
@@ -121,8 +116,6 @@ public class EditableSpatialiteMapActivity extends Activity implements FilePicke
     private String[] tableList;
 
     private EditableSpatialiteLayer dbEditableLayer;
-
-    private String dbFileName;
 
     private String dbPath;
 
