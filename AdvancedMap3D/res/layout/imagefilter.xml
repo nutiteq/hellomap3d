@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <com.nutiteq.MapView
+        android:id="@+id/mapView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true" />
+
+    <RadioGroup
+        android:id="@+id/radioImageFilter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true" >
+
+        <RadioButton
+            android:id="@+id/no_imagefilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="No filter" />
+
+        <RadioButton
+            android:id="@+id/grayscale_imagefilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Grayscale filter" />
+
+        <RadioButton
+            android:id="@+id/nightmode_imagefilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Night mode filter" />
+    </RadioGroup>
+
+</RelativeLayout>

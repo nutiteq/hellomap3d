@@ -15,15 +15,18 @@ import com.nutiteq.rasterdatasources.CacheRasterDataSource.CacheStore;
  */
 public class PersistentCacheStore implements CacheStore {
   private final String fileName;
+  private final int maxSize;
   private final PersistentCache persistentCache;
 
-  public PersistentCacheStore(String fileName) {
+  public PersistentCacheStore(String fileName, int maxSize) {
     this.fileName = fileName;
+    this.maxSize = maxSize;
     this.persistentCache = new PersistentCache();
   }
   
   @Override
   public void open() {
+    persistentCache.setSize(maxSize);
     persistentCache.setPath(fileName);
     persistentCache.reopenDb();
   }

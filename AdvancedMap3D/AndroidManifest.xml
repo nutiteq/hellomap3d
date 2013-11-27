@@ -15,6 +15,7 @@
     </activity>
     <activity android:name=".activity.AdvancedMapActivity"></activity>
     <activity android:name=".activity.GlobeRenderingActivity"></activity>
+    <activity android:name=".activity.ComposedRasterDataSourceActivity"></activity>
     <activity android:name="com.nutiteq.fragmentmap.FragmentMapActivity"></activity>
     <activity android:name="com.nutiteq.fragmentmap.InfoActivity"></activity>
     <activity android:name=".activity.MBTilesMapActivity"></activity>

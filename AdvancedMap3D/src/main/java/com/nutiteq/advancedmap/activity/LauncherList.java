@@ -28,6 +28,7 @@ public class LauncherList extends ListActivity{
             {AdvancedMapActivity.class,null},
             {BasicMapActivity.class,null},
             {GlobeRenderingActivity.class,null},
+            {ComposedRasterDataSourceActivity.class,null},
             {AddressSearchActivity.class,null},
             {AnimatedLocationActivity.class,null},
             {EditableCartoDbMapActivity.class,null},
