@@ -402,7 +402,6 @@ public class AdvancedMapActivity extends Activity {
       // shift zoom accordingly
       float newZoom = zoom - zoomShift;
       mapView.setZoom(newZoom);
-        
     }
 
     private void addTileBorderLayer(int size) {
@@ -465,12 +464,11 @@ public class AdvancedMapActivity extends Activity {
         mapView.getLayers().addLayer(osm3dLayer);
     }
 
-    private void addWmsLayer( String url, String layers, Projection dataProjection){
-        WmsLayer wmsLayer = new WmsLayer(proj, 0, 19, 1012, url, "", layers, "image/png", dataProjection);
+    private void addWmsLayer(String url, String layers, Projection dataProjection) {
+        WmsLayer wmsLayer = new WmsLayer(dataProjection, 0, 19, 1012, url, "", layers, "image/png");
         wmsLayer.setFetchPriority(-5);
         mapView.getLayers().addLayer(wmsLayer);
     }
-     
 
     private void addBingBaseLayer(String url, String extension){
          QuadKeyLayer bingMap = new QuadKeyLayer(proj, 0, 19, 1013, url, extension);

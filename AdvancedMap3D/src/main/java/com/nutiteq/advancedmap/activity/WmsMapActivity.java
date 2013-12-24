@@ -87,7 +87,7 @@ public class WmsMapActivity extends Activity {
 
 		// 3. Define map layer for basemap - mandatory.
 
-        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 5, 18, 0,
+        TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 19, 0,
                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
         mapView.getLayers().setBaseLayer(mapLayer);
 
@@ -115,7 +115,7 @@ public class WmsMapActivity extends Activity {
         String layers = "topp:states";
         
         // note that data projection is different: WGS84 (EPSG:4326)
-        WmsLayer wmsLayer = new WmsLayer(new EPSG3857(), 0, 19, 1012, url, "", layers, "image/png", new EPSG4326());
+        WmsLayer wmsLayer = new WmsLayer(new EPSG4326(), 0, 19, 1012, url, "", layers, "image/png");
         wmsLayer.setFetchPriority(-5);
         mapView.getLayers().addLayer(wmsLayer);
         
@@ -132,9 +132,7 @@ public class WmsMapActivity extends Activity {
 		// rotation - 0 = north-up
 		mapView.setMapRotation(0f);
 		// zoom - 0 = world, like on most web maps
-		mapView.setZoom(5.0f);
-        // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
-		mapView.setTilt(40.0f);
+		mapView.setZoom(2.5f);
 
 
 		// Activate some mapview options to make it smoother - optional
@@ -166,9 +164,9 @@ public class WmsMapActivity extends Activity {
 		mapView.getOptions().setCompressedMemoryCacheSize(8 * 1024 * 1024);
 
         // define online map persistent caching - optional, suggested. Default - no caching
-        mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache_wms").getPath());
+    //    mapView.getOptions().setPersistentCachePath(this.getDatabasePath("mapcache_wms").getPath());
         // set persistent raster cache limit to 100MB
-        mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
+   //     mapView.getOptions().setPersistentCacheSize(100 * 1024 * 1024);
 		
 		// 4. zoom buttons using Android widgets - optional
 		// get the zoomcontrols that was defined in main.xml

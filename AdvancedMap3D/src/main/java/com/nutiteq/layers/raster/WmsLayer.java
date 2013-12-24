@@ -3,11 +3,9 @@ package com.nutiteq.layers.raster;
 import java.util.Map;
 
 import com.nutiteq.components.Envelope;
-import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MapTile;
 import com.nutiteq.components.MutableMapPos;
 import com.nutiteq.log.Log;
-import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.tasks.NetFetchTileTask;
@@ -25,7 +23,6 @@ public class WmsLayer extends RasterLayer {
     private String layer;
     private String format;
     private String style;
-    private Projection dataProjection;
     private Map<String, String> httpHeaders;
     private int tileSize = 256;
 
@@ -48,23 +45,13 @@ public class WmsLayer extends RasterLayer {
      *            for Layers parameter
      * @param format
      *            for Format parameter
-     * @param dataProjection
-     *            Used to give SRS and recalculate BBOX parameters where needed.
-     *            Normally use the same as for projection parameter.
-     *            Warning: it may be OK to use different projections in some
-     *            special cases (e.g. EPSG:3857 for map and EPSG:4236 for WMS),
-     *            but on most other cases you should have same projection as for
-     *            layer, otherwise you will have inaccurate map!
      */
     public WmsLayer(Projection projection, int minZoom, int maxZoom, int id,
-            String baseUrl, String style, String layer, String format,
-            Projection dataProjection) {
+            String baseUrl, String style, String layer, String format) {
         super(projection, minZoom, maxZoom, id, baseUrl);
         this.style = style;
         this.layer = layer;
         this.format = format;
-        this.dataProjection = dataProjection;
-
     }
     
     
@@ -78,8 +65,7 @@ public class WmsLayer extends RasterLayer {
 
     @Override
     public void fetchTile(MapTile tile) {
-
-        Log.debug("Wms GetMap for tile " + tile);
+        Log.debug("WmsLayer: fetchTile " + tile);
 
         if (tile.zoom < minZoom || tile.zoom > maxZoom) {
             return;
@@ -96,8 +82,9 @@ public class WmsLayer extends RasterLayer {
         url.append("&STYLES=").append(Utils.urlEncode(style));
         url.append("&EXCEPTIONS=").append(
                 Utils.urlEncode("application/vnd.ogc.se_inimage"));
-        url.append("&SRS=").append(Utils.urlEncode(dataProjection.name()));
-        url.append("&WIDTH="+tileSize+"&HEIGHT="+tileSize);        url.append("&BBOX=").append(Utils.urlEncode(bbox));
+        url.append("&SRS=").append(Utils.urlEncode(getProjection().name()));
+        url.append("&WIDTH="+tileSize+"&HEIGHT="+tileSize);
+        url.append("&BBOX=").append(Utils.urlEncode(bbox));
         String urlString = url.toString();
         Log.info("WmsLayer: Start loading " + urlString);
         
@@ -107,37 +94,13 @@ public class WmsLayer extends RasterLayer {
     }
 
     private String getTileBbox(MapTile tile) {
-        
         Envelope envelope = TileUtils.TileBounds(tile.x, tile.y, tile.zoom, projection);
         
         String bbox = "" + envelope.getMinX() + "," + envelope.getMinY() + ","
                 + envelope.getMaxX() + "," + envelope.getMaxY();
-        Log.debug("wmsmap original envelope bbox " + bbox);
-        if (!dataProjection.name().equals(projection.name())) {
-            // recalculate to WMS dataProjection via WGS84
-            MapPos bottomLeft = projection.toWgs84(envelope.getMinX(), envelope.getMinY());
-            MapPos topRight = projection.toWgs84(envelope.getMaxX(), envelope.getMaxY());
-            Log.debug("WmsMap bottomLeft " + bottomLeft + " topRight "
-                    + topRight);
-            if(dataProjection.name().equals(new EPSG4326().name())){
-                // no reprojection needed, already WGS84
-               bbox = "" + bottomLeft.x + "," + bottomLeft.y
-                        + "," + topRight.x +","+ topRight.y;
-            }else{
-                bbox = "" + dataProjection.fromWgs84(bottomLeft.x, bottomLeft.y).x
-                        + ","
-                        + dataProjection.fromWgs84(bottomLeft.x, bottomLeft.y).y
-                        + "," + dataProjection.fromWgs84(topRight.x, topRight.y).x
-                        + "," + dataProjection.fromWgs84(topRight.x, topRight.y).y;
-                
-            }
-            Log.debug("wmsmap recalculated bbox " + bbox);
-        } else {
-            Log.debug("wmsmap keeps original bbox " + bbox);
-        }
+        Log.debug("WmsLayer: envelope bbox " + bbox);
         return bbox;
     }
-
 
     public int getTileSize() {
         return tileSize;
@@ -168,7 +131,7 @@ public class WmsLayer extends RasterLayer {
         url.append("&FORMAT=").append(Utils.urlEncode(format));
         url.append("&SERVICE=WMS&VERSION=1.1.1");
         url.append("&STYLES=").append(Utils.urlEncode(style));
-        url.append("&SRS=").append(Utils.urlEncode(dataProjection.name()));
+        url.append("&SRS=").append(Utils.urlEncode(getProjection().name()));
         url.append("&WIDTH="+tileSize+"&HEIGHT="+tileSize);
         url.append("&BBOX=").append(Utils.urlEncode(bbox));
         
@@ -183,7 +146,7 @@ public class WmsLayer extends RasterLayer {
                 Utils.urlEncode("application/vnd.ogc.se_xml"));
         
         String urlString = url.toString();
-        Log.info("WmsLayer: GetFeatureInfo " + urlString);
+        Log.info("WmsLayer: getFeatureInfo " + urlString);
         
         return NetUtils.downloadUrl(urlString, this.httpHeaders, true, "UTF-8");
     }
