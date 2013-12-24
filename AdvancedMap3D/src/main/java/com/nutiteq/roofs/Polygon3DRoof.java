@@ -8,11 +8,13 @@ import com.nutiteq.components.Color;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MutableEnvelope;
+import com.nutiteq.components.Point3D;
 import com.nutiteq.components.Vector;
 import com.nutiteq.components.Vector3D;
 import com.nutiteq.geometry.Polygon3D;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.renderers.renderprojections.RenderProjection;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.Label;
@@ -368,7 +370,16 @@ public class Polygon3DRoof extends Polygon3D {
       }
     }
 
-    setInternalState(new Polygon3DInternalState(originMapPosInternal, originMapPosInternal, 
+    RenderProjection renderProjection = layer.getRenderProjection();
+    Point3D originPoint = renderProjection.project(originMapPosInternal.x, originMapPosInternal.y, originMapPosInternal.z);
+    for (int i = 0; i < verts.length; i += 3) {
+      MapPos mapPos = new MapPos(verts[i + 0] + originMapPosInternal.x, verts[i + 1] + originMapPosInternal.y, verts[i + 2] + originMapPosInternal.z);
+      Point3D point = renderProjection.project(mapPos.x, mapPos.y, mapPos.z);
+      verts[i + 0] = (float) (point.x - originPoint.x);
+      verts[i + 1] = (float) (point.y - originPoint.y);
+      verts[i + 2] = (float) (point.z - originPoint.z); 
+    }
+    setInternalState(new Polygon3DInternalState(originPoint, 
         verts, colors, new Envelope(envInternal)));
   }
   
