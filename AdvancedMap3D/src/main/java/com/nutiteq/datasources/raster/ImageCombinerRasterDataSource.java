@@ -8,6 +8,7 @@ import android.graphics.Paint;
 
 import com.nutiteq.components.MapTile;
 import com.nutiteq.components.TileBitmap;
+import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterdatasources.AbstractRasterDataSource;
 import com.nutiteq.rasterdatasources.RasterDataSource;
 
@@ -20,14 +21,34 @@ import com.nutiteq.rasterdatasources.RasterDataSource;
 public class ImageCombinerRasterDataSource extends AbstractRasterDataSource {
   private final List<RasterDataSource> dataSources;
   
+  private static Projection getProjection(List<RasterDataSource> dataSources) {
+    return dataSources.get(0).getProjection();
+  }
+  
+  private static int getMinZoom(List<RasterDataSource> dataSources) {
+    int minZoom = 0;
+    for (RasterDataSource dataSource : dataSources) {
+      minZoom = Math.max(minZoom, dataSource.getMinZoom());
+    }
+    return minZoom;
+  }
+  
+  private static int getMaxZoom(List<RasterDataSource> dataSources) {
+    int maxZoom = Integer.MAX_VALUE;
+    for (RasterDataSource dataSource : dataSources) {
+      maxZoom = Math.min(maxZoom, dataSource.getMaxZoom());
+    }
+    return maxZoom;
+  }
+  
   /**
    * Default constructor.
    * 
    * @param dataSources
-   *          list of tile datasources to combine
+   *          list of tile datasources to combine. Note: the list must be non-empty!
    */
   public ImageCombinerRasterDataSource(List<RasterDataSource> dataSources) {
-    super(dataSources.isEmpty() ? null : dataSources.get(0).getProjection());
+    super(getProjection(dataSources), getMinZoom(dataSources), getMaxZoom(dataSources));
     this.dataSources = dataSources;
   }
 
@@ -38,8 +59,7 @@ public class ImageCombinerRasterDataSource extends AbstractRasterDataSource {
    *          tile datasources to combine
    */
   public ImageCombinerRasterDataSource(RasterDataSource... dataSources) {
-    super(dataSources.length == 0 ? null : dataSources[0].getProjection());
-    this.dataSources = java.util.Arrays.asList(dataSources);
+    this(java.util.Arrays.asList(dataSources));
   }
   
   @Override

@@ -1,9 +1,11 @@
 package com.nutiteq.datasources.vector;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
+import com.nutiteq.components.CullState;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.db.SpatialLiteDbHelper;
 import com.nutiteq.geometry.Geometry;
@@ -18,7 +20,6 @@ import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
-import com.nutiteq.utils.LongHashMap;
 import com.nutiteq.vectordatasources.AbstractVectorDataSource;
 
 // TODO: implement simplification, as in previous layer implementation
@@ -83,35 +84,33 @@ public class SpatialiteDataSource extends AbstractVectorDataSource<Geometry> {
 	}
 	
 	@Override
-	public LongHashMap<Geometry> loadElements(Envelope envelope, int zoom) {
+	public Collection<Geometry> loadElements(CullState cullState) {
 		if (dbLayer == null) {
 			return null;
 		}
 
-		if (zoom < minZoom) {
+		if (cullState.zoom < minZoom) {
 			return null;
 		}
 
-		List<Geometry> elementList = spatialLite.qrySpatiaLiteGeom(envelope, maxObjects, dbLayer, userColumns, null, 0, 0);
-		LongHashMap<Geometry> elementMap = new LongHashMap<Geometry>(); 
-		for (Geometry element : elementList){
-			@SuppressWarnings("unchecked")
-			final Map<String, String> userData = (Map<String, String>) element.userData;
-			long id = Long.parseLong(userData.get("_id"));
+		Envelope envelope = projection.fromInternal(cullState.envelope);
+		List<Geometry> queryList = spatialLite.qrySpatiaLiteGeom(envelope, maxObjects, dbLayer, userColumns, null, 0, 0);
+		List<Geometry> elements = new ArrayList<Geometry>(queryList.size() + 1); 
+		for (Geometry element : queryList) {
 			Label label = createLabel(element.userData);
 		
 			Geometry newElement = null;
 			if (element instanceof Point) {
-				newElement = new Point(((Point) element).getMapPos(), label, pointStyleSet, userData);
+				newElement = new Point(((Point) element).getMapPos(), label, pointStyleSet, element.userData);
 			} else if (element instanceof Line) {
-				newElement = new Line(((Line) element).getVertexList(), label, lineStyleSet, userData);
+				newElement = new Line(((Line) element).getVertexList(), label, lineStyleSet, element.userData);
 			} else if (element instanceof Polygon) {
 				newElement = new Polygon(((Polygon) element).getVertexList(), ((Polygon) element).getHolePolygonList(), label, polygonStyleSet, element.userData);
 			}
 
-			elementMap.put(id, newElement);
+			elements.add(newElement);
 		}
-		return elementMap;
+		return elements;
 	}
 	
 	@SuppressWarnings("unchecked")

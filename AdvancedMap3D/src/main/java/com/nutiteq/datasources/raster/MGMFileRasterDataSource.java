@@ -63,13 +63,17 @@ public class MGMFileRasterDataSource extends AbstractRasterDataSource {
    *          the maximum zoom
    * @param id
    *          unique layer id. Id for the layer must be depend ONLY on the layer source, otherwise tile caching will not work properly. 
+   * @param minZoom
+   *          minimum zoom level supported by this data source
+   * @param maxZoom
+   *          maximum zoom level supported by this data source
    * @param name
    *          the name of the sub folders
    * @param path
    *          the path to the main map folder
    */
-  public MGMFileRasterDataSource(Projection projection, int tileSize, String name, String path) {
-    super(projection);
+  public MGMFileRasterDataSource(Projection projection, int minZoom, int maxZoom, int tileSize, String name, String path) {
+    super(projection, minZoom, maxZoom);
     this.name = name;
     this.basePath = path;
     this.tileSize = tileSize;

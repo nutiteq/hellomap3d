@@ -1,8 +1,10 @@
 package com.nutiteq.datasources.vector;
 
 import java.io.ByteArrayInputStream;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +15,7 @@ import org.json.JSONObject;
 import android.net.ParseException;
 import android.net.Uri;
 
+import com.nutiteq.components.CullState;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Geometry;
@@ -28,7 +31,6 @@ import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
-import com.nutiteq.utils.LongHashMap;
 import com.nutiteq.utils.NetUtils;
 import com.nutiteq.utils.Utils;
 import com.nutiteq.utils.WkbRead;
@@ -81,10 +83,12 @@ public class CartoDbDataSource extends AbstractVectorDataSource<Geometry> {
   }
 
   @Override
-  public LongHashMap<Geometry> loadElements(Envelope envelope, int zoom) {
-    if (zoom < minZoom) {
+  public Collection<Geometry> loadElements(CullState cullState) {
+    if (cullState.zoom < minZoom) {
       return null;
     }
+    
+    Envelope envelope = projection.fromInternal(cullState.envelope);
 
     long timeStart = System.currentTimeMillis();
 
@@ -101,7 +105,7 @@ public class CartoDbDataSource extends AbstractVectorDataSource<Geometry> {
     String sql = this.sql.replace(PLACEHOLDER_BBOX, bboxString).replace(PLACEHOLDER_ENVELOPE, envString);
     Log.debug("CartoDB sql: " + sql);
 
-    LongHashMap<Geometry> elementMap = new LongHashMap<Geometry>();
+    final List<Geometry> elements = new LinkedList<Geometry>();
     try {
       Uri.Builder uri = Uri.parse("http://" + this.account + ".cartodb.com/api/v2/sql").buildUpon();
       uri.appendQueryParameter("q", sql);
@@ -109,9 +113,9 @@ public class CartoDbDataSource extends AbstractVectorDataSource<Geometry> {
 
       JSONObject jsonData = NetUtils.getJSONFromUrl(uri.build().toString());
 
-      if(jsonData == null){
+      if (jsonData == null){
         Log.debug("No CartoDB data");
-        return elementMap;
+        return elements;
       }
 
       JSONArray rows = jsonData.getJSONArray(TAG_ROWS);
@@ -120,14 +124,14 @@ public class CartoDbDataSource extends AbstractVectorDataSource<Geometry> {
         JSONObject row = rows.getJSONObject(i);
 
         final Map<String, String> userData = new HashMap<String, String>();
-        for (@SuppressWarnings("unchecked")Iterator<String> it = row.keys(); it.hasNext(); ) {
-          String key = it.next();
+        for (Iterator<?> it = row.keys(); it.hasNext(); ) {
+          String key = (String) it.next();
           if (!key.equals(TAG_GEOM_WEBMERCATOR) && !key.equals(TAG_GEOM) && !key.equals(TAG_CARTODB_ID)) {
             try {
               Object value =  row.get(key);
               userData.put(key, value.toString());
             } catch (JSONException e) { 
-              Log.error( "Error parsing JSON keys " + e.toString());
+              Log.error("Error parsing JSON keys " + e.toString());
             }
           }
         }
@@ -162,7 +166,8 @@ public class CartoDbDataSource extends AbstractVectorDataSource<Geometry> {
         });
 
         for (int j = 0; j < geoms.length; j++) {
-          elementMap.put(id + ((long) j << 48), geoms[j]);
+          geoms[j].setId(id);
+          elements.add(geoms[j]);
         }
       }
     }
@@ -173,8 +178,8 @@ public class CartoDbDataSource extends AbstractVectorDataSource<Geometry> {
     }
 
     long timeEnd = System.currentTimeMillis();
-    Log.debug("CartoDbLayer loaded N:"+ elementMap.size()+" time ms:"+(timeEnd-timeStart));
-    return elementMap;
+    Log.debug("CartoDbLayer loaded N:"+ elements.size()+" time ms:"+(timeEnd-timeStart));
+    return elements;
   }
 
   protected Label createLabel(Map<String, String> userData) {

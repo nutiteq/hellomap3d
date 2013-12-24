@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,8 +15,8 @@ import java.util.Map;
 import android.net.ParseException;
 import android.net.Uri;
 
-import com.nutiteq.utils.LongHashMap;
 import com.nutiteq.utils.WkbRead;
+import com.nutiteq.components.CullState;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.geometry.Polygon;
@@ -115,27 +116,19 @@ public class BuildingOSMOnlineDataSource extends AbstractVectorDataSource<Polygo
   }
 
   @Override
-  public LongHashMap<Polygon3D> loadElements(Envelope envelope, int zoom) {
-    if (zoom < minZoom) {
+  public Collection<Polygon3D> loadElements(CullState cullState) {
+    if (cullState.zoom < minZoom) {
       return null;
     }
 
-    List<Polygon> polygons = loadPolygons(envelope);
-    List<Polygon3D> polygons3D = convert3D(polygons, zoom);
-    LongHashMap<Polygon3D> elementMap = new LongHashMap<Polygon3D>();
-    for (Polygon3D element : polygons3D) {
-      @SuppressWarnings("unchecked")
-      Map<String, String> userData = (Map<String, String>) element.userData;
-      long id = Long.parseLong(userData.get("id"));
-      elementMap.put(id, element);
-    }
-    return elementMap;
+    Collection<Polygon> polygons = loadPolygons(projection.fromInternal(cullState.envelope));
+    return convert3D(polygons, cullState.zoom);
   }
 
   /**
    * Helper method to load geometries from the server
    */
-  private List<Polygon> loadPolygons(Envelope box) {
+  private Collection<Polygon> loadPolygons(Envelope box) {
     List<Polygon> objects = new LinkedList<Polygon>();
     // URL request format: http://kaart.maakaart.ee/poiexport/buildings2.php?bbox=xmin,ymin,xmax,ymax&output=wkb
     try {
@@ -152,7 +145,8 @@ public class BuildingOSMOnlineDataSource extends AbstractVectorDataSource<Polygo
 
       for (int i = 0; i < n; i++) {
         final Map<String, String> userData = new HashMap<String, String>();
-        userData.put("id", Long.toString(data.readInt()));
+        long id = data.readInt();
+        userData.put("id", Long.toString(id));
         userData.put("name", data.readUTF());
         userData.put("height", data.readUTF());
         userData.put("type", data.readUTF());
@@ -180,10 +174,12 @@ public class BuildingOSMOnlineDataSource extends AbstractVectorDataSource<Polygo
         data.read(wkb);
         Geometry[] geoms = WkbRead.readWkb(new ByteArrayInputStream(wkb), userData);
         for(Geometry geom : geoms){
-          if(geom instanceof Polygon)
+          if(geom instanceof Polygon) {
+            geom.setId(id);
             objects.add((Polygon) geom);
-          else
+          } else {
             Log.error("loaded object not a polygon");
+          }
         }
       }
 
@@ -198,7 +194,7 @@ public class BuildingOSMOnlineDataSource extends AbstractVectorDataSource<Polygo
   }
 
 
-  public List<Polygon3D> convert3D(List<Polygon> polygons, int zoom) {
+  public Collection<Polygon3D> convert3D(Collection<Polygon> polygons, int zoom) {
     long start = System.currentTimeMillis();
     List<Polygon3D> polygons3D = new LinkedList<Polygon3D>();
     for (Polygon geometry : polygons) {
@@ -259,6 +255,7 @@ public class BuildingOSMOnlineDataSource extends AbstractVectorDataSource<Polygo
       // Create 3Dpolygon
       Polygon3D polygon3D = new Polygon3DRoof(((Polygon)geometry).getVertexList(), geometry.getHolePolygonList(), 
           height, minHeight, roofShape, color, roofColor, label, styleSet, userData);
+      polygon3D.setId(geometry.getId());
       polygons3D.add(polygon3D);
     }
     Log.debug("Triangulation time: " + (System.currentTimeMillis() - start));

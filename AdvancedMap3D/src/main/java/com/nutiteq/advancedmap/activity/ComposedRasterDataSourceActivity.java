@@ -106,14 +106,14 @@ public class ComposedRasterDataSourceActivity extends Activity {
   
   private void setBaseMapLayer() {
     RasterDataSource rasterDataSource = createComposedDataSource();
-    RasterLayer mapLayer = new RasterLayer(rasterDataSource, 0, 19, 1508);
+    RasterLayer mapLayer = new RasterLayer(rasterDataSource, 1508);
     mapLayer.setPersistentCaching(false);
     mapLayer.setMemoryCaching(false);
     mapView.getLayers().setBaseLayer(mapLayer);    
   }
   
   private RasterDataSource createComposedDataSource() {
-    originalDS = new HTTPRasterDataSource(new EPSG4326(), "http://www.staremapy.cz/naturalearth/{zoom}/{x}/{yflipped}.png");
+    originalDS = new HTTPRasterDataSource(new EPSG4326(), 0, 19, "http://www.staremapy.cz/naturalearth/{zoom}/{x}/{yflipped}.png");
     cacheDS = new CacheRasterDataSource(originalDS, new PersistentCacheStore(this.getDatabasePath("mapcache_composedrds").getPath(), 10 * 1024 * 1024));
     imageFilterDS = new ImageFilterRasterDataSource(cacheDS);
     

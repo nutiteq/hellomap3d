@@ -7,13 +7,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import android.content.Context;
 import android.net.ParseException;
 import android.net.Uri;
 
+import com.nutiteq.components.CullState;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Vector;
@@ -26,7 +30,6 @@ import com.nutiteq.nmlpackage.NMLPackage.Model;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.ModelStyle;
 import com.nutiteq.style.StyleSet;
-import com.nutiteq.utils.LongHashMap;
 import com.nutiteq.utils.WkbRead;
 import com.nutiteq.vectordatasources.AbstractVectorDataSource;
 
@@ -68,12 +71,14 @@ public class TreeOSMOnlineDataSource extends AbstractVectorDataSource<NMLModel> 
 	}
 	
 	@Override
-	public LongHashMap<NMLModel> loadElements(Envelope box, int zoom) {
-		if (zoom < minZoom) {
+	public Collection<NMLModel> loadElements(CullState cullState) {
+		if (cullState.zoom < minZoom) {
 			return null;
 		}
 
-		LongHashMap<NMLModel> objectMap = new LongHashMap<NMLModel>();
+        Envelope box = projection.fromInternal(cullState.envelope);
+
+        List<NMLModel> trees = new ArrayList<NMLModel>();
 		// URL request format: http://kaart.maakaart.ee/poiexport/trees.php?bbox=xmin,ymin,xmax,ymax&output=wkb
 		try {
 			Uri.Builder uri = Uri.parse(baseUrl).buildUpon();
@@ -97,12 +102,13 @@ public class TreeOSMOnlineDataSource extends AbstractVectorDataSource<NMLModel> 
 				byte[] wkb = new byte[len];
 				data.read(wkb);
 				Geometry[] geoms = WkbRead.readWkb(new ByteArrayInputStream(wkb), userData);
-				for (Geometry geom : geoms){
-					if (geom instanceof Point){
+				for (Geometry geom : geoms) {
+					if (geom instanceof Point) {
 						MapPos location = ((Point) geom).getMapPos();
 						NMLModel tree = new NMLModel(location, null, modelStyleSet, nmlModel, null);
 						tree.setScale(new Vector(scale, scale, scale));
-						objectMap.put(id, tree);
+						tree.setId(id);
+						trees.add(tree);
 					} else {
 						Log.error("loaded object not a point");
 					}
@@ -116,7 +122,7 @@ public class TreeOSMOnlineDataSource extends AbstractVectorDataSource<NMLModel> 
 			e.printStackTrace();
 		}
 
-		return objectMap;
+		return trees;
 	}
 
 }

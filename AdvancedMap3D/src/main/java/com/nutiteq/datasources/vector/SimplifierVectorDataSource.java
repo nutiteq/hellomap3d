@@ -1,10 +1,12 @@
 package com.nutiteq.datasources.vector;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.nutiteq.components.CullState;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Geometry;
@@ -110,37 +112,33 @@ public class SimplifierVectorDataSource extends AbstractVectorDataSource<Geometr
   }
   
   @Override
-  public LongMap<Geometry> loadElements(Envelope envelope, int zoom) {
+  public Collection<Geometry> loadElements(CullState cullState) {
     // Load original data
-    LongMap<Geometry> data = dataSource.loadElements(envelope, zoom);
+    Collection<Geometry> data = dataSource.loadElements(cullState);
     if (tolerance <= 0) {
       return data;
     }
     
     // Calculate zoom-based tolerance. Assume coordinates are in internal coordinate system
-    double tolerance = Const.UNIT_SIZE * this.tolerance / (1 << zoom);
+    double tolerance = Const.UNIT_SIZE * this.tolerance / (1 << cullState.zoom);
     
     // Create map of simplified elements
-    LongMap<Geometry> simplifiedData = new LongHashMap<Geometry>();
-    LongMap<LongMap.Entry<Geometry>> pointBucketMap = new LongHashMap<LongMap.Entry<Geometry>>();
-    for (Iterator<LongMap.Entry<Geometry>> it = data.entrySetIterator(); it.hasNext(); ) {
-      LongMap.Entry<Geometry> entry = it.next();
-      
-      // Create zoom-based id for each simplified element
-      long id = zoom + (Const.MAX_SUPPORTED_ZOOM_LEVEL + 1) * entry.getKey();
+    Collection<Geometry> simplifiedData = new ArrayList<Geometry>(data.size() + 1);
+    LongMap<Geometry> pointBucketMap = new LongHashMap<Geometry>();
+    for (Iterator<Geometry> it = data.iterator(); it.hasNext(); ) {
+      Geometry element = it.next();
       
       // Process element based on type
-      Geometry element = entry.getValue();
       if (element instanceof Point) {
         Point point = (Point) element;
         long bucketId = calculatePointBucket(point, tolerance);
-        pointBucketMap.put(bucketId, entry);
+        pointBucketMap.put(bucketId, element);
       } else if (element instanceof Line) {
         Line line = (Line) element;
         List<MapPos> simplifiedVertexList = simplifyRing(line.getVertexList(), tolerance, lineSimplifyAlgorithm);
         if (simplifiedVertexList.size() >= 2) {
           Line simplifiedLine = new Line(simplifiedVertexList, line.getLabel(), line.getStyleSet(), line.userData);
-          simplifiedData.put(id, simplifiedLine);
+          simplifiedData.add(simplifiedLine);
         }
       } else if (element instanceof Polygon) {
         Polygon polygon = (Polygon) element;
@@ -157,17 +155,14 @@ public class SimplifierVectorDataSource extends AbstractVectorDataSource<Geometr
             }
           }
           Polygon simplifiedPolygon = new Polygon(simplifiedVertexList, holePolygonList, polygon.getLabel(), polygon.getStyleSet(), polygon.userData);
-          simplifiedData.put(id, simplifiedPolygon);
+          simplifiedData.add(simplifiedPolygon);
         }
       }
     }
     
     // Add bucketed points
-    for (Iterator<LongMap.Entry<LongMap.Entry<Geometry>>> it = pointBucketMap.entrySetIterator(); it.hasNext(); ) {
-      LongMap.Entry<Geometry> entry = it.next().getValue();
-      long id = zoom + (Const.MAX_SUPPORTED_ZOOM_LEVEL + 1) * entry.getKey();
-      simplifiedData.put(id, entry.getValue());
-    }
+    simplifiedData.addAll(pointBucketMap.values());
+
     return simplifiedData;
   }
   

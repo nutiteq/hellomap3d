@@ -1,18 +1,17 @@
 package com.nutiteq.datasources.vector;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 
 import com.nutiteq.components.Bounds;
+import com.nutiteq.components.CullState;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MutableVector;
 import com.nutiteq.geometry.VectorElement;
-import com.nutiteq.utils.LongHashMap;
-import com.nutiteq.utils.LongMap;
 import com.nutiteq.vectordatasources.AbstractVectorDataSource;
 import com.nutiteq.vectordatasources.VectorDataSource;
 
@@ -31,16 +30,16 @@ public class ClusteringVectorDataSource<T extends VectorElement> extends Abstrac
   
   private class Cluster {
     MapPos mapPos;
-    List<LongMap.Entry<T>> elements;
+    List<T> elements;
     
-    Cluster(LongMap.Entry<T> element) {
-      elements = new ArrayList<LongMap.Entry<T>>();
+    Cluster(T element) {
+      elements = new ArrayList<T>();
       elements.add(element);
-      mapPos = elementMerger.getMapPos(element.getValue());
+      mapPos = elementMerger.getMapPos(element);
     }
     
-    void add(LongMap.Entry<T> element) {
-      MapPos elementPos = elementMerger.getMapPos(element.getValue());
+    void add(T element) {
+      MapPos elementPos = elementMerger.getMapPos(element);
       double cx = (mapPos.x * elements.size() + elementPos.x);
       double cy = (mapPos.y * elements.size() + elementPos.y);
       elements.add(element);
@@ -68,12 +67,12 @@ public class ClusteringVectorDataSource<T extends VectorElement> extends Abstrac
      * Merge list of elements into a single element.
      * 
      * @param elements
-     *          list of input elements with their ids. This list is not empty.
+     *          list of input elements. This list is not empty.
      * @param mapPos
      *          position for the merged element.
-     * @return merged element with new id. The id must uniquely identify the merged element. 
+     * @return merged element 
      */
-    LongMap.Entry<T> mergeElements(List<LongMap.Entry<T>> elements, MapPos mapPos);
+    T mergeElements(List<T> elements, MapPos mapPos);
   }
   
   /**
@@ -102,16 +101,19 @@ public class ClusteringVectorDataSource<T extends VectorElement> extends Abstrac
   }
 
   @Override
-  public LongMap<T> loadElements(Envelope envelope, int zoom) {
+  public Collection<T> loadElements(CullState cullState) {
+    int zoom = cullState.zoom;
+    Envelope envelope = projection.fromInternal(cullState.envelope);
     Bounds bounds = dataSource.getProjection().getBounds();
     double zoomTiles = 0.5 * (1 << zoom);
     double maxDistance = distance * Math.max(bounds.getWidth(), bounds.getHeight()) / zoomTiles;
 
     Envelope queryEnvelope = enlargeEnvelope(envelope, maxDistance * 2, bounds);
-    LongMap<T> data = dataSource.loadElements(queryEnvelope, zoom);
+    CullState queryCullState = new CullState(queryEnvelope, cullState.camera, cullState.renderProjection);
+    Collection<T> data = dataSource.loadElements(queryCullState);
     
     Envelope clusterEnvelope = enlargeEnvelope(envelope, maxDistance * 1, bounds);
-    LongMap<T> clusteredData = clusterData(data, maxDistance, clusterEnvelope);
+    Collection<T> clusteredData = clusterData(data, maxDistance, clusterEnvelope);
 
     return clusteredData;
   }
@@ -124,43 +126,43 @@ public class ClusteringVectorDataSource<T extends VectorElement> extends Abstrac
     return new Envelope(minX, maxX, minY, maxY);
   }
   
-  protected LongMap<T> clusterData(LongMap<T> elements, double maxDistance, Envelope envelope) {
+  protected Collection<T> clusterData(Collection<T> elements, double maxDistance, Envelope envelope) {
     List<Cluster> clusters = new ArrayList<Cluster>();
-    PriorityQueue<LongMap.Entry<T>> queue = new PriorityQueue<LongMap.Entry<T>>(elements.size() + 1, new Comparator<LongMap.Entry<T>>() {
+    PriorityQueue<T> queue = new PriorityQueue<T>(elements.size() + 1, new Comparator<T>() {
       @Override
-      public int compare(LongMap.Entry<T> elem1, LongMap.Entry<T> elem2) {
-        return (int) (elem1.getKey() - elem2.getKey());
+      public int compare(T elem1, T elem2) {
+        if (elem1.getId() != elem2.getId()) {
+          return elem1.getId() < elem2.getId() ? -1 : 1;
+        }
+        return elem1.hashCode() - elem2.hashCode();
       }
     });
-    for (Iterator<LongMap.Entry<T>> it = elements.entrySetIterator(); it.hasNext(); ) {
-      LongMap.Entry<T> entry = it.next();
-      queue.add(entry);
-    }
+    queue.addAll(elements);
 
     MutableVector diff = new MutableVector();
     while (!queue.isEmpty()) {
-      LongMap.Entry<T> entry = queue.poll();
+      T element = queue.poll();
       boolean merged = false;
-      MapPos elementPos = elementMerger.getMapPos(entry.getValue());
+      MapPos elementPos = elementMerger.getMapPos(element);
       for (Cluster cluster : clusters) {
         diff.setCoords(elementPos.x - cluster.mapPos.x, elementPos.y - cluster.mapPos.y);
         if (diff.getLength2D() <= maxDistance) {
-          cluster.add(entry);
+          cluster.add(element);
           merged = true;
           break;
         }
       }
       if (!merged) {
-        Cluster cluster = new Cluster(entry);
+        Cluster cluster = new Cluster(element);
         clusters.add(cluster);
       }
     }
     
-    LongMap<T> clusteredElements = new LongHashMap<T>();
+    List<T> clusteredElements = new ArrayList<T>();
     for (Cluster cluster : clusters) {
       boolean inside = true;
-      for (LongMap.Entry<T> entry : cluster.elements) { // if cluster contains points outside of the envelope, drop this cluster (too close to edge and may not contain all points in original data source)
-        MapPos elementPos = elementMerger.getMapPos(entry.getValue());
+      for (T element : cluster.elements) { // if cluster contains points outside of the envelope, drop this cluster (too close to edge and may not contain all points in original data source)
+        MapPos elementPos = elementMerger.getMapPos(element);
         if (!envelope.contains(elementPos)) {
           inside = false;
           break;
@@ -170,12 +172,10 @@ public class ClusteringVectorDataSource<T extends VectorElement> extends Abstrac
         continue;
       }
       if (cluster.elements.size() >= threshold) {
-        LongMap.Entry<T> entry = elementMerger.mergeElements(cluster.elements, cluster.mapPos);
-        clusteredElements.put(entry.getKey(), entry.getValue());
+        T element = elementMerger.mergeElements(cluster.elements, cluster.mapPos);
+        clusteredElements.add(element);
       } else {
-        for (LongMap.Entry<T> entry : cluster.elements) {
-          clusteredElements.put(entry.getKey(), entry.getValue());
-        }
+        clusteredElements.addAll(cluster.elements);
       }
     }
     
