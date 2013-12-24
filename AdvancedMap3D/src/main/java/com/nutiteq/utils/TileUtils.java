@@ -2,6 +2,7 @@ package com.nutiteq.utils;
 
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
+import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 
 public class TileUtils {
@@ -91,16 +92,21 @@ public class TileUtils {
      */
     public static Envelope TileBounds(int tx, int ty, int zoom, Projection proj) {
 
-        double originShift =  (proj.getBounds().right-proj.getBounds().left) / 2.0;
+        double originShiftX =  (proj.getBounds().right-proj.getBounds().left) / 2.0;
+        double originShiftY =  (proj.getBounds().top-proj.getBounds().bottom) / 2.0;
 
-        double res = (originShift * 2.0) / (TILESIZE * (double) (1<<(zoom))); // 1<<(zoom) is same as power(2;zoom)
-        double minx = ((double) tx) * TILESIZE * res - originShift;
-        double miny = (((double)  (1<<(zoom))-1-ty) * TILESIZE * res) - originShift;
+        double dim = Math.min(proj.getBounds().getWidth(), proj.getBounds().getHeight());
+        double res = dim / (TILESIZE * (double) (1<<(zoom))); // 1<<(zoom) is same as power(2;zoom)
+        double minx = ((double) tx) * TILESIZE * res - originShiftX;
+        double miny = (((double)  (1<<(zoom))-1-ty) * TILESIZE * res) - originShiftY;
 
-        double maxx = (double)(tx+1) * TILESIZE * res - originShift;
-        double maxy = ((double)( (1<<(zoom))-1-ty + 1) * TILESIZE * res) - originShift;
+        double maxx = (double)(tx+1) * TILESIZE * res - originShiftX;
+        double maxy = ((double)( (1<<(zoom))-1-ty + 1) * TILESIZE * res) - originShiftY;
         
-        return new Envelope( minx, maxx, miny, maxy);
+        Envelope env = new Envelope( minx, maxx, miny, maxy);
+        Log.debug("Tile: x=" + tx + ",y=" + ty + ",zoom=" + zoom + ",env=" + env);
+        
+        return env;
 }
 
     
