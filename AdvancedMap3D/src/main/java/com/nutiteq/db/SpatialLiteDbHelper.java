@@ -278,9 +278,10 @@ public class SpatialLiteDbHelper {
                         new ByteArrayInputStream(Utils
                                 .hexStringToByteArray(rowdata[1])), userData);
                 for (int i = 0; i < g1.length; i++) {
+                    g1[i].setId(Long.parseLong(rowdata[0]));
                     geoms.add(g1[i]);
                 }
-
+                
                 return false;
             }
         };

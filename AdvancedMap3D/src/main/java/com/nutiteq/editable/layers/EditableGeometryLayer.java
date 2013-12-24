@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.nutiteq.components.CullState;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.editable.datasources.EditableVectorDataSource;
 import com.nutiteq.geometry.Geometry;
@@ -71,7 +72,16 @@ public class EditableGeometryLayer extends GeometryLayer {
 		updateVisibleElements();
 	}
 
-	@Override
+    @Override
+    public void add(Geometry element) {
+      element.attachToLayer(this);
+      element.setActiveStyle(getCurrentZoomLevel());
+      onElementCreated(element);
+
+      updateVisibleElements();
+    }
+
+    @Override
 	public void addAll(Collection<? extends Geometry> elements) {
 		for (Geometry element : elements) {
 			element.attachToLayer(this);
@@ -82,7 +92,15 @@ public class EditableGeometryLayer extends GeometryLayer {
 		updateVisibleElements();
 	}
 
-	@Override
+    @Override
+    public void remove(Geometry element) {
+      element.detachFromLayer();
+      onElementDeleted(element);
+
+      updateVisibleElements();
+    }
+
+    @Override
 	public void removeAll(Collection<? extends Geometry> elements) {
 		for (Geometry element : elements) {
 			element.detachFromLayer();
@@ -97,21 +115,20 @@ public class EditableGeometryLayer extends GeometryLayer {
 	}
 
 	@Override
-	public void calculateVisibleElements(Envelope envelope, int zoom) {
+	public void calculateVisibleElements(CullState cullState) {
 
-		LongMap<Geometry> objectMap = dataSource.loadElements(dataSource.getProjection().fromInternal(envelope), zoom);
+		Collection<Geometry> newElements = dataSource.loadElements(cullState);
 		LongHashMap<Geometry> newElementMap = new LongHashMap<Geometry>(); 
 
 		synchronized (this) {
 			// apply styles, create new objects for these
-			for (Iterator<LongMap.Entry<Geometry>> it = objectMap.entrySetIterator(); it.hasNext(); ){
-				LongMap.Entry<Geometry> entry = it.next();
-				long id = entry.getKey();
-				Geometry newElement = entry.getValue();
+			for (Iterator<Geometry> it = newElements.iterator(); it.hasNext(); ){
+				Geometry newElement = it.next();
+				long id = newElement.getId();
 
 				Geometry oldElement = currentElementMap.get(id);
 				if (oldElement != null) {
-					oldElement.setActiveStyle(zoom);
+					oldElement.setActiveStyle(cullState.zoom);
 					newElementMap.put(id, oldElement);
 				}
 				if (currentElementMap.containsKey(id)) {
@@ -120,7 +137,7 @@ public class EditableGeometryLayer extends GeometryLayer {
 
 				if (newElement != null) {
 					newElement.attachToLayer(this);
-					newElement.setActiveStyle(zoom);
+					newElement.setActiveStyle(cullState.zoom);
 					newElementMap.put(id, newElement);
 				}
 			}
@@ -136,8 +153,7 @@ public class EditableGeometryLayer extends GeometryLayer {
 			}
 		}
 
-		List<Geometry> newElements = new ArrayList<Geometry>(newElementMap.values());
-		setVisibleElements(newElements);
+		setVisibleElements(new ArrayList<Geometry>(newElementMap.values()));
 		currentElementMap = newElementMap;
 	}
 

@@ -89,27 +89,27 @@ public class OverlayLayer extends GeometryLayer {
 		MutableEnvelope envelope = new MutableEnvelope(super.getDataExtent());
 		synchronized (elements) {
 			for (Geometry element : elements) {
-				Envelope internalEnv = element.getInternalState().envelope;
-				envelope.add(projection.fromInternal(internalEnv));
+              Envelope internalEnv = element.getInternalState().envelope;
+              envelope.add(projection.fromInternal(internalEnv));
 			}
 		}
 		return new Envelope(envelope);
 	}
 
-	@Override
-	public void elementUpdated(VectorElement element) {
-		if (element instanceof Geometry) {
-			element.calculateInternalState();
-			Components components = getComponents();
-			if (components != null) {
-				components.mapRenderers.getMapRenderer().requestRenderView();
-			}
-		} else {
-			super.elementUpdated(element);
-		}
-	}
+    @Override
+    public void onElementChanged(VectorElement element) {
+        if (element instanceof Geometry) {
+            element.calculateInternalState();
+            Components components = getComponents();
+            if (components != null) {
+                components.mapRenderers.getMapRenderer().requestRenderView();
+            }
+        } else {
+            super.onElementChanged(element);
+        }
+    }
 
-	@Override
+    @Override
 	public void calculateVisibleElements(Envelope envelope, int zoom) {
 		synchronized (elements) {
 			setVisibleElements(elements);
