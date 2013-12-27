@@ -215,7 +215,7 @@ private List<MapPos> simplifyRingDouglasPeucker(List<MapPos> ring, double tolera
     double distmax = tolerance * tolerance;
     for (int i = 1; i < ring.size() - 1; i++) {
       MapPos pos = projection.toInternal(ring.get(i).x, ring.get(i).y);
-      double dist = GeomUtils.distanceLinePointSqr(posA.x, posA.y, posB.x, posB.y, pos.x, pos.y);
+      double dist = distanceLinePointSqr(posA.x, posA.y, posB.x, posB.y, pos.x, pos.y);
       if (dist > distmax) {
         index = i;
         distmax = dist;
@@ -235,4 +235,20 @@ private List<MapPos> simplifyRingDouglasPeucker(List<MapPos> ring, double tolera
     return result;
   }
   
+  private static double distanceLinePointSqr(double ax, double ay, double bx, double by, double px, double py) {
+    double apx = px - ax;
+    double apy = py - ay;
+    double abx = bx - ax;
+    double aby = by - ay;
+
+    double ab2 = abx * abx + aby * aby;
+    double ap_ab = apx * abx + apy * aby;
+    double t = Math.min(1, Math.max(0, ap_ab / ab2));
+
+    double qx = (float) (ax + abx * t);
+    double qy = (float) (ay + aby * t);
+    double distX = px - qx;
+    double distY = py - qy;
+    return distX * distX + distY * distY;
+  }
 }

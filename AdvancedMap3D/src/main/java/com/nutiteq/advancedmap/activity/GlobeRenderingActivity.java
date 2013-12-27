@@ -88,8 +88,8 @@ public class GlobeRenderingActivity extends Activity {
     }
 
     // 3. Define map layer for basemap - mandatory.
-    RasterDataSource rasterDataSource = new HTTPRasterDataSource(new EPSG4326(), "http://www.staremapy.cz/naturalearth/{zoom}/{x}/{yflipped}.png");
-    RasterLayer mapLayer = new RasterLayer(rasterDataSource, 0, 19, 1508);
+    RasterDataSource rasterDataSource = new HTTPRasterDataSource(new EPSG4326(), 0, 19, "http://www.staremapy.cz/naturalearth/{zoom}/{x}/{yflipped}.png");
+    RasterLayer mapLayer = new RasterLayer(rasterDataSource, 1508);
     mapView.getLayers().setBaseLayer(mapLayer);
 
     // set initial map view camera - optional. "World view" is default
