@@ -11,8 +11,10 @@ import android.location.Location;
 
 import com.nutiteq.MapView;
 import com.nutiteq.components.MapPos;
+import com.nutiteq.components.Point3D;
 import com.nutiteq.geometry.VectorElement;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.renderprojections.RenderProjection;
 import com.nutiteq.ui.MapListener;
 import com.nutiteq.utils.Const;
 
@@ -91,8 +93,7 @@ public class MyLocationMapEventListener extends MapListener {
     public static class MyLocationCircle {
         private static final int NR_OF_CIRCLE_VERTS = 24;
         private FloatBuffer circleVertBuf;
-        private float circleX;
-        private float circleY;
+        private Point3D circlePos = new Point3D(0, 0, 0);
         private float circleRadius;
         private float circleScale;
         private float circleAlpha = 1.0f;
@@ -146,7 +147,7 @@ public class MyLocationMapEventListener extends MapListener {
             gl.glVertexPointer(3, GL10.GL_FLOAT, 0, circleVertBuf);
 
             gl.glPushMatrix();
-            gl.glTranslatef(circleX, circleY, 0);
+            gl.glTranslatef((float) circlePos.x, (float) circlePos.y, (float) circlePos.z);
             
             gl.glScalef(circleScale , circleScale , 1);
             gl.glDrawArrays(GL10.GL_TRIANGLE_FAN, 0, NR_OF_CIRCLE_VERTS + 2);
@@ -167,11 +168,10 @@ public class MyLocationMapEventListener extends MapListener {
             this.visible = visible;
         }
 
-        public void setLocation(Projection proj, Location location) {
-            MapPos mapPos = proj.fromWgs84(location.getLongitude(),
-                     location.getLatitude());
-            this.circleX = (float) proj.toInternal(mapPos.x, mapPos.y).x;
-            this.circleY = (float) proj.toInternal(mapPos.x, mapPos.y).y;
+        public void setLocation(Projection proj, RenderProjection renderProj, Location location) {
+            MapPos mapPos = proj.fromWgs84(location.getLongitude(), location.getLatitude());
+            MapPos mapPosInternal = proj.toInternal(mapPos.x, mapPos.y);
+            this.circlePos = renderProj.project(mapPosInternal.x, mapPosInternal.y, mapPosInternal.z);
             this.circleRadius = location.getAccuracy();
             
         }

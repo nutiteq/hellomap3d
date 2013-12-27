@@ -25,6 +25,7 @@ import com.nutiteq.layers.vector.DriveTimeRegionLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.renderprojections.RenderProjection;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.UnscaledBitmapLoader;
@@ -230,6 +231,7 @@ public class AnimatedLocationActivity extends Activity {
 
     protected void initGps(final MyLocationMapEventListener.MyLocationCircle locationCircle) {
         final Projection proj = mapView.getLayers().getBaseLayer().getProjection();
+        final RenderProjection renderProj = mapView.getLayers().getBaseLayer().getRenderProjection();
         
         // create location listener
         locationListener = new LocationListener() {
@@ -237,7 +239,7 @@ public class AnimatedLocationActivity extends Activity {
             public void onLocationChanged(Location location) {
                 Log.debug("GPS onLocationChanged "+location);
                 if (locationCircle != null) {
-                    locationCircle.setLocation(proj, location);
+                    locationCircle.setLocation(proj, renderProj, location);
                     locationCircle.setVisible(true);
                     mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(location.getLongitude(), location.getLatitude()));
                     driveTimeLayer.setMapPos(new MapPos(location.getLongitude(), location.getLatitude()));

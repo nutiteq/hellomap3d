@@ -14,7 +14,7 @@ import com.nutiteq.components.Vector3D;
 import com.nutiteq.geometry.Polygon3D;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
-import com.nutiteq.renderers.renderprojections.RenderProjection;
+import com.nutiteq.renderprojections.RenderProjection;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.Label;
