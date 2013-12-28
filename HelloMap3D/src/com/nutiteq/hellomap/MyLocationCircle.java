@@ -1,90 +1,61 @@
 package com.nutiteq.hellomap;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-
-import javax.microedition.khronos.opengles.GL10;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.location.Location;
 
+import com.nutiteq.components.Color;
 import com.nutiteq.components.MapPos;
+import com.nutiteq.geometry.Line;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.style.LineStyle;
 import com.nutiteq.utils.Const;
+import com.nutiteq.vectorlayers.GeometryLayer;
 
 public class MyLocationCircle {
-    private static final int NR_OF_CIRCLE_VERTS = 24;
-    private FloatBuffer circleVertBuf;
-    private float circleX;
-    private float circleY;
-    private float circleRadius;
-    private float circleScale;
-    private float circleAlpha = 1.0f;
+    private static final int NR_OF_CIRCLE_VERTS = 18;
+
+    private final GeometryLayer layer;
+    private Line circle = null;
+    private List<MapPos> circleVerts = new ArrayList<MapPos>(NR_OF_CIRCLE_VERTS);
+    private MapPos circlePos = new MapPos(0, 0);
+    private float circleScale = 0;
+    private float projectionScale = 0;
     private boolean visible = false;
     
-    MyLocationCircle() {
-        // Create circle vertex array for later use in drawing
-        ByteBuffer byteBuffer = ByteBuffer
-                .allocateDirect((NR_OF_CIRCLE_VERTS + 2) * 3 * Float.SIZE / 8);
-        byteBuffer.order(ByteOrder.nativeOrder());
-        circleVertBuf = byteBuffer.asFloatBuffer();
-        float degreesPerVert = 360.0f / NR_OF_CIRCLE_VERTS;
-        circleVertBuf.put(0);
-        circleVertBuf.put(0);
-        circleVertBuf.put(0);
-        for (float tsj = 0; tsj < 360; tsj += degreesPerVert) {
-            circleVertBuf.put(android.util.FloatMath.cos(tsj * Const.DEG_TO_RAD));
-            circleVertBuf.put(android.util.FloatMath.sin(tsj * Const.DEG_TO_RAD));
-            circleVertBuf.put(0);
-        }
-        circleVertBuf.put(1);
-        circleVertBuf.put(0);
-        circleVertBuf.put(0);
-        circleVertBuf.position(0);
+    MyLocationCircle(GeometryLayer layer) {
+        this.layer = layer;
     }
     
-    /**
-     * Draw circle, called for each frame
-     * @param gl OpenGL context
-     * @param zoomPow2 Zoom level in power of 2, to calculate easily fixed size on map
-     */
-    public void draw(GL10 gl, float zoomPow2){
-        if(!visible){
-            return;
-        }
-
+    public void update(float zoom) {
         // circle max radius 
         // make sure that it is at least minimum radius, otherwise is too small in general zoom
-        float circleScaleMax = Math.max(
-                Const.UNIT_SIZE * circleRadius / 7500000f, // based on GPS accuracy. This constant depends on latitude
-                Const.UNIT_SIZE / zoomPow2 * 0.2f); // minimum, fixed value
-        float circleScaleStep = circleScaleMax / 100.0f;
-        float circleAlphaStep = -circleScaleStep
-                / (circleScaleMax - circleScaleStep);
-        
-        gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
-        
-        // Colour is yellow (R=1,G=1,B=0)
-        gl.glColor4f(1, 1, 0, circleAlpha);
+        float zoomPow2 = (float) Math.pow(2, zoom);
+        float circleScaleMax = 1.0f / zoomPow2 * 0.2f * projectionScale; // minimum, fixed value
+        float circleScaleStep = circleScaleMax / 50.0f;
 
-        gl.glVertexPointer(3, GL10.GL_FLOAT, 0, circleVertBuf);
-
-        gl.glPushMatrix();
-        gl.glTranslatef(circleX, circleY, 0);
-        
-        gl.glScalef(circleScale , circleScale , 1);
-        gl.glDrawArrays(GL10.GL_TRIANGLE_FAN, 0, NR_OF_CIRCLE_VERTS + 2);
-        gl.glPopMatrix();
-
-        // circleScale is size of circle for current frame,
-        // in range of 1...circleScaleMax, step circleScaleStep
-        // also drawing transparency (alpha channel) is reduced for larger circles
         circleScale += circleScaleStep;
-        circleAlpha += circleAlphaStep;
         if (circleScale > circleScaleMax) {
             circleScale = 0.0f;
-            circleAlpha = 1.0f;
-        }       
+        }
+
+        // Build closed circle
+        circleVerts.clear();
+        for (float tsj = 0; tsj <= 360; tsj += 360 / NR_OF_CIRCLE_VERTS) {
+            MapPos mapPos = new MapPos(circleScale * Math.cos(tsj * Const.DEG_TO_RAD) + circlePos.x, circleScale * Math.sin(tsj * Const.DEG_TO_RAD) + circlePos.y);
+            circleVerts.add(mapPos);
+        }
+
+        // Create/update line
+        if (circle == null) {
+            LineStyle style = LineStyle.builder().setWidth(0.1f).setColor(Color.argb(192, 255, 255, 0)).build();
+            circle = new Line(circleVerts, null, style, null);
+            layer.add(circle);
+        } else {
+            circle.setVertexList(circleVerts);
+        }
+        circle.setVisible(visible);
     }
 
     public void setVisible(boolean visible) {
@@ -92,11 +63,7 @@ public class MyLocationCircle {
     }
 
     public void setLocation(Projection proj, Location location) {
-        MapPos mapPos = proj.fromWgs84(location.getLongitude(),
-                 location.getLatitude());
-        this.circleX = (float) proj.toInternal(mapPos.x, mapPos.y).x;
-        this.circleY = (float) proj.toInternal(mapPos.x, mapPos.y).y;
-        this.circleRadius = location.getAccuracy();
-        
+        circlePos = proj.fromWgs84(location.getLongitude(), location.getLatitude());
+        projectionScale = (float) proj.getBounds().getWidth();
     }
 }
