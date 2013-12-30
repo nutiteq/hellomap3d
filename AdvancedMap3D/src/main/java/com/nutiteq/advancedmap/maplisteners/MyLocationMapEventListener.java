@@ -93,6 +93,7 @@ public class MyLocationMapEventListener extends MapListener {
     public static class MyLocationCircle {
         private static final int NR_OF_CIRCLE_VERTS = 24;
         private FloatBuffer circleVertBuf;
+        private float[] circleLocalFrameMatrix = new float[16];
         private Point3D circlePos = new Point3D(0, 0, 0);
         private float circleRadius;
         private float circleScale;
@@ -110,8 +111,8 @@ public class MyLocationMapEventListener extends MapListener {
             circleVertBuf.put(0);
             circleVertBuf.put(0);
             for (float tsj = 0; tsj < 360; tsj += degreesPerVert) {
-                circleVertBuf.put(android.util.FloatMath.cos(tsj * Const.DEG_TO_RAD));
-                circleVertBuf.put(android.util.FloatMath.sin(tsj * Const.DEG_TO_RAD));
+                circleVertBuf.put((float) Math.cos(tsj * Const.DEG_TO_RAD));
+                circleVertBuf.put((float) Math.sin(tsj * Const.DEG_TO_RAD));
                 circleVertBuf.put(0);
             }
             circleVertBuf.put(1);
@@ -148,6 +149,7 @@ public class MyLocationMapEventListener extends MapListener {
 
             gl.glPushMatrix();
             gl.glTranslatef((float) circlePos.x, (float) circlePos.y, (float) circlePos.z);
+            gl.glMultMatrixf(circleLocalFrameMatrix, 0);
             
             gl.glScalef(circleScale , circleScale , 1);
             gl.glDrawArrays(GL10.GL_TRIANGLE_FAN, 0, NR_OF_CIRCLE_VERTS + 2);
@@ -171,9 +173,12 @@ public class MyLocationMapEventListener extends MapListener {
         public void setLocation(Projection proj, RenderProjection renderProj, Location location) {
             MapPos mapPos = proj.fromWgs84(location.getLongitude(), location.getLatitude());
             MapPos mapPosInternal = proj.toInternal(mapPos.x, mapPos.y);
-            this.circlePos = renderProj.project(mapPosInternal.x, mapPosInternal.y, mapPosInternal.z);
-            this.circleRadius = location.getAccuracy();
-            
+            circlePos = renderProj.project(mapPosInternal);
+            circleRadius = location.getAccuracy();
+            double[] localFrameMatrix = renderProj.getLocalFrameMatrix(circlePos);
+            for (int i = 0; i < 16; i++) {
+              circleLocalFrameMatrix[i] = (float) localFrameMatrix[i];
+            }
         }
     }
 

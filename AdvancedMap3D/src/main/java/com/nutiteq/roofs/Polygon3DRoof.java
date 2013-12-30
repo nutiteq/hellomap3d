@@ -371,10 +371,10 @@ public class Polygon3DRoof extends Polygon3D {
     }
 
     RenderProjection renderProjection = layer.getRenderProjection();
-    Point3D originPoint = renderProjection.project(originMapPosInternal.x, originMapPosInternal.y, originMapPosInternal.z);
+    Point3D originPoint = renderProjection.project(originMapPosInternal);
     for (int i = 0; i < verts.length; i += 3) {
-      MapPos mapPos = new MapPos(verts[i + 0] + originMapPosInternal.x, verts[i + 1] + originMapPosInternal.y, verts[i + 2] + originMapPosInternal.z);
-      Point3D point = renderProjection.project(mapPos.x, mapPos.y, mapPos.z);
+      MapPos mapPosInternal = new MapPos(verts[i + 0] + originMapPosInternal.x, verts[i + 1] + originMapPosInternal.y, verts[i + 2] + originMapPosInternal.z);
+      Point3D point = renderProjection.project(mapPosInternal);
       verts[i + 0] = (float) (point.x - originPoint.x);
       verts[i + 1] = (float) (point.y - originPoint.y);
       verts[i + 2] = (float) (point.z - originPoint.z); 
