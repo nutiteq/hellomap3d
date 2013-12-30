@@ -1,9 +1,11 @@
 package com.nutiteq.advancedmap.activity;
 
 import java.io.InputStream;
+
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,15 +16,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.ZoomControls;
+
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
 import com.nutiteq.advancedmap.maplisteners.MapEventListener;
+import com.nutiteq.components.Bounds;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.components.Vector3D;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.geometry.NMLModel;
+import com.nutiteq.layers.Layer;
 import com.nutiteq.layers.raster.PackagedMapLayer;
 import com.nutiteq.layers.raster.QuadKeyLayer;
 import com.nutiteq.layers.raster.Regio;
@@ -364,62 +369,56 @@ public class AdvancedMapActivity extends Activity {
        return true;
           
     }
+    
+    private void updateBaseLayer(Layer baseLayer) {
+        // Get view dimensions
+        Rect rect = new Rect();
+        mapView.getGlobalVisibleRect(rect);
+
+        // Get visible corners in base coordinate system
+        MapPos mapPos1Old = mapView.screenToWorld(rect.left, rect.top);
+        MapPos mapPos2Old = mapView.screenToWorld(rect.right, rect.bottom);
+      
+        // Transform to WGS84
+        Projection baseProjOld = mapView.getComponents().layers.getBaseProjection();
+        MapPos mapPos1Wgs = baseProjOld.toWgs84(mapPos1Old.x, mapPos1Old.y);
+        MapPos mapPos2Wgs = baseProjOld.toWgs84(mapPos2Old.x, mapPos2Old.y);
+
+        // Update base layer
+        mapView.getLayers().setBaseLayer(baseLayer);
+        proj = baseLayer.getProjection();
+      
+        // Transform corner coordinates to new base coordinate system
+        Projection baseProjNew = mapView.getComponents().layers.getBaseProjection();
+        MapPos mapPos1New = baseProjNew.fromWgs84(mapPos1Wgs.x, mapPos1Wgs.y); 
+        MapPos mapPos2New = baseProjNew.fromWgs84(mapPos2Wgs.x, mapPos2Wgs.y);
+
+        // Make bounding box from calculated points
+        Bounds bounds = new Bounds(mapPos1New.x, mapPos1New.y, mapPos2New.x, mapPos2New.y);
+        mapView.setBoundingBox(bounds, rect, false, false, false, 0);
+    }
 
 
     private void baseCustomProjectionLayer() {
-      // FIXME jaak: here map base projection changes, but the other base maps will not set it back to correct one. 
-        //  So changing to any EPSG3857 base map will result undefined map location
-        //  It should have 3 steps: change this.proj, recalculate center and zoom for any base map change with projection change 
-        
-      // remember map center before projection change
-      MapPos center = this.proj.toWgs84(mapView.getFocusPoint().x,mapView.getFocusPoint().y); 
-      float zoom = mapView.getZoom();
-      
-      // calculate projection bound width in Wgs84 (should be 360.0 degrees with EPSG3857)
-      // will be needed for zoom recalculation
-      double worldWidth = this.proj.toWgs84(this.proj.getBounds().right,this.proj.getBounds().bottom).x 
-              - this.proj.toWgs84(this.proj.getBounds().left,this.proj.getBounds().bottom).x;
-      
-      // change the base projection. NB! this will not be changed back with other base maps  
-      this.proj = new EPSG3301();
-      
-      // use custom layer with Quadtree tile numbering
-      Regio baseMapLayer = new Regio(this.proj, 0, 19, 1007, "");
-      mapView.getLayers().setBaseLayer(baseMapLayer);
-      
-      // restore center location
-      mapView.setFocusPoint(this.proj.fromWgs84(center.x, center.y));
-      
-      // Zoom needs to be changed also, so we change zoom it based on global map bounds
-      // calculate new projection bound width in Wgs84
-      double newWidth = this.proj.toWgs84(this.proj.getBounds().right,this.proj.getBounds().bottom).x 
-              - this.proj.toWgs84(this.proj.getBounds().left,this.proj.getBounds().bottom).x;
-      
-      // how much different bounds differ in terms of zoom steps
-      // following is equal to log2(worldWidth/newWidth)
-      float zoomShift = (float) (Math.log(worldWidth/newWidth) / Math.log(2));
-      
-      // shift zoom accordingly
-      float newZoom = zoom - zoomShift;
-      mapView.setZoom(newZoom);
+        // use custom layer with Quadtree tile numbering
+        Regio baseMapLayer = new Regio(new EPSG3301(), 0, 19, 1007, "");
+        updateBaseLayer(baseMapLayer);
     }
 
     private void addTileBorderLayer(int size) {
         mapView.getLayers().addLayer(new TileDebugMapLayer(this.proj, 0, 22, 17, size, this));
-        
     }
 
 
     private void basePackagedLayer() {
-        PackagedMapLayer packagedMapLayer = new PackagedMapLayer(this.proj, 0, 3, 16, "t", this);
-        mapView.getLayers().setBaseLayer(packagedMapLayer);
+        PackagedMapLayer packagedMapLayer = new PackagedMapLayer(new EPSG3857(), 0, 3, 16, "t", this);
+        updateBaseLayer(packagedMapLayer);
     }
 
     private void addStoredBaseLayer(String dir) {
-        StoredMapLayer storedMapLayer = new StoredMapLayer(this.proj, 256, 0,
+        StoredMapLayer storedMapLayer = new StoredMapLayer(new EPSG3857(), 256, 0,
                 17, 135, "OpenStreetMap", dir);
-        
-        mapView.getLayers().setBaseLayer(storedMapLayer);
+        updateBaseLayer(storedMapLayer);
         
         mapView.setFocusPoint(storedMapLayer.center);
         mapView.setZoom((float) storedMapLayer.center.z);
@@ -471,8 +470,8 @@ public class AdvancedMapActivity extends Activity {
     }
 
     private void addBingBaseLayer(String url, String extension){
-         QuadKeyLayer bingMap = new QuadKeyLayer(proj, 0, 19, 1013, url, extension);
-         mapView.getLayers().setBaseLayer(bingMap);
+         QuadKeyLayer bingMapLayer = new QuadKeyLayer(new EPSG3857(), 0, 19, 1013, url, extension);
+         updateBaseLayer(bingMapLayer);
     }
 
     private void baseLayerMapBoxSatelliteLayer(boolean retina){
@@ -486,8 +485,9 @@ public class AdvancedMapActivity extends Activity {
               cacheID = 25;
          }
          
-         mapView.getLayers().setBaseLayer(new TMSMapLayer(proj, 0, 19, cacheID,
-                 "http://api.tiles.mapbox.com/v3/"+mapId+"/", "/", ".png"));
+         Layer mapBoxLayer = new TMSMapLayer(new EPSG3857(), 0, 19, cacheID,
+             "http://api.tiles.mapbox.com/v3/"+mapId+"/", "/", ".png");
+         updateBaseLayer(mapBoxLayer);
     }
 
     private void baseLayerMapBoxStreetsLayer(boolean retina){
@@ -500,65 +500,67 @@ public class AdvancedMapActivity extends Activity {
              mapId = "nutiteq.map-j6a1wkx0";
              cacheID = 23;
          }
-         mapView.getLayers().setBaseLayer(new TMSMapLayer(proj, 0, 19, cacheID,
-                 "http://api.tiles.mapbox.com/v3/"+mapId+"/", "/", ".png"));
+         Layer mapBoxLayer = new TMSMapLayer(new EPSG3857(), 0, 19, cacheID,
+                 "http://api.tiles.mapbox.com/v3/"+mapId+"/", "/", ".png");
+         updateBaseLayer(mapBoxLayer);
     }
 
      
     private void baseMapQuest() {
-        mapView.getLayers().setBaseLayer(new TMSMapLayer(this.proj, 0, 20, 11,
-                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png"));
+        Layer mapQuestLayer = new TMSMapLayer(new EPSG3857(), 0, 20, 11,
+                 "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
+        updateBaseLayer(mapQuestLayer);
     }
 
     private void baseLayerStamenTerrainLayer() {
-        mapView.getLayers().setBaseLayer(new TMSMapLayer(this.proj, 0, 19, 18,
-                "http://tile.stamen.com/terrain/", "/", ".png"));
-
+        Layer stamenLayer = new TMSMapLayer(new EPSG3857(), 0, 19, 18,
+                "http://tile.stamen.com/terrain/", "/", ".png");
+        updateBaseLayer(stamenLayer);
     }
 
     
     private void baseBingAerial() {
-        mapView.getLayers().setBaseLayer(new QuadKeyLayer(this.proj, 0, 19, 14, "http://ecn.t3.tiles.virtualearth.net/tiles/a",".jpeg?g=471&mkt=en-US"));
+        Layer bingLayer = new QuadKeyLayer(new EPSG3857(), 0, 19, 14, "http://ecn.t3.tiles.virtualearth.net/tiles/a",".jpeg?g=471&mkt=en-US");
+        updateBaseLayer(bingLayer);
     }
    
     private void baseMapOpenAerial() {
-        mapView.getLayers().setBaseLayer(new TMSMapLayer(this.proj, 0, 11, 15,
-               "http://otile1.mqcdn.com/tiles/1.0.0/sat/", "/", ".png"));
+        Layer aerialLayer = new TMSMapLayer(new EPSG3857(), 0, 11, 15,
+               "http://otile1.mqcdn.com/tiles/1.0.0/sat/", "/", ".png");
+        updateBaseLayer(aerialLayer);
     }
      
-     private void singleNmlModelLayer(){
-         
-         ModelStyle modelStyle = ModelStyle.builder().build();
-         StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(null);
-         modelStyleSet.setZoomStyle(14, modelStyle);
+    private void singleNmlModelLayer() {
+        ModelStyle modelStyle = ModelStyle.builder().build();
+        StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(null);
+        modelStyleSet.setZoomStyle(14, modelStyle);
 
-         // create layer and an model
-         MapPos mapPos1 = proj.fromWgs84(20.466027f, 44.810537f);
-         
-         // set it to fly abit
-         MapPos mapPos = new MapPos(mapPos1.x, mapPos1.y, 0.1f);
-         NMLModelLayer nmlModelLayer = new NMLModelLayer(new EPSG3857());
-         try {
-             InputStream is = this.getResources().openRawResource(R.raw.milktruck);
-             NMLPackage.Model nmlModel = NMLPackage.Model.parseFrom(is);
-             // set initial position for the milk truck
-             
-             NMLModel model = new NMLModel(mapPos, null, modelStyleSet, nmlModel, null);
+        // create layer and an model
+        MapPos mapPos1 = proj.fromWgs84(20.466027f, 44.810537f);
+        
+        // set it to fly abit
+        MapPos mapPos = new MapPos(mapPos1.x, mapPos1.y, 0.1f);
+        NMLModelLayer nmlModelLayer = new NMLModelLayer(new EPSG3857());
+        try {
+            InputStream is = this.getResources().openRawResource(R.raw.milktruck);
+            NMLPackage.Model nmlModel = NMLPackage.Model.parseFrom(is);
+            // set initial position for the milk truck
+            
+            NMLModel model = new NMLModel(mapPos, null, modelStyleSet, nmlModel, null);
 
-             // set size, 10 is clear oversize, but this makes it visible
-             model.setScale(new Vector3D(10, 10, 10));
-             
-             nmlModelLayer.add(model);
-         }
-         catch (Exception e) {
-             e.printStackTrace();
-         }
-         mapView.getLayers().addLayer(nmlModelLayer);
+            // set size, 10 is clear oversize, but this makes it visible
+            model.setScale(new Vector3D(10, 10, 10));
+            
+            nmlModelLayer.add(model);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        mapView.getLayers().addLayer(nmlModelLayer);
          
-         mapView.setFocusPoint(mapPos);
-         mapView.setTilt(45);
-         
-     }
+        mapView.setFocusPoint(mapPos);
+        mapView.setTilt(45);
+    }
 
     public MapView getMapView() {
         return mapView;
