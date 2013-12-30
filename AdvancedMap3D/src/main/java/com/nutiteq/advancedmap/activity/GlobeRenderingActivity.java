@@ -20,6 +20,7 @@ import com.nutiteq.components.Color;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
+import com.nutiteq.components.Range;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.geometry.Point;
@@ -88,7 +89,7 @@ public class GlobeRenderingActivity extends Activity {
     }
 
     // 3. Define map layer for basemap - mandatory.
-    RasterDataSource rasterDataSource = new HTTPRasterDataSource(new EPSG4326(), 0, 19, "http://www.staremapy.cz/naturalearth/{zoom}/{x}/{yflipped}.png");
+    RasterDataSource rasterDataSource = new HTTPRasterDataSource(new EPSG4326(), 0, 5, "http://www.staremapy.cz/naturalearth/{zoom}/{x}/{yflipped}.png");
     RasterLayer mapLayer = new RasterLayer(rasterDataSource, 1508);
     mapView.getLayers().setBaseLayer(mapLayer);
 
@@ -96,7 +97,7 @@ public class GlobeRenderingActivity extends Activity {
     // Location: San Francisco
     // NB! it must be in base layer projection (EPSG3857), so we convert it
     // from lat and long
-    mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 0));
+    mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
     mapView.setMapRotation(0f);
     mapView.setZoom(2.0f);
 
@@ -108,7 +109,14 @@ public class GlobeRenderingActivity extends Activity {
     mapView.getOptions().setDoubleClickZoomIn(true);
     mapView.getOptions().setDualClickZoomOut(true);
     mapView.getOptions().setRasterTaskPoolSize(2);
+    mapView.getConstraints().setZoomRange(new Range(0.0f, 5.0f));
     //mapView.getOptions().setTileZoomLevelBias(0.3f);
+
+    // Map background, visible if no map tiles loaded - optional, default - white
+    mapView.getOptions().setBackgroundPlaneDrawMode(Options.DRAW_BITMAP);
+    mapView.getOptions().setBackgroundPlaneBitmap(
+            UnscaledBitmapLoader.decodeResource(getResources(),
+                    R.drawable.background_plane));
 
     // configure texture caching - optional, suggested
     mapView.getOptions().setTextureMemoryCacheSize(20 * 1024 * 1024);
@@ -240,7 +248,7 @@ public class GlobeRenderingActivity extends Activity {
     Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.olmarker);
     MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.5f).setAllowOverlap(false).setColor(Color.WHITE).build();
     Label markerLabel = new DefaultLabel("San Francisco", "Here is a marker");
-    MapPos markerLocation = mapView.getComponents().layers.getBaseProjection().fromWgs84(-122.416667f, 80.766667f);
+    MapPos markerLocation = mapView.getComponents().layers.getBaseProjection().fromWgs84(-122.41666666667f, 37.76666666666f);
     MarkerLayer markerLayer = new MarkerLayer(mapView.getComponents().layers.getBaseProjection());
     Marker marker = new Marker(markerLocation, markerLabel, markerStyle, null);
     markerLayer.add(marker);
