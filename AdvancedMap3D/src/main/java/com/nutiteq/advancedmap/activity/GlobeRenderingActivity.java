@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.geonames.Toponym;
+
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -28,17 +30,24 @@ import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.geometry.Polygon3D;
 import com.nutiteq.geometry.Text;
+import com.nutiteq.layers.vector.GeonamesLayer;
+import com.nutiteq.layers.vector.GeonamesTextLayer;
+import com.nutiteq.layers.vector.WfsLayer;
+import com.nutiteq.layers.vector.WfsTextLayer;
+import com.nutiteq.layers.vector.WfsLayer.Feature;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
 import com.nutiteq.rasterdatasources.RasterDataSource;
 import com.nutiteq.rasterlayers.RasterLayer;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.Polygon3DStyle;
 import com.nutiteq.style.PolygonStyle;
+import com.nutiteq.style.StyleSet;
 import com.nutiteq.style.TextStyle;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
@@ -134,6 +143,10 @@ public class GlobeRenderingActivity extends Activity {
     // Set up button listener for plane/globe mode switching
     setButtonListener();
 
+    DisplayMetrics metrics = new DisplayMetrics();
+    getWindowManager().getDefaultDisplay().getMetrics(metrics);
+    float dpi = metrics.density;
+    
     // Add custom layers 
     addMarkerLayer();
     addTextLayer();
@@ -141,6 +154,7 @@ public class GlobeRenderingActivity extends Activity {
     addLineLayer();
     addPolyLayer();
     addPoly3DLayer();
+    addGeonamesLayer(dpi);
   }
 
   private void setBackdropImage() {
@@ -276,8 +290,52 @@ public class GlobeRenderingActivity extends Activity {
     MapPos origin3 = mapView.getComponents().layers.getBaseProjection().fromWgs84(-70.416667f, 50.766667f);
     Text text3 = new Text(origin3, "Text Camera Billboard", textStyle3, null);
     textLayer.add(text3);
+  }
+  
+  private void addGeonamesLayer(final float dpi){
+      Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
+      StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>(PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(Color.BLUE).setPickingSize(0.2f).build());
+      
+      LabelStyle labelStyle = 
+              LabelStyle.builder()
+                     .setEdgePadding((int) (12 * dpi))
+                     .setLinePadding((int) (6 * dpi))
+                     .setTitleFont(Typeface.create("Arial", Typeface.BOLD), (int) (16 * dpi))
+                     .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), (int) (13 * dpi))
+                     .build();
+      
+      GeonamesLayer geonamesLayer = new GeonamesLayer(new EPSG4326(), pointStyleSet, labelStyle);
+      mapView.getComponents().layers.addLayer(geonamesLayer);
+      
 
-    
+      // add text layer also
+      
+      GeonamesTextLayer textLayer = new GeonamesTextLayer(mapView.getLayers().getBaseLayer().getProjection(), geonamesLayer) {
+      
+          private StyleSet<TextStyle> styleSetPlacename = new StyleSet<TextStyle>(
+                  TextStyle
+                          .builder()
+                          .setAllowOverlap(false)
+                          .setOrientation(TextStyle.CAMERA_BILLBOARD_ORIENTATION)
+                          .setSize((int) (30 * dpi))
+                          .setColor(Color.argb(255, 100, 100, 100))
+                          .setPlacementPriority(5).build());
+
+          @Override
+          protected StyleSet<TextStyle> createStyleSet(Toponym feature,
+                  int zoom) {
+              return styleSetPlacename;
+          }
+
+      };
+
+      // 2. set properties for texts
+      textLayer.setZOrdered(false);
+      //textLayer.setMaxVisibleElements(30);
+      
+      // 3. add layer
+      mapView.getLayers().addLayer(textLayer);
+      
   }
 
   @Override
