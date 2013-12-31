@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.widget.CompoundButton;
@@ -46,6 +47,7 @@ import com.nutiteq.vectorlayers.GeometryLayer;
 import com.nutiteq.vectorlayers.MarkerLayer;
 import com.nutiteq.vectorlayers.Polygon3DLayer;
 import com.nutiteq.vectorlayers.TextLayer;
+import com.vividsolutions.jts.awt.FontGlyphReader;
 
 /**
  * This is an example of Nutiteq 3D globe rendering
@@ -89,7 +91,8 @@ public class GlobeRenderingActivity extends Activity {
     }
 
     // 3. Define map layer for basemap - mandatory.
-    RasterDataSource rasterDataSource = new HTTPRasterDataSource(new EPSG4326(), 0, 5, "http://www.staremapy.cz/naturalearth/{zoom}/{x}/{yflipped}.png");
+//    RasterDataSource rasterDataSource = new HTTPRasterDataSource(new EPSG4326(), 0, 5, "http://www.staremapy.cz/naturalearth/{zoom}/{x}/{yflipped}.png");
+    RasterDataSource rasterDataSource = new HTTPRasterDataSource(new EPSG4326(), 0, 19, "http://kaart.maakaart.ee/osm/tms/1.0.0/osm_noname_st_EPSG4326/{zoom}/{x}/{yflipped}.png");
     RasterLayer mapLayer = new RasterLayer(rasterDataSource, 1508);
     mapView.getLayers().setBaseLayer(mapLayer);
 
@@ -108,9 +111,9 @@ public class GlobeRenderingActivity extends Activity {
     mapView.getOptions().setKineticPanning(true);
     mapView.getOptions().setDoubleClickZoomIn(true);
     mapView.getOptions().setDualClickZoomOut(true);
-    mapView.getOptions().setRasterTaskPoolSize(2);
-    mapView.getConstraints().setZoomRange(new Range(0.0f, 5.0f));
-    //mapView.getOptions().setTileZoomLevelBias(0.3f);
+    mapView.getOptions().setRasterTaskPoolSize(4);
+    mapView.getConstraints().setZoomRange(new Range(0.0f, 19.0f));
+    mapView.getOptions().setTileZoomLevelBias(0.3f);
 
     // Map background, visible if no map tiles loaded - optional, default - white
     mapView.getOptions().setBackgroundPlaneDrawMode(Options.DRAW_BITMAP);
@@ -259,9 +262,22 @@ public class GlobeRenderingActivity extends Activity {
     TextLayer textLayer = new TextLayer(mapView.getComponents().layers.getBaseProjection());
     mapView.getComponents().layers.addLayer(textLayer);
     TextStyle textStyle = TextStyle.builder().setOrientation(MarkerStyle.GROUND_ORIENTATION).setAllowOverlap(false).setSize(30).build();
-    MapPos origin = mapView.getComponents().layers.getBaseProjection().fromWgs84(-129.416667f, 17.766667f);
-    Text text = new Text(origin, "Text", textStyle, null);
+    MapPos origin = mapView.getComponents().layers.getBaseProjection().fromWgs84(-129.416667f, 10.766667f);
+    Text text = new Text(origin, "Text Ground", textStyle, null);
     textLayer.add(text);
+
+    Typeface font = Typeface.create(Typeface.createFromAsset(this.getAssets(), "fonts/zapfino.ttf"), Typeface.BOLD);
+    TextStyle textStyle2 = TextStyle.builder().setOrientation(MarkerStyle.GROUND_BILLBOARD_ORIENTATION).setAllowOverlap(false).setSize(36).setFont(font).build();
+    MapPos origin2 = mapView.getComponents().layers.getBaseProjection().fromWgs84(-100.416667f, 30.766667f);
+    Text text2 = new Text(origin2, "Text Ground Billboard", textStyle2, null);
+    textLayer.add(text2);
+
+    TextStyle textStyle3 = TextStyle.builder().setOrientation(MarkerStyle.CAMERA_BILLBOARD_ORIENTATION).setAllowOverlap(false).setSize(36).setFont(font).build();
+    MapPos origin3 = mapView.getComponents().layers.getBaseProjection().fromWgs84(-70.416667f, 50.766667f);
+    Text text3 = new Text(origin3, "Text Camera Billboard", textStyle3, null);
+    textLayer.add(text3);
+
+    
   }
 
   @Override
