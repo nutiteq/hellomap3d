@@ -45,13 +45,16 @@ import com.nutiteq.vectorlayers.Polygon3DLayer;
  */
 public class Polygon3DOSMLayer extends Polygon3DLayer {
     
-    private static final float MAX_ROOF_HEIGHT = 0.15f;
+    // maximum roof height in meters
+    private static final float MAX_ROOF_HEIGHT = 9.0f;
 
-    // this height modifier depends on map projection, and latitude: Default world 0.5f OpenGL units is very roughly 30m
-    private static final float HEIGHT_ADJUST = 1.0f / 60.0f;
+    // this height modifier depends on map projection, and latitude. In case of EPSG3857, it should be 1/cos(latitude) or 1, depending if height has been  'precorrected' or not
+    private static final float HEIGHT_ADJUST = 1.0f;
     
+    // multiplier to convert discrete levels to height (in meters) 
     private static final float LEVELS_TO_HEIGHT = 5.0f * HEIGHT_ADJUST;
     
+    // map of symbolic color names used in OSM data to RGB values
     private static final HashMap<String, Integer> colorNames = new HashMap<String, Integer>();
 	
 	static {

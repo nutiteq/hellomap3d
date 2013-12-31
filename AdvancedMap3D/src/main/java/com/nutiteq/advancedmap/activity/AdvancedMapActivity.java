@@ -69,6 +69,9 @@ import com.nutiteq.vectorlayers.NMLModelLayer;
  *
  */
 public class AdvancedMapActivity extends Activity {
+  
+    // Default OSM building height in meters
+    private static final float DEFAULT_BUILDING_HEIGHT = 18.0f; 
 
 	private MapView mapView;
     private Projection proj;
@@ -459,7 +462,7 @@ public class AdvancedMapActivity extends Activity {
         StyleSet<Polygon3DStyle> polygon3DStyleSet = new StyleSet<Polygon3DStyle>(null);
         polygon3DStyleSet.setZoomStyle(15, polygon3DStyle);
 
-        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), 15.0f, new FlatRoof(),  Color.WHITE, Color.GRAY, 1500, polygon3DStyleSet);
+        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), DEFAULT_BUILDING_HEIGHT, new FlatRoof(),  Color.WHITE, Color.GRAY, 1500, polygon3DStyleSet);
         mapView.getLayers().addLayer(osm3dLayer);
     }
 
