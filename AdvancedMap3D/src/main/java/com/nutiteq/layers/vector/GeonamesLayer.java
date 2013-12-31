@@ -1,10 +1,13 @@
 package com.nutiteq.layers.vector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.geonames.BoundingBox;
 import org.geonames.Toponym;
@@ -33,7 +36,8 @@ public class GeonamesLayer extends GeometryLayer {
   private static String GEONAMES_USER = "nutiteq";
   private List<Toponym> visibleFeatures = new LinkedList<Toponym>();
   private LabelStyle labelStyle;
-
+  public Map<String, String> typeNames;
+  
   // data loader task
 
   protected class LoadGeonamesDataTask implements Task {
@@ -59,19 +63,23 @@ public class GeonamesLayer extends GeometryLayer {
       MapPos minCorner = getProjection().toWgs84(envelope.minX, envelope.minY);
       MapPos maxCorner = getProjection().toWgs84(envelope.maxX, envelope.maxY);
       BoundingBox bbox = new BoundingBox(minCorner.x, maxCorner.x,  minCorner.y, maxCorner.y);
-      Log.debug("bbox = " + bbox);
       searchCriteria.setBoundingBox(bbox);
+      String[] fc = featureCodes(zoom);
+      searchCriteria.setFeatureCodes(fc);
       // name-based query to Geonames API
 //      searchCriteria.setQ("zurich");
-      searchCriteria.setMaxRows(100);
+      searchCriteria.setMaxRows(200);
+      
+      Log.debug("z:" +zoom+" "+ envelope+ " fc:"+Arrays.toString(fc));
+      
       try{
           
           ToponymSearchResult searchResult = WebService.search(searchCriteria);
           for (Toponym toponym : searchResult.getToponyms()) {
-             Log.debug(toponym.getName()+" "+ toponym.getCountryName());
+             Log.debug(toponym.getName()+" "+ toponym.getCountryName()+" "+toponym.getFeatureCode()+" "+typeNames.get(toponym.getFeatureClass().name()));
     
              com.nutiteq.geometry.Geometry newObject = null;
-             DefaultLabel label = new DefaultLabel(toponym.getName(), ""+toponym.getCountryName()+" type:"+toponym.getFeatureCodeName(), labelStyle);
+             DefaultLabel label = new DefaultLabel(toponym.getName(), ""+toponym.getCountryName()+" type:"+typeNames.get(toponym.getFeatureClass().name())+"\n"+toponym.toString().replace(",","\n"), labelStyle);
     
              MapPos mapPos = getProjection().fromWgs84(toponym.getLongitude(), toponym.getLatitude());
              newObject = new Point(mapPos, label, pointStyleSet, null);
@@ -101,6 +109,7 @@ public class GeonamesLayer extends GeometryLayer {
           }
       }catch (Exception e){
           Log.error("search exception "+e.getLocalizedMessage());
+          e.printStackTrace();
       }
     }
 
@@ -127,13 +136,54 @@ public class GeonamesLayer extends GeometryLayer {
     this.pointStyleSet = pointStyleSet;
     this.labelStyle = labelStyle;
     
+    typeNames = new LinkedHashMap<String,String>();
+    typeNames.put("A", "Admin Boundary");
+    typeNames.put("H", "Hydrographic");
+    typeNames.put("L", "Area");
+    typeNames.put("P", "Populated place");
+    typeNames.put("R", "Road / Railroad");
+    typeNames.put("S", "Spot");
+    typeNames.put("T", "Hypsographic");
+    typeNames.put("U", "Undersea");
+    typeNames.put("V", "Vegetation");
+    
+    
     if (pointStyleSet != null) {
       minZoom = Math.min(minZoom, pointStyleSet.getFirstNonNullZoomStyleZoom());
     }
     Log.debug("GeonamesLayer minZoom = "+minZoom);
   }
 
-  public List<Toponym> getVisibleFeatures() {
+  public String[] featureCodes(int zoom) {
+
+      Vector<String> featureCodes = new Vector<String>();
+      
+      // all zooms
+      featureCodes.add("PCLI"); // independent political entity, countries
+
+      if(zoom>4){
+          featureCodes.add("ADM1"); // adm1 areas
+          featureCodes.add("PPLC"); // capital
+      }
+
+      if(zoom>7){
+          featureCodes.add("PPLA"); // city, region capital
+      }
+      
+      if(zoom>9){
+          featureCodes.add("PPL"); // city smaller
+      }
+      
+      if(zoom>13){
+          featureCodes.add("BDG"); // building
+      }
+
+
+      
+      return featureCodes.toArray(new String[featureCodes.size()]);
+}
+
+public List<Toponym> getVisibleFeatures() {
     return visibleFeatures;
   }
 

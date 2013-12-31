@@ -3,12 +3,18 @@ package com.nutiteq.layers.vector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import org.geonames.Toponym;
 
+import android.content.Context;
+import android.graphics.Typeface;
+
+import com.nutiteq.components.Color;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Text;
@@ -23,14 +29,20 @@ import com.nutiteq.vectorlayers.TextLayer;
  * @author jaak
  *
  */
-public abstract class GeonamesTextLayer extends TextLayer {
+public class GeonamesTextLayer extends TextLayer {
 
   private final GeonamesLayer baseLayer;
   private int maxVisibleElements = Integer.MAX_VALUE;
+  private float dpi;
+  private Context context;
 
-  public GeonamesTextLayer(Projection projection, GeonamesLayer baseLayer) {
+
+  public GeonamesTextLayer(Projection projection, GeonamesLayer baseLayer, float dpi, Context context) {
     super(projection);
     this.baseLayer = baseLayer;
+    this.dpi = dpi;
+    this.context = context;
+    createStyleSets();
   }
   
   public GeonamesLayer getBaseLayer() {
@@ -47,7 +59,7 @@ public abstract class GeonamesTextLayer extends TextLayer {
     List<Text> oldVisibleElementsList = getVisibleElements();
     if (oldVisibleElementsList != null) {
       for (Text text : oldVisibleElementsList) {
-        String id = (String) text.userData;
+        String id = Integer.toString((Integer)text.userData);
         oldVisibleElementsMap.put(id, text);
       }
     }
@@ -104,17 +116,86 @@ public abstract class GeonamesTextLayer extends TextLayer {
     baseElement = new Text.BasePoint(mapPos);
 
 
-    // Create styleset for the feature
-    StyleSet<TextStyle> styleSet = createStyleSet(feature, zoom);
-    if (styleSet == null) {
-      return null;
-    }
-
     // Create text. Put unique id to userdata field, that will be used to identify the element later
 
-    return new Text(baseElement, feature.getName(), styleSet, feature.getGeoNameId());
+    return new Text(baseElement, feature.getName(), textStyles.get(feature.getFeatureCode()), feature.getGeoNameId());
   }
 
-  protected abstract StyleSet<TextStyle> createStyleSet(Toponym feature, int zoom);
+  private LinkedHashMap<String,StyleSet<TextStyle>> textStyles = new LinkedHashMap<String,StyleSet<TextStyle>>();
+  
+  private void createStyleSets() {
+      // country names
+      Typeface font = Typeface.create(Typeface.createFromAsset(context.getAssets(), "fonts/zapfino.ttf"), Typeface.BOLD);
+
+      textStyles.put("PCLI",new StyleSet<TextStyle>(
+              TextStyle
+              .builder()
+              .setAllowOverlap(false)
+              .setOrientation(TextStyle.GROUND_BILLBOARD_ORIENTATION)
+              .setAnchorY(TextStyle.CENTER)
+              .setSize((int) (20 * dpi))
+              .setColor(Color.argb(255, 100, 100, 100))
+              .setPlacementPriority(5)
+              .setFont(font)
+              .build()));
+      
+      // capitals
+      textStyles.put("PPLC",new StyleSet<TextStyle>(
+              TextStyle
+              .builder()
+              .setAllowOverlap(false)
+              .setOrientation(TextStyle.CAMERA_BILLBOARD_ORIENTATION)
+              .setSize((int) (26 * dpi))
+              .setColor(Color.BLACK)
+              .setPlacementPriority(4)
+              .build()));
+      
+      // adm1 areas
+      textStyles.put("ADM1",new StyleSet<TextStyle>(
+              TextStyle
+              .builder()
+              .setAllowOverlap(false)
+              .setOrientation(TextStyle.GROUND_BILLBOARD_ORIENTATION)
+              .setSize((int) (24 * dpi))
+              .setColor(android.graphics.Color.GRAY)
+              .setPlacementPriority(2)
+              .build()));
+      
+   // city, region capital
+      textStyles.put("PPLA",new StyleSet<TextStyle>(
+              TextStyle
+              .builder()
+              .setAllowOverlap(false)
+              .setOrientation(TextStyle.CAMERA_BILLBOARD_ORIENTATION)
+              .setSize((int) (22 * dpi))
+              .setColor(android.graphics.Color.DKGRAY)
+              .setPlacementPriority(3)
+              .build()));
+      
+      // city smaller
+      textStyles.put("PPL",new StyleSet<TextStyle>(
+              TextStyle
+              .builder()
+              .setAllowOverlap(false)
+              .setOrientation(TextStyle.CAMERA_BILLBOARD_ORIENTATION)
+              .setSize((int) (18 * dpi))
+              .setColor(android.graphics.Color.DKGRAY)
+              .setPlacementPriority(1)
+              .build()));
+      
+     // building
+      textStyles.put("BDG",new StyleSet<TextStyle>(
+              TextStyle
+              .builder()
+              .setAllowOverlap(false)
+              .setOrientation(TextStyle.GROUND_BILLBOARD_ORIENTATION)
+              .setSize((int) (16 * dpi))
+              .setColor(0xff2f4f4f) // Dark Slate Gray
+              .setPlacementPriority(0)
+              .build()));
+            
+      
+
+  }
 
 }

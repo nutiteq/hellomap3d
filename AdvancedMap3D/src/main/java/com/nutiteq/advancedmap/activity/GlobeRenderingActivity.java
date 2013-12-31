@@ -148,12 +148,12 @@ public class GlobeRenderingActivity extends Activity {
     float dpi = metrics.density;
     
     // Add custom layers 
-    addMarkerLayer();
-    addTextLayer();
-    addPointLayer();
-    addLineLayer();
-    addPolyLayer();
-    addPoly3DLayer();
+//    addMarkerLayer();
+//    addTextLayer();
+//    addPointLayer();
+//    addLineLayer();
+//    addPolyLayer();
+//    addPoly3DLayer();
     addGeonamesLayer(dpi);
   }
 
@@ -294,7 +294,7 @@ public class GlobeRenderingActivity extends Activity {
   
   private void addGeonamesLayer(final float dpi){
       Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
-      StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>(PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(Color.BLUE).setPickingSize(0.2f).build());
+      StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>(PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(android.graphics.Color.GRAY).setPickingSize(0.4f).build());
       
       LabelStyle labelStyle = 
               LabelStyle.builder()
@@ -308,30 +308,12 @@ public class GlobeRenderingActivity extends Activity {
       mapView.getComponents().layers.addLayer(geonamesLayer);
       
 
-      // add text layer also
+      // add text layer
+      GeonamesTextLayer textLayer = new GeonamesTextLayer(mapView.getLayers().getBaseLayer().getProjection(), geonamesLayer, dpi, getApplicationContext());
       
-      GeonamesTextLayer textLayer = new GeonamesTextLayer(mapView.getLayers().getBaseLayer().getProjection(), geonamesLayer) {
-      
-          private StyleSet<TextStyle> styleSetPlacename = new StyleSet<TextStyle>(
-                  TextStyle
-                          .builder()
-                          .setAllowOverlap(false)
-                          .setOrientation(TextStyle.CAMERA_BILLBOARD_ORIENTATION)
-                          .setSize((int) (30 * dpi))
-                          .setColor(Color.argb(255, 100, 100, 100))
-                          .setPlacementPriority(5).build());
-
-          @Override
-          protected StyleSet<TextStyle> createStyleSet(Toponym feature,
-                  int zoom) {
-              return styleSetPlacename;
-          }
-
-      };
-
       // 2. set properties for texts
       textLayer.setZOrdered(false);
-      //textLayer.setMaxVisibleElements(30);
+      //textLayer.setMaxVisibleElements(50);
       
       // 3. add layer
       mapView.getLayers().addLayer(textLayer);
