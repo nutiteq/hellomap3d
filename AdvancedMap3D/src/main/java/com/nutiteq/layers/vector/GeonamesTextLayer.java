@@ -21,6 +21,8 @@ import com.nutiteq.geometry.Text;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.style.TextStyle;
+import com.nutiteq.utils.IntHashMap;
+import com.nutiteq.utils.IntMap;
 import com.nutiteq.vectorlayers.TextLayer;
 
 /**
@@ -55,11 +57,11 @@ public class GeonamesTextLayer extends TextLayer {
 
   public void calculateVisibleElements(List<Toponym> features, int zoom) {
     // Create id-based map from old visible elements. We will keep them if they remain visible
-    Map<String, Text> oldVisibleElementsMap = new HashMap<String, Text>();
+    IntMap<Text> oldVisibleElementsMap = new IntHashMap<Text>();
     List<Text> oldVisibleElementsList = getVisibleElements();
     if (oldVisibleElementsList != null) {
       for (Text text : oldVisibleElementsList) {
-        String id = Integer.toString((Integer)text.userData);
+        Integer id = (Integer) text.userData;
         oldVisibleElementsMap.put(id, text);
       }
     }
