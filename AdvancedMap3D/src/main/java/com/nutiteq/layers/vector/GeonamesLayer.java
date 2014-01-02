@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.geonames.BoundingBox;
+import org.geonames.Style;
 import org.geonames.Toponym;
 import org.geonames.ToponymSearchCriteria;
 import org.geonames.ToponymSearchResult;
@@ -56,7 +57,6 @@ public class GeonamesLayer extends GeometryLayer {
       Map<String, Toponym> newVisibleFeatureMap = new HashMap<String, Toponym>();
 
       WebService.setUserName(GEONAMES_USER); // add your username here
-      
       ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
       
       // bbox-based query to Geonames API
@@ -68,7 +68,8 @@ public class GeonamesLayer extends GeometryLayer {
       searchCriteria.setFeatureCodes(fc);
       // name-based query to Geonames API
 //      searchCriteria.setQ("zurich");
-      searchCriteria.setMaxRows(200);
+      searchCriteria.setMaxRows(100);
+      searchCriteria.setStyle(Style.LONG);
       
       Log.debug("z:" +zoom+" "+ envelope+ " fc:"+Arrays.toString(fc));
       
@@ -79,7 +80,7 @@ public class GeonamesLayer extends GeometryLayer {
              Log.debug(toponym.getName()+" "+ toponym.getCountryName()+" "+toponym.getFeatureCode()+" "+typeNames.get(toponym.getFeatureClass().name()));
     
              com.nutiteq.geometry.Geometry newObject = null;
-             DefaultLabel label = new DefaultLabel(toponym.getName(), ""+toponym.getCountryName()+" type:"+typeNames.get(toponym.getFeatureClass().name())+"\n"+toponym.toString().replace(",","\n"), labelStyle);
+             DefaultLabel label = new DefaultLabel(toponym.getName(), ""+typeNames.get(toponym.getFeatureClass().name())+", "+toponym.getCountryName()+"\n"+toponym.toString().replace(",","\n"), labelStyle);
     
              MapPos mapPos = getProjection().fromWgs84(toponym.getLongitude(), toponym.getLatitude());
              newObject = new Point(mapPos, label, pointStyleSet, null);
@@ -161,13 +162,18 @@ public class GeonamesLayer extends GeometryLayer {
       // all zooms
       featureCodes.add("PCLI"); // independent political entity, countries
 
-      if(zoom>4){
-          featureCodes.add("ADM1"); // adm1 areas
+      if(zoom>=3){
           featureCodes.add("PPLC"); // capital
       }
 
-      if(zoom>7){
+      
+      if(zoom>4){
+          featureCodes.add("ADM1"); // adm1 areas
+      }
+
+      if(zoom>=6){
           featureCodes.add("PPLA"); // city, region capital
+          featureCodes.add("PPLA2"); // city, ADM2 seat, useful for US 
       }
       
       if(zoom>9){

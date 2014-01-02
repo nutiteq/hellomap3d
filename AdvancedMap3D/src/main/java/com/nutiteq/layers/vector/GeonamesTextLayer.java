@@ -1,13 +1,10 @@
 package com.nutiteq.layers.vector;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import org.geonames.Toponym;
 
@@ -117,7 +114,6 @@ public class GeonamesTextLayer extends TextLayer {
     MapPos mapPos = getProjection().fromWgs84(feature.getLongitude(), feature.getLatitude());
     baseElement = new Text.BasePoint(mapPos);
 
-
     // Create text. Put unique id to userdata field, that will be used to identify the element later
 
     return new Text(baseElement, feature.getName(), textStyles.get(feature.getFeatureCode()), feature.getGeoNameId());
@@ -136,8 +132,8 @@ public class GeonamesTextLayer extends TextLayer {
               .setOrientation(TextStyle.GROUND_BILLBOARD_ORIENTATION)
               .setAnchorY(TextStyle.CENTER)
               .setSize((int) (20 * dpi))
-              .setColor(Color.argb(255, 100, 100, 100))
-              .setPlacementPriority(5)
+              .setColor(Color.BLACK)
+              .setPlacementPriority(4)
               .setFont(font)
               .build()));
       
@@ -149,7 +145,7 @@ public class GeonamesTextLayer extends TextLayer {
               .setOrientation(TextStyle.CAMERA_BILLBOARD_ORIENTATION)
               .setSize((int) (26 * dpi))
               .setColor(Color.BLACK)
-              .setPlacementPriority(4)
+              .setPlacementPriority(5)
               .build()));
       
       // adm1 areas
@@ -158,6 +154,7 @@ public class GeonamesTextLayer extends TextLayer {
               .builder()
               .setAllowOverlap(false)
               .setOrientation(TextStyle.GROUND_BILLBOARD_ORIENTATION)
+              .setAnchorY(TextStyle.CENTER)
               .setSize((int) (24 * dpi))
               .setColor(android.graphics.Color.GRAY)
               .setPlacementPriority(2)
@@ -173,31 +170,40 @@ public class GeonamesTextLayer extends TextLayer {
               .setColor(android.graphics.Color.DKGRAY)
               .setPlacementPriority(3)
               .build()));
-      
-      // city smaller
-      textStyles.put("PPL",new StyleSet<TextStyle>(
+
+      // city, ADM2 capital, useful for e.g. USA
+      textStyles.put("PPLA2",new StyleSet<TextStyle>(
               TextStyle
               .builder()
               .setAllowOverlap(false)
               .setOrientation(TextStyle.CAMERA_BILLBOARD_ORIENTATION)
               .setSize((int) (18 * dpi))
               .setColor(android.graphics.Color.DKGRAY)
+              .setPlacementPriority(2)
+              .build()));
+      
+      // city, all populated places
+      textStyles.put("PPL",new StyleSet<TextStyle>(
+              TextStyle
+              .builder()
+              .setAllowOverlap(false)
+              .setOrientation(TextStyle.CAMERA_BILLBOARD_ORIENTATION)
+              .setSize((int) (16 * dpi))
+              .setColor(android.graphics.Color.DKGRAY)
               .setPlacementPriority(1)
               .build()));
       
-     // building
+     // buildings, landmarks
       textStyles.put("BDG",new StyleSet<TextStyle>(
               TextStyle
               .builder()
               .setAllowOverlap(false)
               .setOrientation(TextStyle.GROUND_BILLBOARD_ORIENTATION)
-              .setSize((int) (16 * dpi))
+              .setAnchorY(TextStyle.CENTER)
+              .setSize((int) (14 * dpi))
               .setColor(0xff2f4f4f) // Dark Slate Gray
               .setPlacementPriority(0)
               .build()));
-            
-      
-
   }
 
 }
