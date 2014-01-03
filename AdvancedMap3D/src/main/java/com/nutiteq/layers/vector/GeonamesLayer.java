@@ -162,7 +162,7 @@ public class GeonamesLayer extends GeometryLayer {
       // all zooms
       featureCodes.add("PCLI"); // independent political entity, countries
 
-      if(zoom>=3){
+      if(zoom>3){
           featureCodes.add("PPLC"); // capital
       }
 

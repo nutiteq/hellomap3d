@@ -30,6 +30,7 @@ import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.geometry.Polygon3D;
 import com.nutiteq.geometry.Text;
+import com.nutiteq.geometry.VectorElement;
 import com.nutiteq.layers.vector.GeonamesLayer;
 import com.nutiteq.layers.vector.GeonamesTextLayer;
 import com.nutiteq.layers.vector.WfsLayer;
@@ -314,7 +315,7 @@ public class GlobeRenderingActivity extends Activity {
       // 2. set properties for texts
       textLayer.setZOrdered(false);
       //textLayer.setMaxVisibleElements(50);
-      
+      textLayer.setTextFading(true);
       // 3. add layer
       mapView.getLayers().addLayer(textLayer);
       
