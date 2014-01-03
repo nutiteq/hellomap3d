@@ -42,6 +42,8 @@ import com.nutiteq.projections.EPSG3301;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.projections.Projection;
+import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
+import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.roofs.FlatRoof;
 import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.MarkerStyle;
@@ -287,8 +289,8 @@ public class AdvancedMapActivity extends Activity {
             baseBingAerial();
             break;
             
-        case R.id.menu_openaerial:
-            baseMapOpenAerial();
+        case R.id.menu_esriimagery:
+            baseEsriBasemapImagery();
             break;
 
         case R.id.menu_stored:
@@ -526,13 +528,28 @@ public class AdvancedMapActivity extends Activity {
         Layer bingLayer = new QuadKeyLayer(new EPSG3857(), 0, 19, 14, "http://ecn.t3.tiles.virtualearth.net/tiles/a",".jpeg?g=471&mkt=en-US");
         updateBaseLayer(bingLayer);
     }
-   
+    
     private void baseMapOpenAerial() {
         Layer aerialLayer = new TMSMapLayer(new EPSG3857(), 0, 11, 15,
                "http://otile1.mqcdn.com/tiles/1.0.0/sat/", "/", ".png");
         updateBaseLayer(aerialLayer);
     }
-     
+
+    private void baseEsriBasemapImagery() {
+
+        // ESRI BaseMap. Note: ESRI requires attribution and account
+        // Check https://developers.arcgis.com for details
+        
+        HTTPRasterDataSource dataSource = new HTTPRasterDataSource(new EPSG3857(), 0, 19, "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{zoom}/{y}/{x}/");
+        RasterLayer mapLayer = new RasterLayer(dataSource, 17);
+        updateBaseLayer(mapLayer);
+        
+        HTTPRasterDataSource dataSourceOvl = new HTTPRasterDataSource(new EPSG3857(), 0, 19, "http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{zoom}/{y}/{x}/");
+        RasterLayer mapLayerOvl = new RasterLayer(dataSourceOvl, 18);
+        mapView.getLayers().addLayer(mapLayerOvl);
+    }
+
+    
     private void singleNmlModelLayer() {
         ModelStyle modelStyle = ModelStyle.builder().build();
         StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(null);
