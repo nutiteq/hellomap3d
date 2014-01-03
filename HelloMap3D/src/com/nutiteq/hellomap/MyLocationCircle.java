@@ -21,6 +21,7 @@ public class MyLocationCircle {
     private List<MapPos> circleVerts = new ArrayList<MapPos>(NR_OF_CIRCLE_VERTS);
     private MapPos circlePos = new MapPos(0, 0);
     private float circleScale = 0;
+    private float circleRadius = 1;
     private float projectionScale = 0;
     private boolean visible = false;
     
@@ -32,7 +33,9 @@ public class MyLocationCircle {
         // circle max radius 
         // make sure that it is at least minimum radius, otherwise is too small in general zoom
         float zoomPow2 = (float) Math.pow(2, zoom);
-        float circleScaleMax = 1.0f / zoomPow2 * 0.2f * projectionScale; // minimum, fixed value
+        float circleScaleMax = Math.max(
+            circleRadius / 7500000f, // based on GPS accuracy. This constant depends on latitude
+            1.0f / zoomPow2 * 0.2f) * projectionScale; // minimum, fixed value
         float circleScaleStep = circleScaleMax / 50.0f;
 
         circleScale += circleScaleStep;
@@ -65,5 +68,6 @@ public class MyLocationCircle {
     public void setLocation(Projection proj, Location location) {
         circlePos = proj.fromWgs84(location.getLongitude(), location.getLatitude());
         projectionScale = (float) proj.getBounds().getWidth();
+        circleRadius = location.getAccuracy();
     }
 }
