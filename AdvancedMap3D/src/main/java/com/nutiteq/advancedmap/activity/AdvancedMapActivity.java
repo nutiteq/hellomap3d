@@ -138,7 +138,7 @@ public class AdvancedMapActivity extends Activity {
         mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
 
 
-/       mapView.setFocusPoint(2901450, 5528971);    // Romania
+//      mapView.setFocusPoint(2901450, 5528971);    // Romania
 //      mapView.setFocusPoint(2915891.5f, 7984571.0f); // valgamaa
 
 
