@@ -1,7 +1,6 @@
 package com.nutiteq.roofs;
 
 import com.nutiteq.components.Vector;
-import com.nutiteq.log.Log;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;

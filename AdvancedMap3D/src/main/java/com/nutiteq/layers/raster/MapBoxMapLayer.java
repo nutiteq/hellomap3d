@@ -20,9 +20,10 @@ import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MapTile;
 import com.nutiteq.components.MutableMapPos;
+import com.nutiteq.layers.raster.deprecated.TMSMapLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
-import com.nutiteq.tasks.NetFetchTileTask;
+import com.nutiteq.tasks.deprecated.NetFetchTileTask;
 import com.nutiteq.utils.NetUtils;
 import com.nutiteq.utils.UiUtils;
 import com.nutiteq.utils.UtfGridHelper;
@@ -51,7 +52,7 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
         private MapTile tile;
 
         public NetFetchUtgGridTileTask(MapTile tile, Components components,
-                long tileIdOffset, String url) {
+                long tileIdOffset, String url, boolean memoryCaching, boolean persistentCaching) {
             super(tile, components, tileIdOffset, url);
             this.tile = tile;
         }
@@ -102,7 +103,7 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
         this.account = account;
         this.map = map;
         this.utfGrids = new HashMap<MapPos, MBTileUTFGrid>();
-
+        setPersistentCaching(true);
     }
 
     @Override
@@ -119,8 +120,7 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
         String url = "http://api.tiles.mapbox.com/v3/" + account + "." + map + 
                 "/" + tile.zoom + "/" + tile.x + "/" + tile.y + ".grid.json?callback=grid";
 
-        executeFetchTask(new NetFetchUtgGridTileTask(tile, components,
-                tileIdOffset, url));
+        executeFetchTask(new NetFetchUtgGridTileTask(tile, components, tileIdOffset, url, memoryCaching, persistentCaching));
     }
 
     @Override

@@ -66,7 +66,7 @@ public class SearchQueryResults extends ListActivity
         getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
         	
           @Override
-          public void onItemClick(AdapterView aparent, View v, int position, long id) {
+          public void onItemClick(AdapterView<?> aparent, View v, int position, long id) {
             Log.debug("Clicked: " + position );
             AddressSearchActivity.setSearchResult(searchResultPlaces[position]);
             finish();

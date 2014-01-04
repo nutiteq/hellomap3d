@@ -1,4 +1,4 @@
-package com.nutiteq.layers.raster;
+package com.nutiteq.layers.raster.deprecated;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -24,7 +24,7 @@ import com.nutiteq.components.MapTile;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
-import com.nutiteq.tasks.NetFetchTileTask;
+import com.nutiteq.tasks.deprecated.NetFetchTileTask;
 
 /**
  * Layer for Mapsforge raster tiles. 
@@ -52,11 +52,12 @@ public class MapsforgeMapLayer extends RasterLayer {
 
     ((DatabaseRenderer) mapGenerator).setMapDatabase(mapDatabase);
     this.theme = theme;
+    setPersistentCaching(true);
   }
 
   @Override
   public void fetchTile(MapTile tile) {
-    components.rasterTaskPool.execute(new MapsforgeFetchTileTask(tile, components, tileIdOffset, mapGenerator, theme));
+    components.rasterTaskPool.execute(new MapsforgeFetchTileTask(tile, components, tileIdOffset, memoryCaching, persistentCaching, mapGenerator, theme));
   }
 
   @Override
@@ -84,8 +85,8 @@ public class MapsforgeMapLayer extends RasterLayer {
     private static final float DEFAULT_TEXT_SCALE = 1;
 
     public MapsforgeFetchTileTask(MapTile tile, Components components,
-        long tileIdOffset, MapGenerator mapGenerator, JobTheme theme) {
-      super(tile, components, tileIdOffset, "");
+        long tileIdOffset, boolean memoryCaching, boolean persistentCaching, MapGenerator mapGenerator, JobTheme theme) {
+      super(tile, components, tileIdOffset, "", null, memoryCaching, persistentCaching);
       this.mapGenerator = mapGenerator;
       this.z = tile.zoom;
       this.x = tile.x;

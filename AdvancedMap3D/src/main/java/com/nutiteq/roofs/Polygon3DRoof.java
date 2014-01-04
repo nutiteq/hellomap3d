@@ -12,7 +12,6 @@ import com.nutiteq.components.Point3D;
 import com.nutiteq.components.Vector;
 import com.nutiteq.components.Vector3D;
 import com.nutiteq.geometry.Polygon3D;
-import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.renderprojections.RenderProjection;
 import com.nutiteq.style.Polygon3DStyle;
@@ -112,7 +111,7 @@ public class Polygon3DRoof extends Polygon3D {
   public void setRoof(Roof roof) {
     if (roof != this.roof) {
       this.roof = roof;
-      updateInternalState();
+      notifyElementChanged();
     }
   }
 

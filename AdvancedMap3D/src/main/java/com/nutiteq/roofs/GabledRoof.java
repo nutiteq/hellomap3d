@@ -17,7 +17,6 @@ public class GabledRoof extends Roof {
  
   private Vector r1Point;
   private Vector r2Point;
-  private Vector rVec;
   private double rLength;
   private double halfCrossLength; 
 
@@ -51,7 +50,6 @@ public class GabledRoof extends Roof {
     // Calculate the ridge parameters
     r1Point = c1Point.getPointBetween2D(c2Point, 0.5f);
     r2Point = c3Point.getPointBetween2D(c4Point, 0.5f);
-    rVec = r2Point.getSubtracted2D(r1Point);
     rLength = r1Point.getDistanceFromPoint2D(r2Point);
     halfCrossLength = c1Point.getDistanceFromPoint2D(c2Point) / 2;
     

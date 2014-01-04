@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.nutiteq.components.CullState;
-import com.nutiteq.components.Envelope;
 import com.nutiteq.editable.datasources.EditableVectorDataSource;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.geometry.Line;
