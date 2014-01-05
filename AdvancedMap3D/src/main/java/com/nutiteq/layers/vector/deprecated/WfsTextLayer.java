@@ -1,4 +1,4 @@
-package com.nutiteq.layers.vector;
+package com.nutiteq.layers.vector.deprecated;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +10,7 @@ import java.util.Set;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Text;
-import com.nutiteq.layers.vector.WfsLayer.Feature;
+import com.nutiteq.layers.vector.deprecated.WfsLayer.Feature;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.style.TextStyle;
@@ -50,7 +50,6 @@ public abstract class WfsTextLayer extends TextLayer {
         oldVisibleElementsMap.put(id, text);
       }
     }
-    Set<Text> oldVisibleElementsSet = new HashSet<Text>(oldVisibleElementsMap.values()); 
 
     // Create list of new visible elements 
     List<Text> newVisibleElementsList = new ArrayList<Text>();
@@ -76,12 +75,6 @@ public abstract class WfsTextLayer extends TextLayer {
 
     // Update visible elements 
     setVisibleElements(newVisibleElementsList);
-
-    // Release visible elements from last frame that are no longer used
-    oldVisibleElementsSet.removeAll(newVisibleElementsList);
-    for (Text element : oldVisibleElementsSet) {
-      element.clearActiveStyle();
-    }
   }
   
   @Override
