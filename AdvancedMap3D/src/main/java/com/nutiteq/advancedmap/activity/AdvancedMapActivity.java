@@ -284,8 +284,8 @@ public class AdvancedMapActivity extends Activity {
             baseBingAerial();
             break;
 
-        case R.id.menu_openaerial:
-            baseMapOpenAerial();
+        case R.id.menu_esriimagery:
+            baseEsriBasemapImagery();
             break;
 
         case R.id.menu_stored:
@@ -541,7 +541,21 @@ public class AdvancedMapActivity extends Activity {
         RasterLayer aerialLayer = new RasterLayer(dataSource, 15);
         updateBaseLayer(aerialLayer);
     }
+    private void baseEsriBasemapImagery() {
 
+        // ESRI BaseMap. Note: ESRI requires attribution and account
+        // Check https://developers.arcgis.com for details
+        
+        HTTPRasterDataSource dataSource = new HTTPRasterDataSource(new EPSG3857(), 0, 19, "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{zoom}/{y}/{x}/");
+        RasterLayer mapLayer = new RasterLayer(dataSource, 17);
+        updateBaseLayer(mapLayer);
+        
+        HTTPRasterDataSource dataSourceOvl = new HTTPRasterDataSource(new EPSG3857(), 0, 19, "http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{zoom}/{y}/{x}/");
+        RasterLayer mapLayerOvl = new RasterLayer(dataSourceOvl, 18);
+        mapView.getLayers().addLayer(mapLayerOvl);
+    }
+
+    
     private void singleNmlModelLayer() {
         ModelStyle modelStyle = ModelStyle.builder().build();
         StyleSet<ModelStyle> modelStyleSet = new StyleSet<ModelStyle>(null);

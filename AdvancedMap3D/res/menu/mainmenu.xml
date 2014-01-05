@@ -59,8 +59,8 @@
                 <item android:id="@+id/menu_regio"
                         android:title="Regio Estonia"
                         />
-                <item android:id="@+id/menu_openaerial"
-                        android:title="OpenAerial MapQuest"
+                <item android:id="@+id/menu_esriimagery"
+                        android:title="ESRI Basemap Imagery"
                         />
                 
             </group>

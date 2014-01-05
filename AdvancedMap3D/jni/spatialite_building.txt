@@ -64,14 +64,14 @@ Note: GEOS has LGPL license, so with GEOS LGPL license terms apply.
  chmod u+x configure
  ./configure --build=x86_64-pc-linux-gnu --host=arm-linux-eabi
  cd ..
- find geos-3.3.8/ -name "*.cpp" | grep -Ev "tests|doc" | sort | awk '{ print "\t"$1" \\" }'
+ find geos-3.3.8/ -name "*.cpp" | grep -Ev "tests|doc" | sort | awk '{ print "\t"$1" \\" }' >geossrc.txt
 
 * Make sure to use android-ndk-r8e, older r7c crashes during compile
 * isnan issue: change include/geos/platform.h lines 99-101:
 # elif defined(__sun) || defined(__sun__) || defined(__ANDROID__)
 #  include <math.h>
 #  define ISNAN(x) (x!=x)
-
+# endif
 5. Build now all them
 just run ndk-build from NDK r8e.
 
