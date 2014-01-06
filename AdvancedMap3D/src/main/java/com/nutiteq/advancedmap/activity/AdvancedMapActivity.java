@@ -540,10 +540,12 @@ public class AdvancedMapActivity extends Activity {
         // ESRI BaseMap. Note: ESRI requires attribution and account
         // Check https://developers.arcgis.com for details
         
+        // World_Imagery as base
         HTTPRasterDataSource dataSource = new HTTPRasterDataSource(new EPSG3857(), 0, 19, "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{zoom}/{y}/{x}/");
         RasterLayer mapLayer = new RasterLayer(dataSource, 17);
         updateBaseLayer(mapLayer);
         
+        // Add World_Boundaries_and_Places with placenames as transparent overlay
         HTTPRasterDataSource dataSourceOvl = new HTTPRasterDataSource(new EPSG3857(), 0, 19, "http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{zoom}/{y}/{x}/");
         RasterLayer mapLayerOvl = new RasterLayer(dataSourceOvl, 18);
         mapView.getLayers().addLayer(mapLayerOvl);
