@@ -1,4 +1,4 @@
-package com.nutiteq.layers.raster;
+package com.nutiteq.layers.raster.deprecated;
 
 import java.util.Map;
 
@@ -8,7 +8,7 @@ import com.nutiteq.components.MutableMapPos;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
-import com.nutiteq.tasks.NetFetchTileTask;
+import com.nutiteq.tasks.deprecated.NetFetchTileTask;
 import com.nutiteq.utils.NetUtils;
 import com.nutiteq.utils.TileUtils;
 import com.nutiteq.utils.Utils;
@@ -52,15 +52,16 @@ public class WmsLayer extends RasterLayer {
         this.style = style;
         this.layer = layer;
         this.format = format;
+        setPersistentCaching(true);
     }
-    
-    
+
+
     /**
      * Add HTTP headers. Useful for referer, basic-auth etc.
      * @param httpHeaders
      */
     public void setHttpHeaders(Map<String, String> httpHeaders) {
-      this.httpHeaders = httpHeaders;
+        this.httpHeaders = httpHeaders;
     }
 
     @Override
@@ -87,15 +88,15 @@ public class WmsLayer extends RasterLayer {
         url.append("&BBOX=").append(Utils.urlEncode(bbox));
         String urlString = url.toString();
         Log.info("WmsLayer: Start loading " + urlString);
-        
+
         // finally you need to add a task with download URL to the raster tile download pool
         components.rasterTaskPool.execute(new NetFetchTileTask(tile,
-                components, tileIdOffset, urlString, httpHeaders));
+                components, tileIdOffset, urlString, httpHeaders, memoryCaching, persistentCaching));
     }
 
     private String getTileBbox(MapTile tile) {
         Envelope envelope = TileUtils.TileBounds(tile.x, tile.y, tile.zoom, projection);
-        
+
         String bbox = "" + envelope.getMinX() + "," + envelope.getMinY() + ","
                 + envelope.getMaxX() + "," + envelope.getMaxY();
         Log.debug("WmsLayer: envelope bbox " + bbox);
@@ -110,7 +111,7 @@ public class WmsLayer extends RasterLayer {
     public void setTileSize(int tileSize) {
         this.tileSize = tileSize;
     }
-    
+
     @Override
     public void flush() {
     }
@@ -118,14 +119,14 @@ public class WmsLayer extends RasterLayer {
 
     // implements GetFeatureInfo WMS request
     // Uses hardcoded values for several parameters
-    
+
     public String getFeatureInfo(MapTile clickedTile, MutableMapPos tilePos) {
-        
+
         String bbox = getTileBbox(clickedTile);
 
         StringBuffer url = new StringBuffer(
                 Utils.prepareForParameters(location));
-        
+
         // repeat basic WMS getMap parameters
         url.append("LAYERS=").append(Utils.urlEncode(layer));
         url.append("&FORMAT=").append(Utils.urlEncode(format));
@@ -134,7 +135,7 @@ public class WmsLayer extends RasterLayer {
         url.append("&SRS=").append(Utils.urlEncode(getProjection().name()));
         url.append("&WIDTH="+tileSize+"&HEIGHT="+tileSize);
         url.append("&BBOX=").append(Utils.urlEncode(bbox));
-        
+
         // add featureinfo-specific parameters
         url.append("&REQUEST=GetFeatureInfo");
         url.append("&QUERY_LAYERS=").append(Utils.urlEncode(layer));
@@ -144,14 +145,11 @@ public class WmsLayer extends RasterLayer {
         url.append("&Y=").append(tileSize - (int) (tileSize * tilePos.y));
         url.append("&EXCEPTIONS=").append(
                 Utils.urlEncode("application/vnd.ogc.se_xml"));
-        
+
         String urlString = url.toString();
         Log.info("WmsLayer: getFeatureInfo " + urlString);
-        
+
         return NetUtils.downloadUrl(urlString, this.httpHeaders, true, "UTF-8");
     }
-    
 
-
-    
 }

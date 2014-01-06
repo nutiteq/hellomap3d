@@ -1,4 +1,4 @@
-package com.nutiteq.layers.raster;
+package com.nutiteq.layers.raster.deprecated;
 
 import java.util.Map;
 
@@ -8,5 +8,6 @@ import com.nutiteq.components.MutableMapPos;
 public interface UtfGridLayerInterface {
 
     Map<String, String> getUtfGridTooltips(MapTile clickedTile, MutableMapPos tilePos, String template);
+
     boolean hasUtfGridTooltips();
 }

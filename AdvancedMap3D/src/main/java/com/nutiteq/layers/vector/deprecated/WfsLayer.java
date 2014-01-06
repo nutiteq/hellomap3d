@@ -1,4 +1,4 @@
-package com.nutiteq.layers.vector;
+package com.nutiteq.layers.vector.deprecated;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -125,9 +125,6 @@ public class WfsLayer extends GeometryLayer {
         }                
 
         newObject.attachToLayer(WfsLayer.this);
-        if (!newObject.getInternalState().envelope.intersects(envelope)) {
-          continue;
-        }
         newObject.setActiveStyle(zoom);
         newVisibleElementsList.add(newObject);
         newVisibleFeatureMap.put(feature.properties.osm_id, feature);

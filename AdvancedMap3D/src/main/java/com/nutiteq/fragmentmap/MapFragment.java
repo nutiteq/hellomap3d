@@ -13,13 +13,14 @@ import com.nutiteq.geometry.Marker;
 import com.nutiteq.geometry.VectorElement;
 import com.nutiteq.layers.Layer;
 import com.nutiteq.projections.EPSG3857;
-import com.nutiteq.rasterlayers.TMSMapLayer;
+import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
+import com.nutiteq.rasterdatasources.RasterDataSource;
+import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.ui.MapListener;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -116,8 +117,8 @@ public class MapFragment extends Fragment {
     mapView.setComponents(new Components());
 
     // Create base layer
-    baseLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
-        "http://otile1.mqcdn.com/tiles/1.0.0/osm/", "/", ".png");
+    RasterDataSource dataSource = new HTTPRasterDataSource(new EPSG3857(), 0, 18, "http://otile1.mqcdn.com/tiles/1.0.0/osm/{zoom}/x/y.png");
+    baseLayer = new RasterLayer(dataSource, 0);
     mapView.getLayers().setBaseLayer(baseLayer);
     
     // Create marker layer
