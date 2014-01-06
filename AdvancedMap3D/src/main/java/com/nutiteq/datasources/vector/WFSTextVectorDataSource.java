@@ -31,6 +31,8 @@ public abstract class WFSTextVectorDataSource extends AbstractVectorDataSource<T
                 Feature feature = (Feature) element.userData;
                 loadedElementMap.remove(feature.properties.osm_id);
             }
+
+            notifyElementsChanged();
         }
 
         @Override
@@ -38,6 +40,8 @@ public abstract class WFSTextVectorDataSource extends AbstractVectorDataSource<T
             synchronized (WFSTextVectorDataSource.this) {
                 loadedElementMap.clear();
             }
+            
+            notifyElementsChanged();
         }
     }
 
@@ -48,7 +52,7 @@ public abstract class WFSTextVectorDataSource extends AbstractVectorDataSource<T
     public WFSTextVectorDataSource(WFSVectorDataSource dataSource) {
         super(dataSource.getProjection());
         this.dataSource = dataSource;
-        dataSource.addOnChangeListener(new DataSourceChangeListener()); // TODO: bad practice, causes memory leak. Should use WeakRef listener. A
+        dataSource.addOnChangeListener(new DataSourceChangeListener()); // TODO: bad practice, causes memory leak. Should use WeakRef listener. Or better, separate methods for create/destroy phase
     }
 
     public void setMaxElements(int maxElements) {
