@@ -17,10 +17,28 @@ import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
 import com.nutiteq.utils.UtfGridHelper;
 import com.nutiteq.utils.UtfGridHelper.MBTileUTFGrid;
 
+/**
+ * A raster data source class for online MapBox data.
+ * It is mainly a basic HTTP raster data source but adds implementation for UTF grid data sources. 
+ */
 public class MBOnlineRasterDataSource extends HTTPRasterDataSource implements UTFGridDataSource {
 	public final String account;
 	public final String map;
 
+	/**
+	 * Default constructor.
+	 * 
+	 * @param projection
+	 * 			  projection for the data source (practically always EPSG3857)
+	 * @param minZoom
+	 *            minimum zoom supported by the data source.
+	 * @param maxZoom
+	 *            maximum zoom supported by the data source.
+	 * @param account
+	 *            account id to use
+	 * @param map
+	 * 			  map id to use
+	 */
 	public MBOnlineRasterDataSource(Projection projection, int minZoom, int maxZoom, String account, String map) {
 		super(projection, minZoom, maxZoom, "http://api.tiles.mapbox.com/v3/" + account + "." + map + "/{zoom}/{x}/{y}.png");
 		this.account = account;
@@ -29,8 +47,7 @@ public class MBOnlineRasterDataSource extends HTTPRasterDataSource implements UT
 
 	@Override
 	public MBTileUTFGrid loadUTFGrid(MapTile tile) {
-		String url = "http://api.tiles.mapbox.com/v3/" + account + "." + map + 
-				"/" + tile.zoom + "/" + tile.x + "/" + tile.y + ".grid.json?callback=grid";
+		String url = "http://api.tiles.mapbox.com/v3/" + account + "." + map + "/" + tile.zoom + "/" + tile.x + "/" + tile.y + ".grid.json?callback=grid";
 
 		Log.info(getClass().getName() + ": loading UTFgrid " + url);
 
