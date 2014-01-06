@@ -11,13 +11,15 @@ import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
+import com.nutiteq.advancedmap.maplisteners.UTFGridLayerEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
+import com.nutiteq.datasources.raster.MBOnlineRasterDataSource;
 import com.nutiteq.geometry.Marker;
-import com.nutiteq.layers.raster.MapBoxMapLayer;
-import com.nutiteq.layers.raster.MapBoxMapLayer.LoadMetadataTask;
+import com.nutiteq.layers.raster.UTFGridRasterLayer;
+import com.nutiteq.layers.raster.deprecated.MapBoxMapLayer;
+import com.nutiteq.layers.raster.deprecated.MapBoxMapLayer.LoadMetadataTask;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.style.MarkerStyle;
@@ -69,8 +71,8 @@ public class MapBoxMapActivity extends Activity {
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
 			// recreate listener
-			UtfGridLayerEventListener oldListener = (UtfGridLayerEventListener ) mapView.getOptions().getMapListener();
-	        UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, oldListener.getLayer(), oldListener.getClickMarker());
+			UTFGridLayerEventListener oldListener = (UTFGridLayerEventListener ) mapView.getOptions().getMapListener();
+	        UTFGridLayerEventListener mapListener = new UTFGridLayerEventListener(this, mapView, oldListener.getLayer(), oldListener.getClickMarker());
 	        mapView.getOptions().setMapListener(mapListener);
 			mapView.getOptions().setMapListener(null);
 
@@ -91,8 +93,8 @@ public class MapBoxMapActivity extends Activity {
 //				MAPBOX_ACCOUNT, "map-j6a1wkx0");
 
 		// MapBox Satellite
-		final MapBoxMapLayer mapLayer = new MapBoxMapLayer(new EPSG3857(), 0, 19, 334,
-                MAPBOX_ACCOUNT, MAPBOX_MAPID);
+		MBOnlineRasterDataSource dataSource = new MBOnlineRasterDataSource(new EPSG3857(), 0, 19, MAPBOX_ACCOUNT, MAPBOX_MAPID);
+		UTFGridRasterLayer mapLayer = new UTFGridRasterLayer(dataSource, dataSource, 334);
 
 		mapView.getLayers().setBaseLayer(mapLayer);
 
@@ -114,7 +116,7 @@ public class MapBoxMapActivity extends Activity {
         mapView.getLayers().addLayer(clickMarkerLayer);
 		
         // add event listener
-		UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, mapLayer, clickMarker);
+		UTFGridLayerEventListener mapListener = new UTFGridLayerEventListener(this, mapView, mapLayer, clickMarker);
         mapView.getOptions().setMapListener(mapListener);
 
 		// download Metadata, add legend and tooltip listener hooks

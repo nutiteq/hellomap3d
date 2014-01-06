@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.HashMap;
+
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -15,16 +16,18 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 import android.widget.ZoomControls;
+
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
+import com.nutiteq.advancedmap.maplisteners.UTFGridLayerEventListener;
 import com.nutiteq.components.Bounds;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
+import com.nutiteq.datasources.raster.MBTilesRasterDataSource;
 import com.nutiteq.filepicker.FilePickerActivity;
 import com.nutiteq.geometry.Marker;
-import com.nutiteq.layers.raster.MBTilesMapLayer;
+import com.nutiteq.layers.raster.UTFGridRasterLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.style.MarkerStyle;
@@ -73,8 +76,8 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
 			// just restore configuration, skip other initializations
 			mapView.setComponents(retainObject);
 			// recreate listener
-            UtfGridLayerEventListener oldListener = (UtfGridLayerEventListener ) mapView.getOptions().getMapListener();
-            UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, oldListener.getLayer(), oldListener.getClickMarker());
+            UTFGridLayerEventListener oldListener = (UTFGridLayerEventListener ) mapView.getOptions().getMapListener();
+            UTFGridLayerEventListener mapListener = new UTFGridLayerEventListener(this, mapView, oldListener.getLayer(), oldListener.getClickMarker());
             mapView.getOptions().setMapListener(mapListener);
 			return;
 		} else {
@@ -91,10 +94,12 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
             // read filename from Extras
             Bundle b = getIntent().getExtras();
             String file = b.getString("selectedFile");
-            MBTilesMapLayer dbLayer = new MBTilesMapLayer(new EPSG3857(), 0, 19, file.hashCode(), file, this);
+            
+            MBTilesRasterDataSource dataSource = new MBTilesRasterDataSource(new EPSG3857(), 0, 19, file, false, this);
+            UTFGridRasterLayer dbLayer = new UTFGridRasterLayer(dataSource, dataSource, file.hashCode());
             mapView.getLayers().setBaseLayer(dbLayer);
             
-            HashMap<String, String> dbMetaData = dbLayer.getDatabase().getMetadata();
+            HashMap<String, String> dbMetaData = dataSource.getDatabase().getMetadata();
             String legend = dbMetaData.get("legend");
             if(legend != null && !legend.equals("")){
                 UiUtils.addWebView((RelativeLayout) findViewById(R.id.mainView), this, legend, 320, 300);
@@ -158,7 +163,7 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
             mapView.getLayers().addLayer(clickMarkerLayer);
             
             // add event listener for clicks
-            UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, dbLayer, clickMarker);
+            UTFGridLayerEventListener mapListener = new UTFGridLayerEventListener(this, mapView, dbLayer, clickMarker);
             mapView.getOptions().setMapListener(mapListener);
             
         } catch (IOException e) {

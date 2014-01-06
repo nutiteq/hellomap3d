@@ -147,7 +147,7 @@ public class MbTilesDatabaseHelper {
     return data;
   }
 
-  private byte[] getGrid(int zoom, int x, int y) {
+  public byte[] getGrid(int zoom, int x, int y) {
     final Cursor c = database.query(GRID_TABLE, new String[] { KEY_GRID }, TABLE_WHERE,
         new String[] { String.valueOf(zoom),
         String.valueOf(x), String.valueOf(y) }, null, null,

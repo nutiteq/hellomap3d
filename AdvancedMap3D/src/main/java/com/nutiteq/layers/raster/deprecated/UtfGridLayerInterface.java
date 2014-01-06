@@ -1,4 +1,4 @@
-package com.nutiteq.layers.raster;
+package com.nutiteq.layers.raster.deprecated;
 
 import java.util.Map;
 
