@@ -7,7 +7,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.net.ParseException;
 import android.net.Uri;
 
@@ -36,29 +35,16 @@ public class DriveTimeRegionLayer extends GeometryLayer {
     private StyleSet<PolygonStyle> polygonStyleSet;
     private MapPos mapPos;
     private float distance;
-    private Activity activity;
     private LinkedList<Geometry> currentVisibleElementsList = new LinkedList<Geometry>();
     private final CancelableThreadPool dataPool = new CancelableThreadPool(1);
-    //    private final CancelableThreadPoolExecutor dataPool = new CancelableThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new TaskPoolThreadFactory("Data"));
 
+    /**
+     * Custom task for loading data in background.
+     */
     protected class LoadDataTask implements Task {
-        final MapPos pos;
-        final float distance;
-
-        LoadDataTask(MapPos pos, float distance) {
-            this.pos = pos;
-            this.distance = distance;
-        }
-
         @Override
         public void run() {
-            loadData(pos,distance);
-
-            // refresh map: eventually calculateVisibleElements will be called
-            Components components = getComponents();
-            if (components != null) {
-                components.mapRenderers.getMapRenderer().frustumChanged();
-            }
+            loadData(mapPos, distance);
         }
 
         @Override
@@ -72,13 +58,10 @@ public class DriveTimeRegionLayer extends GeometryLayer {
     }
 
 
-    public DriveTimeRegionLayer(Projection proj, StyleSet<PolygonStyle> polygonStyleSet, Activity activity) {
+    public DriveTimeRegionLayer(Projection proj, StyleSet<PolygonStyle> polygonStyleSet) {
         super(proj);
         this.polygonStyleSet = polygonStyleSet;
-        this.activity = activity;
     }
-
-
 
     @Override
     public void calculateVisibleElements(Envelope envelope, int zoom) {
@@ -89,22 +72,19 @@ public class DriveTimeRegionLayer extends GeometryLayer {
         for(Geometry element : currentVisibleElementsList){
             element.setActiveStyle(zoom);
         }
+
+        setVisibleElements(currentVisibleElementsList);
     }
 
     public void loadData(MapPos pos, float distance) {
-
-        if(pos == null){
+        if (pos == null){
             return;
         }
 
         long timeStart = System.currentTimeMillis();
 
-        // start spinner status bar
-        activity.runOnUiThread(new Runnable() {
-            public void run() {
-                activity.setProgressBarIndeterminateVisibility(true);
-            }
-        });
+        // Notify we started 
+        setRunningState(true);
 
         // load geometries
         try {
@@ -152,34 +132,38 @@ public class DriveTimeRegionLayer extends GeometryLayer {
             }
         }
         catch (ParseException e) {
-            Log.error( "Error parsing data " + e.toString());
+            Log.error("Error parsing data " + e.toString());
         } catch (JSONException e) {
-            Log.error( "Error parsing JSON data " + e.toString());
+            Log.error("Error parsing JSON data " + e.toString());
         }
 
 
         long timeEnd = System.currentTimeMillis();
         Log.debug("DriveTimeRegionLayer loaded dist:"+ distance+" h, calc time ms:"+(timeEnd-timeStart));
-        setVisibleElements(currentVisibleElementsList);
 
-        // stop spinner status bar
-        activity.runOnUiThread(new Runnable() {
-            public void run() {
-                activity.setProgressBarIndeterminateVisibility(false);
-            }
-        });
+        // Notify we have stopped
+        setRunningState(false);
+
+        // refresh map: eventually calculateVisibleElements will be called
+        Components components = getComponents();
+        if (components != null) {
+            components.mapRenderers.getMapRenderer().layerChanged(this);
+        }
     }
 
     public void setMapPos(MapPos mapPos) {
         this.mapPos = mapPos;
         dataPool.cancelAll();
-        dataPool.execute(new LoadDataTask(mapPos, distance));
+        dataPool.execute(new LoadDataTask());
     }
 
     public void setDistance(float distance){
         this.distance = distance;
         dataPool.cancelAll();
-        dataPool.execute(new LoadDataTask(mapPos, distance));
+        dataPool.execute(new LoadDataTask());
+    }
+    
+    protected void setRunningState(boolean flag) {
     }
 
 }

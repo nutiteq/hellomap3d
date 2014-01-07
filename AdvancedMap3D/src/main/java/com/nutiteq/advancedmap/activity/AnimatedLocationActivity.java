@@ -197,7 +197,16 @@ public class AnimatedLocationActivity extends Activity {
         // drivetime region layer
         StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(PolygonStyle.builder().setColor(Color.GREEN & 0x80FFFFFF).build());
 
-        driveTimeLayer = new DriveTimeRegionLayer(mapView.getLayers().getBaseLayer().getProjection(),polygonStyleSet, this);
+        driveTimeLayer = new DriveTimeRegionLayer(mapView.getLayers().getBaseLayer().getProjection(), polygonStyleSet) {
+            @Override
+            protected void setRunningState(final boolean flag) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        setProgressBarIndeterminateVisibility(flag);
+                    }
+                });
+            }
+        };
 
         // initial values
         driveTimeLayer.setDistance((float)timeValues[seekBar.getProgress()]/60.0f);
