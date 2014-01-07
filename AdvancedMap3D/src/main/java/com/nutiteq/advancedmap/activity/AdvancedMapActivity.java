@@ -27,10 +27,10 @@ import com.nutiteq.components.Vector3D;
 import com.nutiteq.datasources.raster.StoredRasterDataSource;
 import com.nutiteq.datasources.raster.TileDebugRasterDataSource;
 import com.nutiteq.datasources.raster.WMSRasterDataSource;
+import com.nutiteq.datasources.vector.OSMPolygon3DDataSource;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.geometry.NMLModel;
 import com.nutiteq.layers.Layer;
-import com.nutiteq.layers.vector.Polygon3DOSMLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.nmlpackage.NMLPackage;
 import com.nutiteq.projections.EPSG3301;
@@ -52,6 +52,7 @@ import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 import com.nutiteq.vectorlayers.NMLModelLayer;
+import com.nutiteq.vectorlayers.Polygon3DLayer;
 
 /**
  * This sample has a set of different layers: 
@@ -468,7 +469,8 @@ public class AdvancedMapActivity extends Activity {
         StyleSet<Polygon3DStyle> polygon3DStyleSet = new StyleSet<Polygon3DStyle>(null);
         polygon3DStyleSet.setZoomStyle(15, polygon3DStyle);
 
-        Polygon3DOSMLayer osm3dLayer = new Polygon3DOSMLayer(new EPSG3857(), DEFAULT_BUILDING_HEIGHT, new FlatRoof(),  Color.WHITE, Color.GRAY, 1500, polygon3DStyleSet);
+        OSMPolygon3DDataSource dataSource = new OSMPolygon3DDataSource(new EPSG3857(), DEFAULT_BUILDING_HEIGHT, new FlatRoof(),  Color.WHITE, Color.GRAY, 1500, polygon3DStyleSet);
+        Polygon3DLayer osm3dLayer = new Polygon3DLayer(dataSource);
         mapView.getLayers().addLayer(osm3dLayer);
     }
 

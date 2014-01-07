@@ -1,4 +1,4 @@
-package com.nutiteq.layers.vector;
+package com.nutiteq.layers.vector.deprecated;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;

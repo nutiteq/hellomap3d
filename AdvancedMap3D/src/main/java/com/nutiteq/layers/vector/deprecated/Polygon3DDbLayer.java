@@ -1,4 +1,4 @@
-package com.nutiteq.layers.vector;
+package com.nutiteq.layers.vector.deprecated;
 
 import java.util.LinkedList;
 import java.util.List;
