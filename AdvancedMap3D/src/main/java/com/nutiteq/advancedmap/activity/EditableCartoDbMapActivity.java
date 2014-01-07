@@ -35,8 +35,8 @@ import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.components.Vector;
 import com.nutiteq.editable.EditableMapView;
-import com.nutiteq.editable.layers.deprecated.EditableCartoDbVectorLayer;
-import com.nutiteq.editable.layers.deprecated.EditableGeometryDbLayer;
+import com.nutiteq.editable.datasources.EditableCartoDbDataSource;
+import com.nutiteq.editable.layers.EditableGeometryLayer;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
@@ -44,7 +44,9 @@ import com.nutiteq.geometry.Polygon;
 import com.nutiteq.geometry.VectorElement;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
-import com.nutiteq.rasterlayers.TMSMapLayer;
+import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
+import com.nutiteq.rasterdatasources.RasterDataSource;
+import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
@@ -86,9 +88,9 @@ public class EditableCartoDbMapActivity extends Activity {
 
 	private EditableMapView mapView;
 
-	private EditableGeometryDbLayer dbLayerPoints;
-	private EditableGeometryDbLayer dbLayerLines;
-	private EditableGeometryDbLayer dbLayerPolygons;
+	private EditableGeometryLayer dbLayerPoints;
+	private EditableGeometryLayer dbLayerLines;
+	private EditableGeometryLayer dbLayerPolygons;
 
 	private StyleSet<PointStyle> pointStyleSet;
 	private StyleSet<LineStyle> lineStyleSet;
@@ -129,11 +131,11 @@ public class EditableCartoDbMapActivity extends Activity {
 			// just restore configuration and update listener, skip other initializations
 			mapView.setComponents(retainObject);
 			if (retainObject.layers.getLayers().size() > 0)
-				dbLayerPoints = (EditableGeometryDbLayer) retainObject.layers.getLayers().get(0);
+				dbLayerPoints = (EditableGeometryLayer) retainObject.layers.getLayers().get(0);
 			if (retainObject.layers.getLayers().size() > 1)
-				dbLayerLines = (EditableGeometryDbLayer) retainObject.layers.getLayers().get(1);
+				dbLayerLines = (EditableGeometryLayer) retainObject.layers.getLayers().get(1);
 			if (retainObject.layers.getLayers().size() > 2)
-				dbLayerPolygons = (EditableGeometryDbLayer) retainObject.layers.getLayers().get(2);
+				dbLayerPolygons = (EditableGeometryLayer) retainObject.layers.getLayers().get(2);
 			createEditorListener();
 			createUIButtons();
 			return;
@@ -145,10 +147,8 @@ public class EditableCartoDbMapActivity extends Activity {
 		// 3. Define map layer for basemap - mandatory.
 		// Here we use MapQuest open tiles
 		// Almost all online tiled maps use EPSG3857 projection.
-		TMSMapLayer mapLayer = new TMSMapLayer(new EPSG3857(), 0, 18, 0,
-				"http://kaart.maakaart.ee/osm/tiles/1.0.0/osm_noname_EPSG900913/", "/", ".png");
-		mapLayer.setTmsY(true);
-
+        RasterDataSource dataSource = new HTTPRasterDataSource(new EPSG3857(), 0, 18, "http://kaart.maakaart.ee/osm/tiles/1.0.0/osm_noname_EPSG900913/{zoom}/{x}/{yflipped}.png");
+        RasterLayer mapLayer = new RasterLayer(dataSource, 0);
 		mapView.getLayers().setBaseLayer(mapLayer);
 
 		// set initial map view camera - optional. "World view" is default
@@ -256,7 +256,7 @@ public class EditableCartoDbMapActivity extends Activity {
 		dbLayerPolygons = createEditableCartoDbLayer("european_countries", true);
 	}
 
-	private EditableCartoDbVectorLayer createEditableCartoDbLayer(String table, boolean multiGeometry) {
+	private EditableGeometryLayer createEditableCartoDbLayer(String table, boolean multiGeometry) {
 		String account = "nutiteq-dev";
 		String apiKey = "a4f7b8026fe4860eb6348c6c76a39cb1c24da5ac";
 		String querySql  = "SELECT cartodb_id, the_geom_webmercator, name FROM "+table+" WHERE the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857)";
@@ -264,10 +264,27 @@ public class EditableCartoDbMapActivity extends Activity {
 		String updateSql = "UPDATE "+table+" SET the_geom=ST_Transform(!geom!, 4326), name=!name! WHERE cartodb_id=!id!";
 		String deleteSql = "DELETE FROM "+table+" WHERE cartodb_id=!id!";
 
-		EditableCartoDbVectorLayer cartoDbLayer = new EditableCartoDbVectorLayer(mapView.getLayers().getBaseProjection(), account, apiKey, querySql, insertSql, updateSql, deleteSql, multiGeometry, pointStyleSet, lineStyleSet, polygonStyleSet, this);
-		mapView.getLayers().addLayer(cartoDbLayer);
+		EditableCartoDbDataSource dataSource = new EditableCartoDbDataSource(mapView.getLayers().getBaseProjection(), account, apiKey, querySql, insertSql, updateSql, deleteSql, multiGeometry) {
 
-		return cartoDbLayer;
+            @Override
+            protected StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom) {
+                return pointStyleSet;
+            }
+
+            @Override
+            protected StyleSet<LineStyle> createLineStyleSet(Map<String, String> userData, int zoom) {
+                return lineStyleSet;
+            }
+
+            @Override
+            protected StyleSet<PolygonStyle> createPolygonStyleSet(Map<String, String> userData, int zoom) {
+                return polygonStyleSet;
+            }
+		};
+		EditableGeometryLayer layer = new EditableGeometryLayer(dataSource);
+		mapView.getLayers().addLayer(layer);
+
+		return layer;
 	}
 
 	private void createEditorListener() {
@@ -332,7 +349,7 @@ public class EditableCartoDbMapActivity extends Activity {
 
 			@Override
 			public void onBeforeElementChange(VectorElement element) {
-				if (element.getLayer() instanceof EditableGeometryDbLayer) {
+				if (element.getLayer() instanceof EditableGeometryLayer) {
 					if (dragElement == null) {
 						saveState();
 					}
@@ -341,17 +358,17 @@ public class EditableCartoDbMapActivity extends Activity {
 
 			@Override
 			public void onElementChanged(VectorElement element) {
-				if (element.getLayer() instanceof EditableGeometryDbLayer) {
-					EditableGeometryDbLayer layer = (EditableGeometryDbLayer) element.getLayer();
+				if (element.getLayer() instanceof EditableGeometryLayer) {
+					EditableGeometryLayer layer = (EditableGeometryLayer) element.getLayer();
 					layer.update((Geometry) element);
 				}
 			}
 
 			@Override
 			public void onElementDeleted(VectorElement element) {
-				if (element.getLayer() instanceof EditableGeometryDbLayer) {
+				if (element.getLayer() instanceof EditableGeometryLayer) {
 					saveState();
-					EditableGeometryDbLayer layer = (EditableGeometryDbLayer) element.getLayer();
+					EditableGeometryLayer layer = (EditableGeometryLayer) element.getLayer();
 					layer.remove((Geometry) element);
 				}
 			}
@@ -372,7 +389,7 @@ public class EditableCartoDbMapActivity extends Activity {
 			@Override
 			public void onDragStart(VectorElement element, float x, float y) {
 				dragElement = element;
-				if (element.getLayer() instanceof EditableGeometryDbLayer) {
+				if (element.getLayer() instanceof EditableGeometryLayer) {
 					saveState();
 				}
 				addPointBtn.setVisibility(View.GONE);
@@ -456,7 +473,7 @@ public class EditableCartoDbMapActivity extends Activity {
 			@Override
 			public void onClick(View view) {
 				final VectorElement selectedElement = mapView.getSelectedElement();
-				if (!(selectedElement.getLayer() instanceof EditableGeometryDbLayer)) {
+				if (!(selectedElement.getLayer() instanceof EditableGeometryLayer)) {
 					return;
 				}
 				modifyElementProperties(selectedElement);
