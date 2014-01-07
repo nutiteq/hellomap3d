@@ -9,7 +9,7 @@ import android.content.Context;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapTile;
 import com.nutiteq.components.MutableMapPos;
-import com.nutiteq.db.MbTilesDatabaseHelper;
+import com.nutiteq.db.MBTilesDbHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
@@ -25,18 +25,18 @@ import com.nutiteq.tasks.FetchTileTask;
  */
 public class MBTilesMapLayer extends RasterLayer implements UtfGridLayerInterface{
 
-    private MbTilesDatabaseHelper db;
+    private MBTilesDbHelper db;
     private boolean tmsY;
     private boolean hasUtfGrid = false;
     
     private class DbFetchTileTask extends FetchTileTask {
 
-      private MbTilesDatabaseHelper db;
+      private MBTilesDbHelper db;
       private int z;
       private int x;
       private int y;
 
-      public DbFetchTileTask(MapTile tile, Components components, long tileIdOffset, MbTilesDatabaseHelper db) {
+      public DbFetchTileTask(MapTile tile, Components components, long tileIdOffset, MBTilesDbHelper db) {
         super(tile, components, tileIdOffset);
         this.db = db;
         this.z = tile.zoom;
@@ -86,7 +86,7 @@ public class MBTilesMapLayer extends RasterLayer implements UtfGridLayerInterfac
             throw new IOException("not existing file: " + path);
         }
 
-        db = new MbTilesDatabaseHelper(ctx, path);
+        db = new MBTilesDbHelper(ctx, path);
         db.open();
 
         hasUtfGrid = db.getMetadata().containsKey("template");
@@ -134,7 +134,7 @@ public class MBTilesMapLayer extends RasterLayer implements UtfGridLayerInterfac
         this.tmsY = tmsY;
     }
 
-    public MbTilesDatabaseHelper getDatabase() {
+    public MBTilesDbHelper getDatabase() {
         return this.db;
     }
 

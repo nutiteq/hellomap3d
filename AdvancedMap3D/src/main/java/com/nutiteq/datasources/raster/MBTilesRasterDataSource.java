@@ -9,7 +9,7 @@ import android.content.Context;
 
 import com.nutiteq.components.MapTile;
 import com.nutiteq.components.TileBitmap;
-import com.nutiteq.db.MbTilesDatabaseHelper;
+import com.nutiteq.db.MBTilesDbHelper;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterdatasources.AbstractRasterDataSource;
 import com.nutiteq.utils.UtfGridHelper;
@@ -25,7 +25,7 @@ import com.nutiteq.utils.UtfGridHelper.MBTileUTFGrid;
  */
 public class MBTilesRasterDataSource extends AbstractRasterDataSource implements UTFGridDataSource {
 
-    private MbTilesDatabaseHelper db;
+    private MBTilesDbHelper db;
     private boolean tmsY;
 
     /**
@@ -73,7 +73,7 @@ public class MBTilesRasterDataSource extends AbstractRasterDataSource implements
             throw new IOException("MBTiles file does not exist: " + path);
         }
 
-        db = new MbTilesDatabaseHelper(ctx, path);
+        db = new MBTilesDbHelper(ctx, path);
         db.open();
         this.tmsY = tmsY;
     }
@@ -94,7 +94,7 @@ public class MBTilesRasterDataSource extends AbstractRasterDataSource implements
      * 
      * @return database helper instance if database is open, or null if closed.
      */
-    public MbTilesDatabaseHelper getDatabase() {
+    public MBTilesDbHelper getDatabase() {
         return db;
     }
 
