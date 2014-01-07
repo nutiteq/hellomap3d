@@ -27,7 +27,7 @@ import com.samskivert.mustache.Template;
  * 
  * @author jaak
  */
-public class MbTilesDatabaseHelper {
+public class MBTilesDbHelper {
 
   private static final int DATABASE_VERSION = 1;
   
@@ -100,7 +100,7 @@ public class MbTilesDatabaseHelper {
    * @param keyGrid 
    * @param keyTileData 
    */
-  public MbTilesDatabaseHelper(final Context ctx,  final String databaseName) {
+  public MBTilesDbHelper(final Context ctx,  final String databaseName) {
     this.ctx = ctx;
     this.databaseName = databaseName;
   }
