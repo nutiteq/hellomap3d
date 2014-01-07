@@ -30,7 +30,6 @@ import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
-import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
@@ -46,7 +45,7 @@ import com.nutiteq.utils.WktWriter;
  * @author jaak
  *
  */
-public class OgrHelper {
+public abstract class OGRFileHelper {
 
     private Layer layer;
     private boolean transformNeeded;
@@ -56,11 +55,7 @@ public class OgrHelper {
     private String[] fieldNames;
     private CoordinateTransformation transformerToMap;
     private CoordinateTransformation transformerToData;
-    private StyleSet<PointStyle> pointStyleSet;
-    private StyleSet<LineStyle> lineStyleSet;
-    private StyleSet<PolygonStyle> polygonStyleSet;
-    private int maxElements;
-    private LabelStyle labelStyle;
+    private int maxElements = Integer.MAX_VALUE;
     private static Vector<String> knownExtensions = new Vector<String>();
     
     private static final String EPSG_3785_WKT = "PROJCS[\"Google Maps Global Mercator\",    GEOGCS[\"WGS 84\",        DATUM[\"WGS_1984\",            SPHEROID[\"WGS 84\",6378137,298.257223563,                AUTHORITY[\"EPSG\",\"7030\"]],            AUTHORITY[\"EPSG\",\"6326\"]],        PRIMEM[\"Greenwich\",0,            AUTHORITY[\"EPSG\",\"8901\"]],        UNIT[\"degree\",0.01745329251994328,            AUTHORITY[\"EPSG\",\"9122\"]],        AUTHORITY[\"EPSG\",\"4326\"]],    PROJECTION[\"Mercator_2SP\"],    PARAMETER[\"standard_parallel_1\",0],    PARAMETER[\"latitude_of_origin\",0],    PARAMETER[\"central_meridian\",0],    PARAMETER[\"false_easting\",0],    PARAMETER[\"false_northing\",0],    UNIT[\"Meter\",1],    EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs\"],    AUTHORITY[\"EPSG\",\"3785\"]]";
@@ -72,24 +67,16 @@ public class OgrHelper {
     private static final String EPSG_3785_PROJ4BIS3 =   "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
 
 
-    public OgrHelper(String fileName, String tableName, Projection proj,
-            StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, LabelStyle labelStyle,
-            int maxElements, boolean update) throws IOException {
+    public OGRFileHelper(String fileName, String tableName, Projection proj, boolean update) throws IOException {
         this.projection = proj;
-        this.pointStyleSet = pointStyleSet;
-        this.lineStyleSet = lineStyleSet;
-        this.polygonStyleSet = polygonStyleSet;
-        this.labelStyle = labelStyle;
-        
-        this.maxElements = maxElements;
         
         // open dataset
         hDataset = ogr.Open(fileName, update);
         if (hDataset == null) {
-            Log.error("OgrLayer: unable to open dataset '"+fileName+"'");
+            Log.error("OgrHelper: unable to open dataset '"+fileName+"'");
             
             printSupportedDrivers();    
-            throw new IOException("OgrLayer: unable to open dataset '"+fileName+"'");
+            throw new IOException("OgrHelper: unable to open dataset '"+fileName+"'");
         }
         
         // open the layer
@@ -103,7 +90,7 @@ public class OgrHelper {
             layer = hDataset.GetLayerByName(tableName);
         }
         if (layer == null) {
-            Log.error("OgrLayer: could not find layer '"+tableName+"'");
+            Log.error("OgrHelper: could not find layer '"+tableName+"'");
             return;
         }
         
@@ -112,6 +99,10 @@ public class OgrHelper {
         this.fieldNames = getFieldNames();
         
         initProjections();
+    }
+    
+    public void setMaxElements(int maxElements) {
+        this.maxElements = maxElements;
     }
 
     public List<com.nutiteq.geometry.Geometry> loadData(Envelope envInternal, int zoom) {
@@ -136,7 +127,7 @@ public class OgrHelper {
                 Math.max(minPos.x, maxPos.x), Math.max(minPos.y, maxPos.y)
             );
 
-        List<com.nutiteq.geometry.Geometry> newVisibleElementsList = new LinkedList<com.nutiteq.geometry.Geometry>();
+        List<com.nutiteq.geometry.Geometry> elementList = new LinkedList<com.nutiteq.geometry.Geometry>();
 
         layer.ResetReading();
         Feature feature = layer.GetNextFeature();
@@ -171,34 +162,33 @@ public class OgrHelper {
                 
                 if(transformNeeded){
                     if(object instanceof com.nutiteq.geometry.Point){
-                        newObject = new com.nutiteq.geometry.Point((transformPoint(((Point) object).getMapPos(), transformerToMap)), label, pointStyleSet, object.userData);
+                        newObject = new com.nutiteq.geometry.Point((transformPoint(((Point) object).getMapPos(), transformerToMap)), label, createPointStyleSet(userData, zoom), object.userData);
                     }else if(object instanceof Line){
-                        newObject = new com.nutiteq.geometry.Line(transformPointList(((Line) object).getVertexList(), transformerToMap), label, lineStyleSet, object.userData);
+                        newObject = new com.nutiteq.geometry.Line(transformPointList(((Line) object).getVertexList(), transformerToMap), label, createLineStyleSet(userData, zoom), object.userData);
                     }else if(object instanceof Polygon){
-                        newObject = new com.nutiteq.geometry.Polygon(transformPointList(((Polygon) object).getVertexList(), transformerToMap), transformPointListList(((Polygon) object).getHolePolygonList(), transformerToMap), label, polygonStyleSet, object.userData);
+                        newObject = new com.nutiteq.geometry.Polygon(transformPointList(((Polygon) object).getVertexList(), transformerToMap), transformPointListList(((Polygon) object).getHolePolygonList(), transformerToMap), label, createPolygonStyleSet(userData, zoom), object.userData);
                     }
                     
                 }else{
                     if(object instanceof com.nutiteq.geometry.Point){
-                        newObject = new com.nutiteq.geometry.Point((((Point) object).getMapPos()), label, pointStyleSet, object.userData);
+                        newObject = new com.nutiteq.geometry.Point((((Point) object).getMapPos()), label, createPointStyleSet(userData, zoom), object.userData);
                     }else if(object instanceof Line){
-                        newObject = new com.nutiteq.geometry.Line(((Line) object).getVertexList(), label, lineStyleSet, object.userData);
+                        newObject = new com.nutiteq.geometry.Line(((Line) object).getVertexList(), label, createLineStyleSet(userData, zoom), object.userData);
                     }else if(object instanceof Polygon){
-                        newObject = new com.nutiteq.geometry.Polygon(((Polygon) object).getVertexList(), ((Polygon) object).getHolePolygonList(), label, polygonStyleSet, object.userData);
+                        newObject = new com.nutiteq.geometry.Polygon(((Polygon) object).getVertexList(), ((Polygon) object).getHolePolygonList(), label, createPolygonStyleSet(userData, zoom), object.userData);
                     }
                     
                 }
                 
-                newVisibleElementsList.add(newObject);
-                
+                elementList.add(newObject);
             }
 
             feature = layer.GetNextFeature();
         }
+
         long timeEnd = System.currentTimeMillis();
-        Log.debug("OgrLayer loaded "+layer.GetName()+" N:"+ newVisibleElementsList.size()+" time ms:"+(timeEnd-timeStart));
-        return newVisibleElementsList;
-        
+        Log.debug("OgrHelper: loaded "+layer.GetName()+" N:"+ elementList.size()+" time ms:"+(timeEnd-timeStart));
+        return elementList;
     }
     
     public long insertElement(com.nutiteq.geometry.Geometry element) {
@@ -214,7 +204,7 @@ public class OgrHelper {
            feature.SetField(field, fields.get(field));   
         }
         if(layer.CreateFeature(feature) != ogrConstants.OGRERR_NONE){
-            Log.error("OgrLayer: could not create feature");
+            Log.error("OgrHelper: could not create feature");
         }
         
         long id = feature.GetFID();
@@ -239,7 +229,7 @@ public class OgrHelper {
         }
         feature.SetGeometryDirectly(Geometry.CreateFromWkt(wktGeom));
         if(layer.SetFeature(feature) != ogrConstants.OGRERR_NONE){
-            Log.error("OgrLayer: could not update feature");
+            Log.error("OgrHelper: could not update feature");
         }
         
         layer.SyncToDisk();
@@ -247,7 +237,7 @@ public class OgrHelper {
 
     public void deleteElement(long id) {
         if(layer.DeleteFeature((int) id) != ogrConstants.OGRERR_NONE){
-            Log.error("OgrLayer: could not delete feature with id "+id);
+            Log.error("OgrHelper: could not delete feature with id "+id);
         }
         
         layer.SyncToDisk();
@@ -343,21 +333,10 @@ public class OgrHelper {
 
     public void printSupportedDrivers() {
         Log.debug("Supported drivers:");
-        for( int iDriver = 0; iDriver < ogr.GetDriverCount(); iDriver++ )
-        {
+        for(int iDriver = 0; iDriver < ogr.GetDriverCount(); iDriver++) {
             Log.debug( " -> " + ogr.GetDriver(iDriver).GetName() );
         }
     }
-
-    protected Label createLabel(Map<String, String> userData) {
-        StringBuffer labelTxt = new StringBuffer();
-        for(Map.Entry<String, String> entry : userData.entrySet()){
-            labelTxt.append(entry.getKey() + ": " + entry.getValue()+"\n");
-        }
-        
-        return new DefaultLabel(layer.GetName(), labelTxt.toString(), labelStyle);
-    }
-    
 
     public Envelope getDataExtent() {
 
@@ -381,22 +360,20 @@ public class OgrHelper {
         return null;
     }
 
-
     public static boolean canOpen(File file) {
-
         String fileExtension = file.getName().substring(file.getName().lastIndexOf(".")+1).toLowerCase();
-        
+
         // use cached list of known extensions
         if (knownExtensions != null && knownExtensions.contains(fileExtension)){
             return true;
         }
         
         // not found in known list, try to open
-        if(ogr.GetDriverCount() == 0){
+        if (ogr.GetDriverCount() == 0){
             ogr.RegisterAll();
         }
         
-        if(ogr.Open(file.getAbsolutePath()) != null){
+        if (ogr.Open(file.getAbsolutePath()) != null){
             // was able to open, lets cache extensions
             knownExtensions.add(fileExtension);
             return true;
@@ -418,7 +395,7 @@ public class OgrHelper {
         
         String dataProjName  = EPSG_3785_PROJ4; // change here to use any other projection as default
         if(dataProj == null){
-            Log.warning("projection of table "+layer.GetName()+" unknown, using EPSG:3785 as default. Change OgrLayer code to use anything else.");
+            Log.warning("projection of table "+layer.GetName()+" unknown, using EPSG:3785 as default. Change OgrHelper code to use anything else.");
         }else{
             dataProjName = dataProj.ExportToProj4().trim();
         }
@@ -448,5 +425,19 @@ public class OgrHelper {
         return null;
     }
     
+    protected Label createLabel(Map<String, String> userData) {
+        StringBuffer labelTxt = new StringBuffer();
+        for(Map.Entry<String, String> entry : userData.entrySet()){
+            labelTxt.append(entry.getKey() + ": " + entry.getValue()+"\n");
+        }
+        
+        return new DefaultLabel(layer.GetName(), labelTxt.toString());
+    }
+
+    protected abstract StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom);
+
+    protected abstract StyleSet<LineStyle> createLineStyleSet(Map<String, String> userData, int zoom);
+
+    protected abstract StyleSet<PolygonStyle> createPolygonStyleSet(Map<String, String> userData, int zoom);
     
 }

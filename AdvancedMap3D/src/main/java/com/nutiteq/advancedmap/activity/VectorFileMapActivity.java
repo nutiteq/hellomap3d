@@ -3,6 +3,7 @@ package com.nutiteq.advancedmap.activity;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.Map;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -21,8 +22,8 @@ import com.nutiteq.components.Components;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
+import com.nutiteq.datasources.vector.OGRVectorDataSource;
 import com.nutiteq.filepicker.FilePickerActivity;
-import com.nutiteq.layers.vector.OgrLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
@@ -35,6 +36,7 @@ import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.UnscaledBitmapLoader;
+import com.nutiteq.vectorlayers.GeometryLayer;
 
 /**
  * 
@@ -158,12 +160,12 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
         addOgrLayer(mapLayer.getProjection(), file, null, Color.BLUE);
 
         // 5. Add set of static OGR vector layers to map
-//      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/buildings.shp","buildings", Color.DKGRAY);
-//      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/points.shp", "points",Color.CYAN);
-//      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/places.shp", "places",Color.BLACK);
-//      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/roads.shp","roads",Color.YELLOW);
-//      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/railways.shp","railways",Color.GRAY);
-//      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/waterways.shp","waterways",Color.BLUE);
+        //      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/buildings.shp","buildings", Color.DKGRAY);
+        //      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/points.shp", "points",Color.CYAN);
+        //      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/places.shp", "places",Color.BLACK);
+        //      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/roads.shp","roads",Color.YELLOW);
+        //      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/railways.shp","railways",Color.GRAY);
+        //      addOgrLayer(mapLayer.getProjection(),Environment.getExternalStorageDirectory()+"/mapxt/eesti/waterways.shp","waterways",Color.BLUE);
 
     }
 
@@ -187,17 +189,17 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
         float dpi = metrics.density;
 
-        StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
+        final StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
         Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
         PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(color).setPickingSize(0.2f).build();
         pointStyleSet.setZoomStyle(minZoom, pointStyle);
 
-        StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
+        final StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
         LineStyle lineStyle = LineStyle.builder().setWidth(0.05f).setColor(color).build();
         lineStyleSet.setZoomStyle(minZoom, lineStyle);
 
+        final StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
         PolygonStyle polygonStyle = PolygonStyle.builder().setColor(color & 0x80FFFFFF).setLineStyle(lineStyle).build();
-        StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
         polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
 
         LabelStyle labelStyle = 
@@ -209,9 +211,26 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
                 .build();
 
 
-        OgrLayer ogrLayer;
+        GeometryLayer ogrLayer;
         try {
-            ogrLayer = new OgrLayer(proj, dbPath, table, 500, pointStyleSet, lineStyleSet, polygonStyleSet, labelStyle);
+            OGRVectorDataSource dataSource = new OGRVectorDataSource(proj, dbPath, table) {
+                @Override
+                protected StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom) {
+                    return pointStyleSet;
+                }
+
+                @Override
+                protected StyleSet<LineStyle> createLineStyleSet(Map<String, String> userData, int zoom) {
+                    return lineStyleSet;
+                }
+
+                @Override
+                protected StyleSet<PolygonStyle> createPolygonStyleSet(Map<String, String> userData, int zoom) {
+                    return polygonStyleSet;
+                }
+            };
+            dataSource.setMaxElements(500);
+            ogrLayer = new GeometryLayer(dataSource);
             mapView.getLayers().addLayer(ogrLayer);
 
             Envelope extent = ogrLayer.getDataExtent();
