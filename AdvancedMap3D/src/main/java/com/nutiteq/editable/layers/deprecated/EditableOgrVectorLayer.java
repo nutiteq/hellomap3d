@@ -11,8 +11,8 @@ import android.content.Context;
 import android.net.ParseException;
 
 import com.nutiteq.components.Envelope;
+import com.nutiteq.db.OgrHelper;
 import com.nutiteq.geometry.Geometry;
-import com.nutiteq.layers.vector.OgrHelper;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LabelStyle;
@@ -71,7 +71,7 @@ public class EditableOgrVectorLayer extends EditableGeometryDbLayer {
 			StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, LabelStyle labelStyle, Context context) throws IOException {
 		super(proj, pointStyleSet, lineStyleSet, polygonStyleSet, context);
 
-		this.ogrHelper = new OgrHelper(fileName, tableName, proj, this, pointStyleSet, lineStyleSet, polygonStyleSet, labelStyle, maxObjects, true);
+		this.ogrHelper = new OgrHelper(fileName, tableName, proj, pointStyleSet, lineStyleSet, polygonStyleSet, labelStyle, maxObjects, true);
 	    this.labelStyle = labelStyle;
 	    
 	       if (pointStyleSet != null) {
@@ -95,8 +95,11 @@ public class EditableOgrVectorLayer extends EditableGeometryDbLayer {
 		try {
 		    List<Geometry> data = ogrHelper.loadData(envelope, zoom);
 			for (Geometry geom : data) {
-			    
-			    Map<String, String> userData = (Map<String, String>) geom.userData;
+	            geom.attachToLayer(this);
+	            geom.setActiveStyle(zoom);
+
+			    @SuppressWarnings("unchecked")
+                Map<String, String> userData = (Map<String, String>) geom.userData;
 
 			    // loadData saves feature id to FID by convention
 			    long id = Long.parseLong(userData.get("FID"));

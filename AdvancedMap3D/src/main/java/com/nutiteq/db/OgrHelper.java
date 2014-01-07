@@ -1,4 +1,4 @@
-package com.nutiteq.layers.vector;
+package com.nutiteq.db;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -21,10 +21,10 @@ import org.gdal.ogr.ogr;
 import org.gdal.ogr.ogrConstants;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
-import org.gdal.ogr.ogr;
 
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
+import com.nutiteq.components.MutableEnvelope;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
@@ -39,7 +39,6 @@ import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.utils.WkbRead;
 import com.nutiteq.utils.WktWriter;
-import com.nutiteq.vectorlayers.VectorLayer;
 
 /**
  * Helper class for OGR data reading and writing
@@ -56,7 +55,6 @@ public class OgrHelper {
     private DataSource hDataset;
     private String[] fieldNames;
     private CoordinateTransformation transformerToMap;
-    private VectorLayer vectorLayer;
     private CoordinateTransformation transformerToData;
     private StyleSet<PointStyle> pointStyleSet;
     private StyleSet<LineStyle> lineStyleSet;
@@ -75,11 +73,9 @@ public class OgrHelper {
 
 
     public OgrHelper(String fileName, String tableName, Projection proj,
-            VectorLayer vectorLayer, StyleSet<PointStyle> pointStyleSet,
-            StyleSet<LineStyle> lineStyleSet,
-            StyleSet<PolygonStyle> polygonStyleSet, LabelStyle labelStyle, int maxElements, boolean update) throws IOException {
+            StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, LabelStyle labelStyle,
+            int maxElements, boolean update) throws IOException {
         this.projection = proj;
-        this.vectorLayer = vectorLayer;
         this.pointStyleSet = pointStyleSet;
         this.lineStyleSet = lineStyleSet;
         this.polygonStyleSet = polygonStyleSet;
@@ -118,25 +114,21 @@ public class OgrHelper {
         initProjections();
     }
 
-    public List<com.nutiteq.geometry.Geometry> loadData(Envelope envelope, int zoom) {
+    public List<com.nutiteq.geometry.Geometry> loadData(Envelope envInternal, int zoom) {
         long timeStart = System.currentTimeMillis();
 
-	// TODO: use fromInternal(Envelope) here
-        MapPos minPosData = projection.fromInternal(envelope.getMinX(), envelope.getMinY());
-        MapPos maxPosData = projection.fromInternal(envelope.getMaxX(), envelope.getMaxY());
-        
-        MapPos minPos;
-        MapPos maxPos;
-        if(!transformNeeded){
-            minPos = minPosData;
-            maxPos = maxPosData;
-            
-        }else{
-            // conversion needed from layer projection to data projection, to apply the filter
-            minPos = transformPoint(minPosData, transformerToData);
-            maxPos = transformPoint(maxPosData, transformerToData);
+        Envelope envelope = projection.fromInternal(envInternal);
+        if (transformNeeded) {
+            MutableEnvelope mutableEnv = new MutableEnvelope();
+            for (MapPos mapPos : envelope.getConvexHull()) {
+                // conversion needed from layer projection to data projection, to apply the filter
+                mutableEnv.add(transformPoint(mapPos, transformerToData));
+            }
+            envelope = new Envelope(mutableEnv);
         }
 
+        MapPos minPos = new MapPos(envelope.minX, envelope.minY);
+        MapPos maxPos = new MapPos(envelope.maxX, envelope.maxY);
         Log.debug("filter: "+minPos+" - "+maxPos);
         
         layer.SetSpatialFilterRect(
@@ -197,8 +189,6 @@ public class OgrHelper {
                     
                 }
                 
-                newObject.attachToLayer(vectorLayer);
-                newObject.setActiveStyle(zoom);
                 newVisibleElementsList.add(newObject);
                 
             }
@@ -217,7 +207,8 @@ public class OgrHelper {
         
         Feature feature = new Feature(layer.GetLayerDefn());
         feature.SetGeometryDirectly(Geometry.CreateFromWkt(wktGeom));
-        HashMap<String, String> fields = (HashMap<String, String>) element.userData;
+        @SuppressWarnings("unchecked")
+        Map<String, String> fields = (Map<String, String>) element.userData;
         Set<String> fieldsI = fields.keySet();
         for(String field : fieldsI){
            feature.SetField(field, fields.get(field));   
@@ -239,7 +230,8 @@ public class OgrHelper {
         Feature feature = new Feature(layer.GetLayerDefn());
         feature.SetFID((int) id);
         
-        HashMap<String, String> fields = (HashMap<String, String>) element.userData;
+        @SuppressWarnings("unchecked")
+        Map<String, String> fields = (Map<String, String>) element.userData;
 
         Set<String> fieldsI = fields.keySet();
         for(String field : fieldsI){
