@@ -55,6 +55,8 @@ public abstract class CartoDbDataSource extends AbstractVectorDataSource<Geometr
     protected final String account;
     protected final String sql;
 
+    private int maxElements = Integer.MAX_VALUE;
+
     /**
      * Default constructor.
      * 
@@ -69,6 +71,17 @@ public abstract class CartoDbDataSource extends AbstractVectorDataSource<Geometr
         super(projection);
         this.account = account;
         this.sql = sql;
+    }
+
+    /**
+     * Limit maximum objects returned by each query.
+     * 
+     * @param maxElements maximum objects
+     */
+    public void setMaxElements(int maxElements) {
+        this.maxElements = maxElements;
+
+        notifyElementsChanged();
     }
 
     @Override
@@ -155,9 +168,12 @@ public abstract class CartoDbDataSource extends AbstractVectorDataSource<Geometr
 
                 });
 
-                for (int j = 0; j < geoms.length; j++) {
-                    geoms[j].setId(id);
-                    elements.add(geoms[j]);
+                for (Geometry geom : geoms) {
+                    if (elements.size() < maxElements) {
+                        geom.setId(id);
+                        geom.attachToDataSource(this);
+                        elements.add(geom);
+                    }
                 }
             }
 
