@@ -99,12 +99,10 @@ public abstract class EditableCartoDbDataSource extends CartoDbDataSource implem
             JSONObject row = rows.getJSONObject(0);
             long id = row.getLong(TAG_CARTODB_ID);
             return id;
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             Log.error("EditableCartoDbDataSource: Error parsing data " + e.toString());
             throw new RuntimeException("Illegal result from CartoDB server");
-        }
-        catch (JSONException e) {
+        } catch (JSONException e) {
             Log.error("EditableCartoDbDataSource: Error parsing JSON data " + e.toString());
             throw new RuntimeException("Illegal result from CartoDB server");
         }
@@ -139,12 +137,10 @@ public abstract class EditableCartoDbDataSource extends CartoDbDataSource implem
                 Log.debug("EditableCartoDbDataSource: Illegal insert result");
                 throw new RuntimeException("Could not update data in CartoDB table");
             }
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             Log.error("EditableCartoDbDataSource: Error parsing data " + e.toString());
             throw new RuntimeException("Illegal result from CartoDB server");
-        }
-        catch (JSONException e) {
+        } catch (JSONException e) {
             Log.error("EditableCartoDbDataSource: Error parsing JSON data " + e.toString());
             throw new RuntimeException("Illegal result from CartoDB server");
         }
@@ -172,8 +168,7 @@ public abstract class EditableCartoDbDataSource extends CartoDbDataSource implem
                 Log.debug("EditableCartoDbDataSource: Illegal insert result");
                 throw new RuntimeException("Could not delete data from CartoDB table");
             }
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             Log.error("EditableCartoDbDataSource: Error parsing data " + e.toString());
             throw new RuntimeException("Illegal result from CartoDB server");
         } catch (JSONException e) {

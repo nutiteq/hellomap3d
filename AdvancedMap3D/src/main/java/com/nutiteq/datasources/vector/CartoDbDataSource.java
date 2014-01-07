@@ -23,7 +23,6 @@ import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.log.Log;
-import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
@@ -38,15 +37,13 @@ import com.nutiteq.utils.WkbRead.GeometryFactory;
 import com.nutiteq.vectordatasources.AbstractVectorDataSource;
 
 /**
- * CartoDB online data source.
- * The class is abstract, style factory methods need to defined be defined before the class can be used.
+ * Abstract data source for online CartoDB geometry.
+ * Instances need to define factory methods for creating style sets based on element metadata.
  * 
  * @author mark
  *
  */
 public abstract class CartoDbDataSource extends AbstractVectorDataSource<Geometry> {
-    protected static final Projection CARTODB_PROJECTION = new EPSG3857();
-
     protected static final String TAG_CARTODB_ID = "cartodb_id";
     protected static final String TAG_GEOM = "the_geom";
     protected static final String TAG_GEOM_WEBMERCATOR = "the_geom_webmercator";
@@ -69,7 +66,7 @@ public abstract class CartoDbDataSource extends AbstractVectorDataSource<Geometr
      *        SQL sentence for loading data. Should contain placeholders (!bbox!, !envelope!) and tags 
      */
     public CartoDbDataSource(Projection projection, String account, String sql) {
-        super(CARTODB_PROJECTION);
+        super(projection);
         this.account = account;
         this.sql = sql;
     }

@@ -24,9 +24,9 @@ import com.nutiteq.components.Components;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
+import com.nutiteq.datasources.vector.SpatialiteDataSource;
 import com.nutiteq.db.SpatialLiteDbHelper;
 import com.nutiteq.filepicker.FilePickerActivity;
-import com.nutiteq.layers.vector.SpatialiteLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
@@ -37,6 +37,7 @@ import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.utils.UnscaledBitmapLoader;
+import com.nutiteq.vectorlayers.GeometryLayer;
 
 /**
  * 
@@ -243,30 +244,46 @@ public class SpatialiteMapActivity extends Activity implements FilePickerActivit
 
         // set styles for all 3 object types: point, line and polygon
 
-        StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
-        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(
-                getResources(), R.drawable.point);
+        final StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
+        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
         PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker)
                 .setSize(0.05f).setColor(color).setPickingSize(0.2f).build();
         pointStyleSet.setZoomStyle(minZoom, pointStyle);
 
-        StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
-        LineStyle lineStyle = LineStyle.builder().setWidth(0.05f)
-                .setColor(color).build();
+        final StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
+        LineStyle lineStyle = LineStyle.builder().setWidth(0.05f).setColor(color).build();
         lineStyleSet.setZoomStyle(minZoom, lineStyle);
 
+        final StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
         PolygonStyle polygonStyle = PolygonStyle.builder()
                 .setColor(color & 0x80FFFFFF).setLineStyle(
                         LineStyle.builder().setWidth(0.05f).setColor(color).build()
                         ).build();
-        StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(
-                null);
         polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
 
         String[] tableKey = tableList[selectedPosition].split("\\.");
 
-        SpatialiteLayer spatialiteLayer = new SpatialiteLayer(proj, spatialLite, tableKey[0],
-                tableKey[1], null, maxElements, pointStyleSet, lineStyleSet, polygonStyleSet);
+        SpatialiteDataSource dataSource = new SpatialiteDataSource(proj, spatialLite, tableKey[0], tableKey[1], null, null) {
+
+            @Override
+            protected StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom) {
+                return pointStyleSet;
+            }
+
+            @Override
+            protected StyleSet<LineStyle> createLineStyleSet(Map<String, String> userData, int zoom) {
+                return lineStyleSet;
+            }
+
+            @Override
+            protected StyleSet<PolygonStyle> createPolygonStyleSet(Map<String, String> userData, int zoom) {
+                return polygonStyleSet;
+            }
+        };
+        
+        dataSource.setMaxElements(maxElements);
+
+        GeometryLayer spatialiteLayer = new GeometryLayer(dataSource);
 
         mapView.getLayers().addLayer(spatialiteLayer);
 
@@ -284,7 +301,7 @@ public class SpatialiteMapActivity extends Activity implements FilePickerActivit
         Log.debug("found extent "+extent+", zoom "+zoom+", centerPoint "+centerPoint);
 
         // define pixels and screen width for automatic polygon/line simplification
-        spatialiteLayer.setAutoSimplify(2,screenWidth);
+        dataSource.setAutoSimplify(2, screenWidth);
 
         mapView.setZoom((float) zoom);
         mapView.setFocusPoint(centerPoint); 

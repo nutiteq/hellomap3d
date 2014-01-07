@@ -244,7 +244,7 @@ public class SpatialLiteDbHelper {
     }    
     
     public Vector<Geometry> qrySpatiaLiteGeom(final Envelope bbox,
-            final int limit, final DbLayer dbLayer, final String[] userColumns, String filter, int autoSimplifyPixels, int screenWidth) {
+            final int limit, final DbLayer dbLayer, final String[] userColumns, String filter, float autoSimplifyPixels, int screenWidth) {
         
         final Vector<Geometry> geoms = new Vector<Geometry>();
         final long start = System.currentTimeMillis();
@@ -319,7 +319,7 @@ public class SpatialLiteDbHelper {
             // find size of N (=3) pixels.
             // given in mercator meters, used for Douglas-Peucker tolerance
             
-            double dpTolerance = ((zoomRange / width) * (double)autoSimplifyPixels);
+            double dpTolerance = ((zoomRange / width) * autoSimplifyPixels);
 
             // SimplifyPreserveTopology() is about 2x slower, but works a bit better (accepts invalid geometries)
             geomCol = "Simplify("+geomCol+","+dpTolerance+")";

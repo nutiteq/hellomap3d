@@ -22,104 +22,147 @@ import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.vectordatasources.AbstractVectorDataSource;
 
-// TODO: implement simplification, as in previous layer implementation
-public class SpatialiteDataSource extends AbstractVectorDataSource<Geometry> {
-	protected final SpatialLiteDbHelper spatialLite;
-	protected SpatialLiteDbHelper.DbLayer dbLayer;
+/**
+ * Abstract data source for local Spatialite databases.
+ * Instances need to define factory methods for creating style sets based on element metadata.
+ *  
+ * @author mark
+ *
+ */
+public abstract class SpatialiteDataSource extends AbstractVectorDataSource<Geometry> {
+    protected final SpatialLiteDbHelper spatialLite;
+    protected SpatialLiteDbHelper.DbLayer dbLayer;
 
-	protected final StyleSet<PointStyle> pointStyleSet;
-	protected final StyleSet<LineStyle> lineStyleSet;
-	protected final StyleSet<PolygonStyle> polygonStyleSet;
-	protected int minZoom;
+    private float autoSimplifyPixels = 0;
+    private int screenWidth = 0;
+    private int maxElements = Integer.MAX_VALUE;
+    private String[] userColumns;
+    private String filter;
 
-    private int autoSimplifyPixels;
-	private int maxObjects;
-	private String[] userColumns;
-	private String filter;
+    /**
+     * Default constructor.
+     * 
+     * @param proj data source projection
+     * @param dbPath path to Spatialite file
+     * @param tableName table from the database
+     * @param geomColumnName geometry column from the table
+     * @param userColumns load data from these columns as userData
+     * @param filter filter expression for queries
+     */
+    public SpatialiteDataSource(Projection proj, String dbPath, String tableName, String geomColumnName, String[] userColumns, String filter) {
+        this(proj, new SpatialLiteDbHelper(dbPath), tableName, geomColumnName, userColumns, filter);
+    }
 
-	public SpatialiteDataSource(Projection proj, String dbPath, String tableName, String geomColumnName, String[] userColumns, int maxObjects,
-			StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet) {
-	    super(proj);
-		this.pointStyleSet = pointStyleSet;
-		this.lineStyleSet = lineStyleSet;
-		this.polygonStyleSet = polygonStyleSet;
+    /**
+     * Construct data source with the SpatialLiteDb already opened, and filters
+     * 
+     * @param proj data source projection
+     * @param spatialLiteDb Spatialite database
+     * @param tableName table from the database
+     * @param geomColumnName geometry column from the table
+     * @param userColumns load data from these columns as userData
+     * @param filter SQL filter to select some objects, used for WHERE
+     */
+    public SpatialiteDataSource(Projection proj, SpatialLiteDbHelper spatialLiteDb,
+            String tableName, String geomColumnName, String[] userColumns, String filter) {
 
-		this.userColumns = userColumns;
-		this.maxObjects = maxObjects;
-
-		this.spatialLite = new SpatialLiteDbHelper(dbPath);
+        super(proj);
+        this.userColumns = userColumns;
+        this.spatialLite = spatialLiteDb;
+        this.filter = filter;
 
         Map<String, SpatialLiteDbHelper.DbLayer> dbLayers = spatialLite.qrySpatialLayerMetadata();
         for (String layerKey : dbLayers.keySet()) {
-          SpatialLiteDbHelper.DbLayer layer = dbLayers.get(layerKey);
-            if (layer.table.compareTo(tableName) == 0
-                    && layer.geomColumn.compareTo(geomColumnName) == 0) {
+            SpatialLiteDbHelper.DbLayer layer = dbLayers.get(layerKey);
+            if (layer.table.compareTo(tableName) == 0 && layer.geomColumn.compareTo(geomColumnName) == 0) {
                 this.dbLayer = layer;
                 break;
             }
         }
 
-		if (this.dbLayer == null) {
-			Log.error("SpatialiteLayer: Could not find a matching layer " + tableName + "." + geomColumnName);
-		}
+        if (this.dbLayer == null) {
+            Log.error("SpatialiteDataSource: Could not find a matching layer " + tableName + "." + geomColumnName);
+        }
 
-		if (pointStyleSet != null) {
-			minZoom = Math.min(minZoom, pointStyleSet.getFirstNonNullZoomStyleZoom());
-		}
-		if (lineStyleSet != null) {
-			minZoom = Math.min(minZoom, lineStyleSet.getFirstNonNullZoomStyleZoom());
-		}
-		if (polygonStyleSet != null) {
-			minZoom = Math.min(minZoom, polygonStyleSet.getFirstNonNullZoomStyleZoom());
-		}
-	}
+        // get all columns as user columns
+        if (this.userColumns == null){
+            this.userColumns = spatialLite.qryColumns(dbLayer);
+        }
 
-	public String[] getUserColumns() {
-		return userColumns;
-	}
-	
-	@Override
-	public Envelope getDataExtent() {
-		return null; // TODO: implement
-	}
-	
-	@Override
-	public Collection<Geometry> loadElements(CullState cullState) {
-		if (dbLayer == null) {
-			return null;
-		}
+        // fix/add SDK SRID definition for conversions
+        spatialLite.defineEPSG3857();
+    }
 
-		if (cullState.zoom < minZoom) {
-			return null;
-		}
+    /**
+     * Limit maximum objects returned by each query.
+     * 
+     * @param maxElements maximum objects
+     */
+    public void setMaxElements(int maxElements) {
+        this.maxElements = maxElements;
 
-		Envelope envelope = projection.fromInternal(cullState.envelope);
-		List<Geometry> queryList = spatialLite.qrySpatiaLiteGeom(envelope, maxObjects, dbLayer, userColumns, null, 0, 0);
-		List<Geometry> elements = new ArrayList<Geometry>(queryList.size() + 1); 
-		for (Geometry element : queryList) {
-			Label label = createLabel(element.userData);
-		
-			Geometry newElement = null;
-			if (element instanceof Point) {
-				newElement = new Point(((Point) element).getMapPos(), label, pointStyleSet, element.userData);
-			} else if (element instanceof Line) {
-				newElement = new Line(((Line) element).getVertexList(), label, lineStyleSet, element.userData);
-			} else if (element instanceof Polygon) {
-				newElement = new Polygon(((Polygon) element).getVertexList(), ((Polygon) element).getHolePolygonList(), label, polygonStyleSet, element.userData);
-			}
+        notifyElementsChanged();
+    }
 
-			elements.add(newElement);
-		}
-		return elements;
-	}
-	
-	@SuppressWarnings("unchecked")
-	protected Label createLabel(Object userData) {
-		StringBuffer labelTxt = new StringBuffer();
-		for(Map.Entry<String, String> entry : ((Map<String, String>) userData).entrySet()){
-			labelTxt.append(entry.getKey() + ": " + entry.getValue() + "\n");
-		}
-		return new DefaultLabel("Data:", labelTxt.toString());
-	}
-	
+    /**
+     * Set auto-simplification parameters for queries.
+     * 
+     * @param autoSimplifyPixels
+     *          maximum allowed error resulting from simplification
+     * @param screenWidth
+     *          target screen width in pixels
+     */
+    public void setAutoSimplify(float autoSimplifyPixels, int screenWidth) {
+        this.autoSimplifyPixels = autoSimplifyPixels;
+        this.screenWidth = screenWidth;
+
+        notifyElementsChanged();
+    }
+
+    @Override
+    public Envelope getDataExtent() {
+        return spatialLite.qryDataExtent(dbLayer);
+    }
+
+    @Override
+    public Collection<Geometry> loadElements(CullState cullState) {
+        if (dbLayer == null) {
+            return null;
+        }
+
+        Envelope envelope = projection.fromInternal(cullState.envelope);
+        List<Geometry> queryList = spatialLite.qrySpatiaLiteGeom(envelope, maxElements, dbLayer, userColumns, filter, autoSimplifyPixels, screenWidth);
+        List<Geometry> elements = new ArrayList<Geometry>(queryList.size() + 1); 
+        for (Geometry element : queryList) {
+            @SuppressWarnings("unchecked")
+            Map<String, String> userData = (Map<String, String>) element.userData;
+            Label label = createLabel(userData);
+
+            Geometry newElement = null;
+            if (element instanceof Point) {
+                newElement = new Point(((Point) element).getMapPos(), label, createPointStyleSet(userData, cullState.zoom), element.userData);
+            } else if (element instanceof Line) {
+                newElement = new Line(((Line) element).getVertexList(), label, createLineStyleSet(userData, cullState.zoom), element.userData);
+            } else if (element instanceof Polygon) {
+                newElement = new Polygon(((Polygon) element).getVertexList(), ((Polygon) element).getHolePolygonList(), label, createPolygonStyleSet(userData, cullState.zoom), element.userData);
+            }
+
+            elements.add(newElement);
+        }
+        return elements;
+    }
+
+    protected Label createLabel(Map<String, String> userData) {
+        StringBuffer labelTxt = new StringBuffer();
+        for(Map.Entry<String, String> entry : userData.entrySet()){
+            labelTxt.append(entry.getKey() + ": " + entry.getValue() + "\n");
+        }
+        return new DefaultLabel("Data:", labelTxt.toString());
+    }
+
+    protected abstract StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom);
+
+    protected abstract StyleSet<LineStyle> createLineStyleSet(Map<String, String> userData, int zoom);
+
+    protected abstract StyleSet<PolygonStyle> createPolygonStyleSet(Map<String, String> userData, int zoom);
 }
