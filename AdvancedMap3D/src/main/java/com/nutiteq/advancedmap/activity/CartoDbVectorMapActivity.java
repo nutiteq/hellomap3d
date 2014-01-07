@@ -15,7 +15,6 @@ import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.datasources.vector.CartoDbDataSource;
-import com.nutiteq.layers.vector.CartoDbVectorLayer;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
@@ -147,9 +146,9 @@ public class CartoDbVectorMapActivity extends Activity {
 
         String account = "nutiteq";
         String table = "tm_world_borders"; // kihelkonnad_1897, maakond_20120701
-        String columns = "cartodb_id,name,iso2,pop2005,area,"+CartoDbVectorLayer.TAG_WEBMERCATOR; // NB! always include cartodb_id and the_geom_webmercator
+        String columns = "cartodb_id,name,iso2,pop2005,area,the_geom_webmercator"; // NB! always include cartodb_id and the_geom_webmercator
         int limit = 5000; // max number of objects
-        String sql = "SELECT "+columns+" FROM "+table+" WHERE "+CartoDbVectorLayer.TAG_WEBMERCATOR +" && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT "+limit;
+        String sql = "SELECT "+columns+" FROM "+table+" WHERE the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT "+limit;
 
 //      String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads WHERE type in ('trunk','primary') AND the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
 //      String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads WHERE the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
