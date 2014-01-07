@@ -8,7 +8,6 @@ import android.content.Context;
 
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
-import com.nutiteq.db.DBLayer;
 import com.nutiteq.db.SpatialLiteDbHelper;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.log.Log;

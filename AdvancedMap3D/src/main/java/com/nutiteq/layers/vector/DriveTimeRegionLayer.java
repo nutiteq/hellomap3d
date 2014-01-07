@@ -76,14 +76,14 @@ public class DriveTimeRegionLayer extends GeometryLayer {
         setVisibleElements(currentVisibleElementsList);
     }
 
-    public void loadData(MapPos pos, float distance) {
+    protected void loadData(MapPos pos, float distance) {
         if (pos == null){
             return;
         }
 
+        // Notify we started 
         long timeStart = System.currentTimeMillis();
 
-        // Notify we started 
         setRunningState(true);
 
         // load geometries
@@ -137,18 +137,14 @@ public class DriveTimeRegionLayer extends GeometryLayer {
             Log.error("Error parsing JSON data " + e.toString());
         }
 
-
-        long timeEnd = System.currentTimeMillis();
-        Log.debug("DriveTimeRegionLayer loaded dist:"+ distance+" h, calc time ms:"+(timeEnd-timeStart));
-
         // Notify we have stopped
+        long timeEnd = System.currentTimeMillis();
+        Log.debug("DriveTimeRegionLayer: loaded dist:" + distance + " h, calc time ms:" + (timeEnd-timeStart));
+
         setRunningState(false);
 
         // refresh map: eventually calculateVisibleElements will be called
-        Components components = getComponents();
-        if (components != null) {
-            components.mapRenderers.getMapRenderer().layerChanged(this);
-        }
+        updateVisibleElements();
     }
 
     public void setMapPos(MapPos mapPos) {
