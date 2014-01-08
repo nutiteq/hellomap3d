@@ -114,18 +114,11 @@ public class EditableOgrVectorLayer extends EditableGeometryDbLayer {
         LongHashMap<Geometry> newElementMap = new LongHashMap<Geometry>();
 
         try {
-            List<Geometry> data = ogrHelper.loadData(envelope, zoom);
+            List<Geometry> data = ogrHelper.loadData(projection.fromInternal(envelope), zoom);
             for (Geometry geom : data) {
                 geom.attachToLayer(this);
                 geom.setActiveStyle(zoom);
-
-                @SuppressWarnings("unchecked")
-                Map<String, String> userData = (Map<String, String>) geom.userData;
-
-                // loadData saves feature id to FID by convention
-                long id = Long.parseLong(userData.get("FID"));
-
-                newElementMap.put(id, geom);
+                newElementMap.put(geom.getId(), geom);
             }
         }
         catch (ParseException e) {

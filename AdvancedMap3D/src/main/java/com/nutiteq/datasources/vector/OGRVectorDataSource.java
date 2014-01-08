@@ -120,7 +120,9 @@ public abstract class OGRVectorDataSource extends AbstractVectorDataSource<Geome
 
     @Override
     public Collection<Geometry> loadElements(CullState cullState) {
-        List<Geometry> elements = ogrHelper.loadData(cullState.envelope, cullState.zoom);
+        Envelope envelope = projection.fromInternal(cullState.envelope);
+
+        List<Geometry> elements = ogrHelper.loadData(envelope, cullState.zoom);
         for (Geometry element : elements) {
             element.attachToDataSource(this);
         }

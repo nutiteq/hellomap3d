@@ -176,6 +176,7 @@ public class OSMPolygon3DDataSource extends AbstractVectorDataSource<Polygon3D> 
                 for(Geometry geom : geoms){
                     if(geom instanceof Polygon) {
                         geom.setId(id);
+                        geom.attachToDataSource(this);
                         objects.add((Polygon) geom);
                     } else {
                         Log.error("loaded object not a polygon");

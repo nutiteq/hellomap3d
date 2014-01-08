@@ -1,12 +1,12 @@
 package com.nutiteq.datasources.vector;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import com.nutiteq.components.CullState;
 import com.nutiteq.components.Envelope;
+import com.nutiteq.components.MapPos;
 import com.nutiteq.db.SpatialLiteDbHelper;
 import com.nutiteq.geometry.Geometry;
 import com.nutiteq.geometry.Line;
@@ -20,6 +20,7 @@ import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
+import com.nutiteq.utils.WkbRead.GeometryFactory;
 import com.nutiteq.vectordatasources.AbstractVectorDataSource;
 
 /**
@@ -125,29 +126,48 @@ public abstract class SpatialiteDataSource extends AbstractVectorDataSource<Geom
     }
 
     @Override
-    public Collection<Geometry> loadElements(CullState cullState) {
+    public Collection<Geometry> loadElements(final CullState cullState) {
         if (dbLayer == null) {
             return null;
         }
 
         Envelope envelope = projection.fromInternal(cullState.envelope);
-        List<Geometry> queryList = spatialLite.qrySpatiaLiteGeom(envelope, maxElements, dbLayer, userColumns, filter, autoSimplifyPixels, screenWidth);
-        List<Geometry> elements = new ArrayList<Geometry>(queryList.size() + 1); 
-        for (Geometry element : queryList) {
-            @SuppressWarnings("unchecked")
-            Map<String, String> userData = (Map<String, String>) element.userData;
-            Label label = createLabel(userData);
 
-            Geometry newElement = null;
-            if (element instanceof Point) {
-                newElement = new Point(((Point) element).getMapPos(), label, createPointStyleSet(userData, cullState.zoom), element.userData);
-            } else if (element instanceof Line) {
-                newElement = new Line(((Line) element).getVertexList(), label, createLineStyleSet(userData, cullState.zoom), element.userData);
-            } else if (element instanceof Polygon) {
-                newElement = new Polygon(((Polygon) element).getVertexList(), ((Polygon) element).getHolePolygonList(), label, createPolygonStyleSet(userData, cullState.zoom), element.userData);
+        // Create WKB geometry factory
+        GeometryFactory geomFactory = new GeometryFactory() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Point createPoint(MapPos mapPos, Object userData) {
+                Label label = createLabel((Map<String, String>) userData);
+                return new Point(mapPos, label, createPointStyleSet((Map<String, String>) userData, cullState.zoom), userData);
             }
 
-            elements.add(newElement);
+            @SuppressWarnings("unchecked")
+            @Override
+            public Line createLine(List<MapPos> points, Object userData) {
+                Label label = createLabel((Map<String, String>) userData);
+                return new Line(points, label, createLineStyleSet((Map<String, String>) userData, cullState.zoom), userData);
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Polygon createPolygon(List<MapPos> outerRing, List<List<MapPos>> innerRings, Object userData) {
+                Label label = createLabel((Map<String, String>) userData);
+                return new Polygon(outerRing, innerRings, label, createPolygonStyleSet((Map<String, String>) userData, cullState.zoom), userData);
+            }
+
+            @Override
+            public Geometry[] createMultigeometry(List<Geometry> geomList) {
+                return geomList.toArray(new Geometry[geomList.size()]);
+            }
+
+        };
+        
+        // Perform the query
+        List<Geometry> elements = spatialLite.qrySpatiaLiteGeom(envelope, maxElements, dbLayer, userColumns, filter, autoSimplifyPixels, screenWidth, geomFactory);
+        for (Geometry element : elements) {
+            element.attachToDataSource(this);
         }
         return elements;
     }

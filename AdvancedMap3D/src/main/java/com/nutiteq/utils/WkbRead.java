@@ -36,31 +36,25 @@ public class WkbRead {
 	private static final int wkbGeometryCollection = 7;
 
 	public interface GeometryFactory {
-		Point createPoint(MapPos mapPos, int srid);
-		Line createLine(List<MapPos> points, int srid);
-		Polygon createPolygon(List<MapPos> outerRing, List<List<MapPos>> innerRings, int srid);
+		Point createPoint(MapPos mapPos, Object userData);
+		Line createLine(List<MapPos> points, Object userData);
+		Polygon createPolygon(List<MapPos> outerRing, List<List<MapPos>> innerRings, Object userData);
 		Geometry[] createMultigeometry(List<Geometry> geometry);
 	}
 	
 	public static class DefaultGeometryFactory implements GeometryFactory {
-		final Object userData;
-		
-		public DefaultGeometryFactory(Object userData) {
-			this.userData = userData;
-		}
-		
 		@Override
-		public Point createPoint(MapPos mapPos, int srid) {
+		public Point createPoint(MapPos mapPos, Object userData) {
 			return new Point(mapPos, null, (PointStyle) null, userData);
 		}
 
 		@Override
-		public Line createLine(List<MapPos> points, int srid) {
+		public Line createLine(List<MapPos> points, Object userData) {
 			return new Line(points, null, (LineStyle) null, userData);
 		}
 		
 		@Override
-		public Polygon createPolygon(List<MapPos> outerRing, List<List<MapPos>> innerRings, int srid) {
+		public Polygon createPolygon(List<MapPos> outerRing, List<List<MapPos>> innerRings, Object userData) {
 			return new Polygon(outerRing, innerRings, null, (PolygonStyle) null, userData);
 		}
 		
@@ -73,11 +67,11 @@ public class WkbRead {
 	}
 
 	public static Geometry[] readWkb(ByteArrayInputStream is, Object userData){
-		GeometryFactory factory = new DefaultGeometryFactory(userData);
-		return readWkb(is, factory);
+		GeometryFactory factory = new DefaultGeometryFactory();
+		return readWkb(is, factory, userData);
 	}
 
-	public static Geometry[] readWkb(ByteArrayInputStream is, GeometryFactory factory){
+	public static Geometry[] readWkb(ByteArrayInputStream is, GeometryFactory factory, Object userData){
 		int endianByte = is.read();
 		ByteOrder endian;
 		if (endianByte == wkbXDR) {
@@ -107,25 +101,25 @@ public class WkbRead {
 		Geometry[] result = null;
 		switch (geometryType) {
 		case wkbPoint :
-			result = readPoint(is, dimensions, endian, srid, factory);
+			result = readPoint(is, dimensions, endian, srid, factory, userData);
 			break;
 		case wkbLineString :
-			result = readLineString(is, dimensions, endian, srid, factory);
+			result = readLineString(is, dimensions, endian, srid, factory, userData);
 			break;
 		case wkbPolygon :
-			result = readPolygon(is, dimensions, endian, srid, factory);
+			result = readPolygon(is, dimensions, endian, srid, factory, userData);
 			break;
 		case wkbMultiPoint :
-			result = readMultiPoint(is, dimensions, endian, srid, factory);
+			result = readMultiPoint(is, dimensions, endian, srid, factory, userData);
 			break;
 		case wkbMultiLineString :
-			result = readMultiLineString(is, dimensions, endian, srid, factory);
+			result = readMultiLineString(is, dimensions, endian, srid, factory, userData);
 			break;
 		case wkbMultiPolygon :
-			result = readMultiPolygon(is, dimensions, endian, srid, factory);
+			result = readMultiPolygon(is, dimensions, endian, srid, factory, userData);
 			break;
 		case wkbGeometryCollection :
-			result = readGeometryCollection(is, dimensions, endian, srid, factory);
+			result = readGeometryCollection(is, dimensions, endian, srid, factory, userData);
 			break;
 		default:
 			Log.error("Unknown geometryType "+geometryType);
@@ -133,11 +127,11 @@ public class WkbRead {
 		return result;
 	}
 
-	private static Geometry[] readGeometryCollection(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory) {
+	private static Geometry[] readGeometryCollection(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory, Object userData) {
 		int numGeoms = readInt(is, endian);
 		List<Geometry> geomList = new ArrayList<Geometry>(numGeoms + 1);
 		for (int i = 0; i<numGeoms;i++){
-			Geometry[] geometry = readWkb(is, factory);
+			Geometry[] geometry = readWkb(is, factory, userData);
 			for(int j = 0; j<geometry.length; j++) {
 				geomList.add(geometry[j]);
 			}
@@ -145,11 +139,11 @@ public class WkbRead {
 		return factory.createMultigeometry(geomList);
 	}
 
-	private static Geometry[] readMultiPolygon(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory) {
+	private static Geometry[] readMultiPolygon(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory, Object userData) {
 		int numPolygons = readInt(is, endian);
 		List<Geometry> polyList = new ArrayList<Geometry>(numPolygons + 1);
 		for (int i = 0; i<numPolygons; i++){
-			Geometry[] geometry = readWkb(is, factory);
+			Geometry[] geometry = readWkb(is, factory, userData);
 			if (geometry == null) {
 				continue;
 			}
@@ -164,11 +158,11 @@ public class WkbRead {
 		return factory.createMultigeometry(polyList);
 	}
 
-	private static Geometry[] readMultiLineString(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory) {
+	private static Geometry[] readMultiLineString(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory, Object userData) {
 		int numLines = readInt(is, endian);
 		List<Geometry> lineList = new ArrayList<Geometry>(numLines + 1);
 		for (int i = 0; i<numLines; i++){
-			Geometry[] geometry = readWkb(is, factory);
+			Geometry[] geometry = readWkb(is, factory, userData);
 			if (geometry == null) {
 				continue;
 			}
@@ -183,11 +177,11 @@ public class WkbRead {
 		return factory.createMultigeometry(lineList);
 	}
 
-	private static Geometry[] readMultiPoint(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory) {
+	private static Geometry[] readMultiPoint(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory, Object userData) {
 		int numPoints = readInt(is, endian);
 		List<Geometry> pointList = new ArrayList<Geometry>(numPoints + 1);
 		for (int i = 0; i<numPoints; i++){
-			Geometry[] geometry = readWkb(is, factory);
+			Geometry[] geometry = readWkb(is, factory, userData);
 			if (geometry == null) {
 				continue;
 			}
@@ -202,7 +196,7 @@ public class WkbRead {
 		return factory.createMultigeometry(pointList);
 	}
 
-	private static Geometry[] readPolygon(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory) {
+	private static Geometry[] readPolygon(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory, Object userData) {
 		int numRings = readInt(is, endian);
 		if (numRings < 1) {
 			return new Geometry[0];
@@ -234,16 +228,16 @@ public class WkbRead {
 			}
 		}
 
-		return new Geometry[]{ factory.createPolygon(outerRing, innerRings, srid) };
+		return new Geometry[]{ factory.createPolygon(outerRing, innerRings, userData) };
 	}
 
-	private static Geometry[] readLineString(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory) {
+	private static Geometry[] readLineString(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory, Object userData) {
 		int size = readInt(is,endian);
-		return new Geometry[] { factory.createLine(readCoordinateList(is, dimensions, size, endian), srid) };
+		return new Geometry[] { factory.createLine(readCoordinateList(is, dimensions, size, endian), userData) };
 	}
 
-	private static Geometry[] readPoint(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory) {
-		return new Geometry[] { factory.createPoint(readCoordinate(is,dimensions,endian), srid) };
+	private static Geometry[] readPoint(ByteArrayInputStream is, int dimensions, ByteOrder endian, int srid, GeometryFactory factory, Object userData) {
+		return new Geometry[] { factory.createPoint(readCoordinate(is,dimensions,endian), userData) };
 	}
 
 	private static List<MapPos> readCoordinateList(ByteArrayInputStream is, int dimensions, int size, ByteOrder endian) {

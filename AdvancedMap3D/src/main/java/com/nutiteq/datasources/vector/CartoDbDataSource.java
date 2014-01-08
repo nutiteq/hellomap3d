@@ -122,6 +122,36 @@ public abstract class CartoDbDataSource extends AbstractVectorDataSource<Geometr
             }
 
             JSONArray rows = jsonData.getJSONArray(TAG_ROWS);
+            
+            GeometryFactory geomFactory = new GeometryFactory() {
+
+                @SuppressWarnings("unchecked")
+                @Override
+                public Point createPoint(MapPos mapPos, Object userData) {
+                    Label label = createLabel((Map<String, String>) userData);
+                    return new Point(mapPos, label, createPointStyleSet((Map<String, String>) userData, cullState.zoom), userData);
+                }
+
+                @SuppressWarnings("unchecked")
+                @Override
+                public Line createLine(List<MapPos> points, Object userData) {
+                    Label label = createLabel((Map<String, String>) userData);
+                    return new Line(points, label, createLineStyleSet((Map<String, String>) userData, cullState.zoom), userData);
+                }
+
+                @SuppressWarnings("unchecked")
+                @Override
+                public Polygon createPolygon(List<MapPos> outerRing, List<List<MapPos>> innerRings, Object userData) {
+                    Label label = createLabel((Map<String, String>) userData);
+                    return new Polygon(outerRing, innerRings, label, createPolygonStyleSet((Map<String, String>) userData, cullState.zoom), userData);
+                }
+
+                @Override
+                public Geometry[] createMultigeometry(List<Geometry> geomList) {
+                    return geomList.toArray(new Geometry[geomList.size()]);
+                }
+
+            };
 
             for (int i = 0; i < rows.length(); i++) {
                 JSONObject row = rows.getJSONObject(i);
@@ -139,34 +169,10 @@ public abstract class CartoDbDataSource extends AbstractVectorDataSource<Geometr
                     }
                 }
 
-                final Label label = createLabel(userData);
                 final long id = row.getLong(TAG_CARTODB_ID);
                 final String geomString = row.getString(TAG_GEOM_WEBMERCATOR);
                 final byte[] wkb = Utils.hexStringToByteArray(geomString);
-
-                Geometry[] geoms = WkbRead.readWkb(new ByteArrayInputStream(wkb), new GeometryFactory() {
-
-                    @Override
-                    public Point createPoint(MapPos mapPos, int srid) {
-                        return new Point(mapPos, label, createPointStyleSet(userData, cullState.zoom), userData);
-                    }
-
-                    @Override
-                    public Line createLine(List<MapPos> points, int srid) {
-                        return new Line(points, label, createLineStyleSet(userData, cullState.zoom), userData);
-                    }
-
-                    @Override
-                    public Polygon createPolygon(List<MapPos> outerRing, List<List<MapPos>> innerRings, int srid) {
-                        return new Polygon(outerRing, innerRings, label, createPolygonStyleSet(userData, cullState.zoom), userData);
-                    }
-
-                    @Override
-                    public Geometry[] createMultigeometry(List<Geometry> geomList) {
-                        return geomList.toArray(new Geometry[geomList.size()]);
-                    }
-
-                });
+                Geometry[] geoms = WkbRead.readWkb(new ByteArrayInputStream(wkb), geomFactory, userData);
 
                 for (Geometry geom : geoms) {
                     if (elements.size() < maxElements) {

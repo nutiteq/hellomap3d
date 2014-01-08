@@ -105,10 +105,9 @@ public abstract class OGRFileHelper {
         this.maxElements = maxElements;
     }
 
-    public List<com.nutiteq.geometry.Geometry> loadData(Envelope envInternal, int zoom) {
+    public List<com.nutiteq.geometry.Geometry> loadData(Envelope envelope, int zoom) {
         long timeStart = System.currentTimeMillis();
 
-        Envelope envelope = projection.fromInternal(envInternal);
         if (transformNeeded) {
             MutableEnvelope mutableEnv = new MutableEnvelope();
             for (MapPos mapPos : envelope.getConvexHull()) {
@@ -144,8 +143,6 @@ public abstract class OGRFileHelper {
 
             final Map<String, String> userData = new HashMap<String, String>();
 
-            userData.put("FID",String.valueOf(feature.GetFID()));
-            
             for(int field=0; field<feature.GetFieldCount();field++){
                 userData.put(this.fieldNames[field], feature.GetFieldAsString(field));
             }
@@ -180,6 +177,7 @@ public abstract class OGRFileHelper {
                     
                 }
                 
+                newObject.setId(feature.GetFID());
                 elementList.add(newObject);
             }
 

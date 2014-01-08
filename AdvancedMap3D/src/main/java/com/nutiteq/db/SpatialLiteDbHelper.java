@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
 
@@ -16,12 +17,19 @@ import jsqlite.Database;
 import jsqlite.Exception;
 
 import com.nutiteq.components.Envelope;
+import com.nutiteq.components.MapPos;
 import com.nutiteq.components.MutableEnvelope;
 import com.nutiteq.geometry.Geometry;
+import com.nutiteq.geometry.Line;
+import com.nutiteq.geometry.Point;
+import com.nutiteq.geometry.Polygon;
 import com.nutiteq.log.Log;
+import com.nutiteq.ui.Label;
 import com.nutiteq.utils.GeoUtils;
 import com.nutiteq.utils.Utils;
 import com.nutiteq.utils.WkbRead;
+import com.nutiteq.utils.WkbRead.GeometryFactory;
+import com.nutiteq.utils.WkbRead.DefaultGeometryFactory;
 import com.nutiteq.utils.WktWriter;
 
 /**
@@ -243,12 +251,22 @@ public class SpatialLiteDbHelper {
         }
     }    
     
-    public Vector<Geometry> qrySpatiaLiteGeom(final Envelope bbox,
-            final int limit, final DbLayer dbLayer, final String[] userColumns, String filter, float autoSimplifyPixels, int screenWidth) {
+    public List<Geometry> qrySpatiaLiteGeom(Envelope bbox, int limit,
+            DbLayer dbLayer, String[] userColumns, float autoSimplifyPixels, int screenWidth) {
+        return qrySpatiaLiteGeom(bbox, limit, dbLayer, userColumns, null, autoSimplifyPixels, screenWidth);
+    }
+
+    public Vector<Geometry> qrySpatiaLiteGeom(final Envelope bbox, final int limit, final DbLayer dbLayer, final String[] userColumns, String filter,
+            float autoSimplifyPixels, int screenWidth) {
+        return qrySpatiaLiteGeom(bbox, limit, dbLayer, userColumns, filter, autoSimplifyPixels, screenWidth, new DefaultGeometryFactory());
+    }
+
+    public Vector<Geometry> qrySpatiaLiteGeom(final Envelope bbox, final int limit, final DbLayer dbLayer, final String[] userColumns, String filter,
+            float autoSimplifyPixels, int screenWidth, final GeometryFactory geomFactory) {
         
         final Vector<Geometry> geoms = new Vector<Geometry>();
         final long start = System.currentTimeMillis();
-
+        
         Callback cb = new Callback() {
             
             @Override
@@ -262,24 +280,21 @@ public class SpatialLiteDbHelper {
 
             @Override
             public boolean newrow(String[] rowdata) {
+                // First column is always row id
+                long id = Long.parseLong(rowdata[0]);
 
                 // Column values to userData Map
-                final Map<String, String> userData = new HashMap<String, String>();
+                Map<String, String> userData = new HashMap<String, String>();
                 for (int i = 2; i < rowdata.length; i++) {
                     userData.put(userColumns[i - 2], rowdata[i]);
                 }
 
-                // First column is always row id
-                
-                userData.put("_id", rowdata[0]);
-                
                 // second column is geometry
-                Geometry[] g1 = WkbRead.readWkb(
-                        new ByteArrayInputStream(Utils
-                                .hexStringToByteArray(rowdata[1])), userData);
-                for (int i = 0; i < g1.length; i++) {
-                    g1[i].setId(Long.parseLong(rowdata[0]));
-                    geoms.add(g1[i]);
+                ByteArrayInputStream inputStream = new ByteArrayInputStream(Utils.hexStringToByteArray(rowdata[1]));
+                Geometry[] wkbGeomList = WkbRead.readWkb(inputStream, geomFactory, userData);
+                for (Geometry geom : wkbGeomList) {
+                    geom.setId(id);
+                    geoms.add(geom);
                 }
                 
                 return false;
@@ -475,9 +490,9 @@ public class SpatialLiteDbHelper {
                 @Override
                 public boolean newrow(String[] rowdata) {
                     String col = rowdata[1];
-                    String type = rowdata[2];
+                    String type = rowdata[2].toUpperCase(Locale.US);
                     // add only known safe column types, skip geometries
-                    if(type.toUpperCase().equals("INTEGER") || type.toUpperCase().equals("TEXT") || type.toUpperCase().equals("VARCHAR")|| type.toUpperCase().equals("NUMBER")){
+                    if(type.equals("INTEGER") || type.equals("TEXT") || type.equals("VARCHAR")|| type.equals("NUMBER")){
                         columns.add(col); 
                     }
                     return false;
@@ -572,9 +587,4 @@ public class SpatialLiteDbHelper {
         return "X'" + hexValue + "'";
     }
 
-    public List<Geometry> qrySpatiaLiteGeom(Envelope envelope, int maxObjects,
-            DbLayer dbLayer, String[] strings, int i, int j) {
-        return qrySpatiaLiteGeom(envelope, maxObjects,
-                 dbLayer, strings, null, i, j);
-    }
 }
