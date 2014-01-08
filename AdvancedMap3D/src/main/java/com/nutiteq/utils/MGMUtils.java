@@ -98,13 +98,13 @@ public class MGMUtils {
       out.flush();
       result = out.toByteArray();
     } catch (final IOException e) {
-      Log.error(IOUtils.class.getName() + ": Failed to read the stream. " + e.getMessage());
+      Log.error(MGMUtils.class.getName() + ": Failed to read the stream. " + e.getMessage());
       result = new byte[0];
     } finally {
       try {
         out.close();
       } catch (IOException e) {
-        Log.error(IOUtils.class.getName() + ": Failed to close the stream. " + e.getMessage());
+        Log.error(MGMUtils.class.getName() + ": Failed to close the stream. " + e.getMessage());
       }
     }
     return result;

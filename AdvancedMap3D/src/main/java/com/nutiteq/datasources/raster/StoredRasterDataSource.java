@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 
 import android.os.Environment;
 
@@ -13,7 +14,7 @@ import com.nutiteq.components.TileBitmap;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterdatasources.AbstractRasterDataSource;
-import com.nutiteq.utils.IOUtils;
+import com.nutiteq.utils.MGMUtils;
 import com.nutiteq.utils.Utils;
 
 /**
@@ -154,7 +155,7 @@ public class StoredRasterDataSource extends AbstractRasterDataSource {
             }
 
             // Seek
-            IOUtils.skip(inputStream, offset - toRead, BUFFER_SIZE);
+            MGMUtils.skip(inputStream, offset - toRead, BUFFER_SIZE);
 
             // read data
             ch = 0;
@@ -195,16 +196,16 @@ public class StoredRasterDataSource extends AbstractRasterDataSource {
             final String filename = location + CONFIG_FILENAME;
 
             FileInputStream fis = new FileInputStream("/" + filename);
-            final byte[] data = IOUtils.readFully(fis);
+            final byte[] data = MGMUtils.readFully(fis);
             fis.close();
 
             final String sdata = new String(data);
             final String[] lines = Utils.split(sdata, "\n");
             for (int i = 0; i < lines.length; i++) {
                 // split into at most 2 tokens
-                final String[] tokens = Utils.split(lines[i].trim(), '=', false, 2);
+                final String[] tokens = MGMUtils.split(lines[i].trim(), '=', false, 2);
                 if (tokens.length == 2) {
-                    final String name = tokens[0].trim().toLowerCase();
+                    final String name = tokens[0].trim().toLowerCase(Locale.US);
                     final String value = tokens[1].trim();
 
                     // ignore empty values
@@ -233,7 +234,7 @@ public class StoredRasterDataSource extends AbstractRasterDataSource {
                         }
                     } else if (name.equals("center")) {
                         try {
-                            final String[] xyz = Utils.split(value.trim(), ',', false, 4);
+                            final String[] xyz = MGMUtils.split(value.trim(), ',', false, 4);
                             double lat = Float.parseFloat(xyz[0].trim());
                             double lon = Float.parseFloat(xyz[1].trim());
                             int zoom = Integer.parseInt(xyz[2].trim());

@@ -2,6 +2,8 @@ package com.nutiteq.datasources.raster;
 
 import java.util.Map;
 
+import android.net.Uri;
+
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapTile;
 import com.nutiteq.components.MutableMapPos;
@@ -10,7 +12,6 @@ import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
 import com.nutiteq.utils.NetUtils;
 import com.nutiteq.utils.TileUtils;
-import com.nutiteq.utils.Utils;
 
 /**
  * WMS Map Server API to requests data based on tiles
@@ -67,46 +68,38 @@ public class WMSRasterDataSource extends HTTPRasterDataSource {
     public String getFeatureInfo(MapTile clickedTile, MutableMapPos tilePos) {
         String bbox = getTileBbox(clickedTile);
 
-        // repeat basic WMS getMap parameters
-        StringBuffer url = new StringBuffer(prepareForParameters(baseUrl));
-        url.append("LAYERS=").append(Utils.urlEncode(layer));
-        url.append("&FORMAT=").append(Utils.urlEncode(format));
-        url.append("&SERVICE=WMS&VERSION=1.1.1");
-        url.append("&STYLES=").append(Utils.urlEncode(style));
-        url.append("&SRS=").append(Utils.urlEncode(getProjection().name()));
-        url.append("&WIDTH="+tileSize+"&HEIGHT="+tileSize);
-        url.append("&BBOX=").append(Utils.urlEncode(bbox));
-
-        // add featureinfo-specific parameters
-        url.append("&REQUEST=GetFeatureInfo");
-        url.append("&QUERY_LAYERS=").append(Utils.urlEncode(layer));
-        url.append("&INFO_FORMAT=").append(Utils.urlEncode("text/html"));
-        url.append("&FEATURE_COUNT=10");
-        url.append("&X=").append((int) (tileSize * tilePos.x));
-        url.append("&Y=").append(tileSize - (int) (tileSize * tilePos.y));
-        url.append("&EXCEPTIONS=").append(
-                Utils.urlEncode("application/vnd.ogc.se_xml"));
-
-        String urlString = url.toString();
-        return NetUtils.downloadUrl(urlString, this.httpHeaders, true, "UTF-8");
+        Uri.Builder uri = createBaseUri("GetFeatureInfo");
+        uri.appendQueryParameter("BBOX", bbox);
+        uri.appendQueryParameter("QUERY_LAYERS", layer);
+        uri.appendQueryParameter("INFO_FORMAT", "text/html");
+        uri.appendQueryParameter("FEATURE_COUNT", "10");
+        uri.appendQueryParameter("X", Integer.toString((int) (tileSize * tilePos.x)));
+        uri.appendQueryParameter("Y", Integer.toString(tileSize - (int) (tileSize * tilePos.y)));
+        return NetUtils.downloadUrl(uri.toString(), this.httpHeaders, true, "UTF-8");
     }
 
     @Override
     protected String buildTileURL(MapTile tile) {
         String bbox = getTileBbox(tile);
 
-        StringBuffer url = new StringBuffer(prepareForParameters(baseUrl));
-        url.append("LAYERS=").append(Utils.urlEncode(layer));
-        url.append("&FORMAT=").append(Utils.urlEncode(format));
-        url.append("&SERVICE=WMS&VERSION=1.1.0");
-        url.append("&REQUEST=GetMap");
-        url.append("&STYLES=").append(Utils.urlEncode(style));
-        url.append("&EXCEPTIONS=").append(
-                Utils.urlEncode("application/vnd.ogc.se_inimage"));
-        url.append("&SRS=").append(Utils.urlEncode(getProjection().name()));
-        url.append("&WIDTH="+tileSize+"&HEIGHT="+tileSize);
-        url.append("&BBOX=").append(Utils.urlEncode(bbox));
-        return url.toString();
+        Uri.Builder uri = createBaseUri("GetMap");
+        uri.appendQueryParameter("BBOX", bbox);
+        return uri.toString();
+    }
+    
+    private Uri.Builder createBaseUri(String request) {
+        Uri.Builder uri = Uri.parse(baseUrl).buildUpon();
+        uri.appendQueryParameter("LAYERS", layer);
+        uri.appendQueryParameter("FORMAT", format);
+        uri.appendQueryParameter("SERVICE", "WMS");
+        uri.appendQueryParameter("VERSION", "1.1.0");
+        uri.appendQueryParameter("REQUEST", request);
+        uri.appendQueryParameter("STYLES", style);
+        uri.appendQueryParameter("EXCEPTIONS", "application/vnd.ogc.se_inimage");
+        uri.appendQueryParameter("SRS", getProjection().name());
+        uri.appendQueryParameter("WIDTH", Integer.toString(tileSize));
+        uri.appendQueryParameter("HEIGHT", Integer.toString(tileSize));
+        return uri;
     }
 
     private String getTileBbox(MapTile tile) {
@@ -119,15 +112,4 @@ public class WMSRasterDataSource extends HTTPRasterDataSource {
         return bbox;
     }
 
-    private static String prepareForParameters(final String url) {
-        if (url.endsWith("?") || url.endsWith("&")) {
-            return url;
-        }
-
-        if (url.indexOf("?") > 0) {
-            return url + "&";
-        } else {
-            return url + "?";
-        }
-    }
 }

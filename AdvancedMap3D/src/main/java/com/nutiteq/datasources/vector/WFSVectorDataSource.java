@@ -32,7 +32,6 @@ import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.StyleSet;
-import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.vectordatasources.AbstractVectorDataSource;
 

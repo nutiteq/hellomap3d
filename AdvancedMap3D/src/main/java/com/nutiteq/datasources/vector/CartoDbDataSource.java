@@ -28,7 +28,6 @@ import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
-import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.utils.NetUtils;
 import com.nutiteq.utils.Utils;
