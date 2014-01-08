@@ -12,7 +12,10 @@ import java.util.Map;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.widget.Toast;
 
 import com.nutiteq.components.Bounds;
 import com.nutiteq.components.Color;
@@ -32,10 +35,13 @@ import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
 import com.nutiteq.rasterdatasources.RasterDataSource;
 import com.nutiteq.rasterlayers.RasterLayer;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
+import com.nutiteq.ui.DefaultLabel;
+import com.nutiteq.ui.Label;
 
 /**
  * 
@@ -64,7 +70,7 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
     // Internal dialog IDs
     private static final int DIALOG_TABLE_LIST = 1;
     private static final int DIALOG_NO_TABLES = 2;
-	
+
     // Input file path
     private String dbPath;
 
@@ -77,6 +83,7 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
     private StyleSet<PointStyle> pointStyleSet;
     private StyleSet<LineStyle> lineStyleSet;
     private StyleSet<PolygonStyle> polygonStyleSet;
+    private LabelStyle labelStyle;
 
     @Override
     protected void createBaseLayer() {
@@ -94,17 +101,13 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
         dbPath = b.getString("selectedFile");
 
         createStyleSets();
-        if (dbPath.endsWith(".shp")) {
-            try {
-                createEditableOGRLayers();
-            } catch (IOException e) {
-                Log.error("Could not open file " + dbPath + " ex:" + e.getMessage());
-            }
-        } else {
+        if (dbPath.endsWith(".db") || dbPath.endsWith(".sqlite") || dbPath.endsWith(".spatialite")) {
             showSpatialiteTableList();
+        } else {
+            createEditableOGRLayers();
         }
     }
-	
+
     @Override
     protected List<EditableGeometryLayer> getEditableLayers() {
         List<EditableGeometryLayer> layers = new ArrayList<EditableGeometryLayer>();
@@ -115,7 +118,7 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
         }
         return layers;
     }
-	
+
     @Override
     protected void createEditableElement() {
         AlertDialog.Builder typeBuilder = new AlertDialog.Builder(this);
@@ -171,34 +174,34 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
     }
 
     @Override
-	protected Dialog onCreateDialog(int id) {
-	    switch(id) {
-	    case DIALOG_TABLE_LIST:
-	        return new AlertDialog.Builder(this)
-	            .setTitle("Select table:")
-	            .setSingleChoiceItems(tableList, 0, null)
-	            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-	                 public void onClick(DialogInterface dialog, int whichButton) {
-	                     dialog.dismiss();
-	                     int selectedPosition = ((AlertDialog) dialog)
-	                         .getListView().getCheckedItemPosition();
-	                     createEditableSpatialiteLayers(selectedPosition);
-	                 }
-	             }).create();
+    protected Dialog onCreateDialog(int id) {
+        switch(id) {
+        case DIALOG_TABLE_LIST:
+            return new AlertDialog.Builder(this)
+            .setTitle("Select table:")
+            .setSingleChoiceItems(tableList, 0, null)
+            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    dialog.dismiss();
+                    int selectedPosition = ((AlertDialog) dialog)
+                            .getListView().getCheckedItemPosition();
+                    createEditableSpatialiteLayers(selectedPosition);
+                }
+            }).create();
 
-	    case DIALOG_NO_TABLES:
-	        return new AlertDialog.Builder(this)
-	            .setMessage("No geometry_columns or spatial_ref_sys metadata found. Check logcat for more details.")
-	            .setPositiveButton("Back", new DialogInterface.OnClickListener() {
-	                public void onClick(DialogInterface dialog, int whichButton) {
-	                    dialog.dismiss();
-	                    finish();
-	                }
-	            }).create();
-	    }
-	    return null;
-	}
-	
+        case DIALOG_NO_TABLES:
+            return new AlertDialog.Builder(this)
+            .setMessage("No geometry_columns or spatial_ref_sys metadata found. Check logcat for more details.")
+            .setPositiveButton("Back", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    dialog.dismiss();
+                    finish();
+                }
+            }).create();
+        }
+        return null;
+    }
+
     private void showSpatialiteTableList() {
         spatialLite = new SpatialLiteDbHelper(dbPath);
         dbMetaData = spatialLite.qrySpatialLayerMetadata();
@@ -208,7 +211,7 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
         for (String layerKey : dbMetaData.keySet()) {
             SpatialLiteDbHelper.DbLayer layer = dbMetaData.get(layerKey);
             Log.debug("layer: " + layer.table + " " + layer.type + " geom:"
-                + layer.geomColumn+ " SRID: "+layer.srid);
+                    + layer.geomColumn+ " SRID: "+layer.srid);
             tables.add(layerKey);
         }
 
@@ -223,6 +226,10 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
     }
 
     private void createStyleSets() {
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        float dpi = metrics.density;
+
         pointStyleSet = new StyleSet<PointStyle>();
         PointStyle pointStyle = PointStyle.builder().setColor(Color.GREEN).setSize(0.2f).build();
         pointStyleSet.setZoomStyle(0, pointStyle);
@@ -234,11 +241,70 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
         polygonStyleSet = new StyleSet<PolygonStyle>();
         PolygonStyle polygonStyle = PolygonStyle.builder().setColor(Color.BLUE | Color.GREEN).build();
         polygonStyleSet.setZoomStyle(0, polygonStyle);
+
+        labelStyle = 
+                LabelStyle.builder()
+                .setEdgePadding((int) (12 * dpi))
+                .setLinePadding((int) (6 * dpi))
+                .setTitleFont(Typeface.create("Arial", Typeface.BOLD), (int) (16 * dpi))
+                .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), (int) (13 * dpi))
+                .build();
     }
-    
-    private void createEditableOGRLayers() throws IOException {
+
+    private void createEditableOGRLayers() {
         // create editable data source and layer
-        EditableOGRVectorDataSource dataSource = new EditableOGRVectorDataSource(new EPSG3857(), dbPath, null) {
+        EditableOGRVectorDataSource dataSource;
+        try {
+            dataSource = new EditableOGRVectorDataSource(new EPSG3857(), dbPath, null) {
+
+                @Override
+                protected Label createLabel(Map<String, String> userData) {
+                    return EditableVectorFileMapActivity.this.createLabel(userData);
+                }
+
+                @Override
+                protected StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom) {
+                    return pointStyleSet;
+                }
+
+                @Override
+                protected StyleSet<LineStyle> createLineStyleSet(Map<String, String> userData, int zoom) {
+                    return lineStyleSet;
+                }
+
+                @Override
+                protected StyleSet<PolygonStyle> createPolygonStyleSet(Map<String, String> userData, int zoom) {
+                    return polygonStyleSet;
+                }
+
+            };
+        } catch (IOException e) {
+            Log.error(e.getLocalizedMessage());
+            Toast.makeText(this, "ERROR "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+            return;
+        }
+        dataSource.setMaxElements(MAX_ELEMENTS);
+        EditableGeometryLayer dbEditableLayer = new EditableGeometryLayer(dataSource);
+        mapView.getLayers().addLayer(dbEditableLayer);
+
+        // zoom map to data extent
+        Envelope extent = dbEditableLayer.getDataExtent();
+        mapView.setBoundingBox(new Bounds(extent.minX, extent.maxY, extent.maxX, extent.minY), false);
+    }
+
+    private void createEditableSpatialiteLayers(int selectedPosition) {
+        // find out which table and geometry column to be opened - here it comes from earlier UI interaction steps
+        String[] tableKey = tableList[selectedPosition].split("\\.");
+        String tableName = tableKey[0];
+        String geomColumn = tableKey[1];
+
+        // create editable data source and layer
+        EditableSpatialiteDataSource dataSource = new EditableSpatialiteDataSource(new EPSG3857(), dbPath, tableName, geomColumn, new String[]{"name"}, null) {
+
+            @Override
+            protected Label createLabel(Map<String, String> userData) {
+                return EditableVectorFileMapActivity.this.createLabel(userData);
+            }
 
             @Override
             protected StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom) {
@@ -254,7 +320,7 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
             protected StyleSet<PolygonStyle> createPolygonStyleSet(Map<String, String> userData, int zoom) {
                 return polygonStyleSet;
             }
-            
+
         };
         dataSource.setMaxElements(MAX_ELEMENTS);
         EditableGeometryLayer dbEditableLayer = new EditableGeometryLayer(dataSource);
@@ -265,42 +331,16 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
         mapView.setBoundingBox(new Bounds(extent.minX, extent.maxY, extent.maxX, extent.minY), false);
     }
 
-	private void createEditableSpatialiteLayers(int selectedPosition) {
-		// find out which table and geometry column to be opened - here it comes from earlier UI interaction steps
-		String[] tableKey = tableList[selectedPosition].split("\\.");
-		String tableName = tableKey[0];
-		String geomColumn = tableKey[1];
-		
-		// create editable data source and layer
-		EditableSpatialiteDataSource dataSource = new EditableSpatialiteDataSource(new EPSG3857(), dbPath, tableName, geomColumn, new String[]{"name"}, null) {
+    private Label createLabel(Map<String, String> userData) {
+        StringBuffer labelTxt = new StringBuffer();
+        for(Map.Entry<String, String> entry : userData.entrySet()){
+            labelTxt.append(entry.getKey() + ": " + entry.getValue() + "\n");
+        }
+        return new DefaultLabel("Data:", labelTxt.toString(), labelStyle);
+    }
 
-            @Override
-            protected StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom) {
-                return pointStyleSet;
-            }
+    // Methods for FilePicker
 
-            @Override
-            protected StyleSet<LineStyle> createLineStyleSet(Map<String, String> userData, int zoom) {
-                return lineStyleSet;
-            }
-
-            @Override
-            protected StyleSet<PolygonStyle> createPolygonStyleSet(Map<String, String> userData, int zoom) {
-                return polygonStyleSet;
-            }
-		    
-		};
-		dataSource.setMaxElements(MAX_ELEMENTS);
-		EditableGeometryLayer dbEditableLayer = new EditableGeometryLayer(dataSource);
-		mapView.getLayers().addLayer(dbEditableLayer);
-
-		// zoom map to data extent
-		Envelope extent = dbEditableLayer.getDataExtent();
-        mapView.setBoundingBox(new Bounds(extent.minX, extent.maxY, extent.maxX, extent.minY), false);
-	}
-
-	// Methods for FilePicker
-	
     @Override
     public String getFileSelectMessage() {
         return "Select Spatialite database file (.spatialite, .db, .sqlite) or OGR shape file (.shp)";
@@ -325,5 +365,5 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
             };
         };
     }
-	
+
 }
