@@ -56,7 +56,7 @@ import com.nutiteq.style.StyleSet;
  * @author mtehver
  *
  */
-public class EditableVectorMapActivity extends EditableMapActivityBase implements FilePickerActivity {
+public class EditableVectorFileMapActivity extends EditableMapActivityBase implements FilePickerActivity {
     // about 2000 lines/polygons for high-end devices is fine, for older devices <1000
     // for points 5000 would work fine with almost any device
     private static final int MAX_ELEMENTS = 500;

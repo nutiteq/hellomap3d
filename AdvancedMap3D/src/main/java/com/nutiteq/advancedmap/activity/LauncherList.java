@@ -32,7 +32,7 @@ public class LauncherList extends ListActivity{
             {AddressSearchActivity.class,null},
             {AnimatedLocationActivity.class,null},
             {EditableCartoDbMapActivity.class,null},
-            {EditableVectorMapActivity.class,FilePicker.class},
+            {EditableVectorFileMapActivity.class,FilePicker.class},
             {CartoDbVectorMapActivity.class,null},
             {MapBoxMapActivity.class,null},
             {MapQuestRouteActivity.class,null},
