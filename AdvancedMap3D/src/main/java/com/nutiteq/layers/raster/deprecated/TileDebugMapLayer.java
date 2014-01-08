@@ -18,6 +18,7 @@ import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.tasks.FetchTileTask;
 
+@Deprecated
 public class TileDebugMapLayer extends RasterLayer {
 
     private int tileSize = 256;

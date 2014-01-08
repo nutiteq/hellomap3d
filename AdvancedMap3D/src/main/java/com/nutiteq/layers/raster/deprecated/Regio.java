@@ -6,6 +6,7 @@ import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.tasks.deprecated.NetFetchTileTask;
 
+@Deprecated
 public class Regio extends RasterLayer {
 
     public Regio(Projection projection, int minZoom, int maxZoom, int id, String location) {

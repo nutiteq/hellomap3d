@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 
 import android.net.ParseException;
 import android.net.Uri;
+
 import com.nutiteq.utils.Utils;
 import com.nutiteq.utils.WkbRead;
 import com.nutiteq.components.Envelope;
@@ -43,6 +44,7 @@ import com.nutiteq.vectorlayers.Polygon3DLayer;
  * @author vendik
  *
  */
+@Deprecated
 public class Polygon3DOSMLayer extends Polygon3DLayer {
 
     // maximum roof height in meters

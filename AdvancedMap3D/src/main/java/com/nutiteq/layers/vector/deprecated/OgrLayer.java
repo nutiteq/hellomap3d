@@ -27,6 +27,7 @@ import com.nutiteq.vectorlayers.GeometryLayer;
  * @author jaak
  *
  */
+@Deprecated
 public class OgrLayer extends GeometryLayer {
 
     private float minZoom = Float.MAX_VALUE;

@@ -23,6 +23,7 @@ import com.nutiteq.tasks.deprecated.IntFetchTileTask;
  * <p>
  * Result: /res/raw/t0_0_0
  */
+@Deprecated
 public class PackagedMapLayer extends RasterLayer {
     protected Resources resources;
 

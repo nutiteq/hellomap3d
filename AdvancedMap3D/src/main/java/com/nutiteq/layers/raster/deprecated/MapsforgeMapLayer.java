@@ -32,124 +32,125 @@ import com.nutiteq.tasks.deprecated.NetFetchTileTask;
  * @author jaak
  *
  */
+@Deprecated
 public class MapsforgeMapLayer extends RasterLayer {
 
-  private MapGenerator mapGenerator;
-  private JobTheme theme;
-  private MapDatabase mapDatabase;
-
-  public MapsforgeMapLayer(Projection projection, int minZoom, int maxZoom, int id, String path, JobTheme theme) {
-    super(projection, minZoom, maxZoom, id, path);
-    mapGenerator = MapGeneratorFactory.createMapGenerator(MapGeneratorInternal.DATABASE_RENDERER);
-
-    mapDatabase = new MapDatabase();
-    mapDatabase.closeFile();
-    FileOpenResult fileOpenResult = mapDatabase.openFile(new File("/"
-        + path));
-    if (fileOpenResult.isSuccess()) {
-      Log.debug("MapsforgeLayer MapDatabase opened ok: " + path);
-    }
-
-    ((DatabaseRenderer) mapGenerator).setMapDatabase(mapDatabase);
-    this.theme = theme;
-    setPersistentCaching(true);
-  }
-
-  @Override
-  public void fetchTile(MapTile tile) {
-    components.rasterTaskPool.execute(new MapsforgeFetchTileTask(tile, components, tileIdOffset, memoryCaching, persistentCaching, mapGenerator, theme));
-  }
-
-  @Override
-  public void flush() {
-
-  }
-
-
-  /**
-   * Task to load data from MapsForge renderer. 
-   *   Extends NetFetchTileTask just to use persistent caching
-   * @author jaak
-   *
-   */
-  public class MapsforgeFetchTileTask extends NetFetchTileTask {
-
-    private static final int TILE_SIZE = 256;
-    private int z;
-    private int x;
-    private int y;
-    // private Bitmap tileBitmap;
     private MapGenerator mapGenerator;
     private JobTheme theme;
+    private MapDatabase mapDatabase;
 
-    private static final float DEFAULT_TEXT_SCALE = 1;
+    public MapsforgeMapLayer(Projection projection, int minZoom, int maxZoom, int id, String path, JobTheme theme) {
+        super(projection, minZoom, maxZoom, id, path);
+        mapGenerator = MapGeneratorFactory.createMapGenerator(MapGeneratorInternal.DATABASE_RENDERER);
 
-    public MapsforgeFetchTileTask(MapTile tile, Components components,
-        long tileIdOffset, boolean memoryCaching, boolean persistentCaching, MapGenerator mapGenerator, JobTheme theme) {
-      super(tile, components, tileIdOffset, "", null, memoryCaching, persistentCaching);
-      this.mapGenerator = mapGenerator;
-      this.z = tile.zoom;
-      this.x = tile.x;
-      this.y = tile.y;
-      this.theme = theme;
+        mapDatabase = new MapDatabase();
+        mapDatabase.closeFile();
+        FileOpenResult fileOpenResult = mapDatabase.openFile(new File("/"
+                + path));
+        if (fileOpenResult.isSuccess()) {
+            Log.debug("MapsforgeLayer MapDatabase opened ok: " + path);
+        }
+
+        ((DatabaseRenderer) mapGenerator).setMapDatabase(mapDatabase);
+        this.theme = theme;
+        setPersistentCaching(true);
     }
 
     @Override
-    public void run() {
-      Log.debug("MapsforgeLayer: Start loading " + " zoom=" + z + " x=" + x + " y=" + y);
-      long startTime = System.currentTimeMillis();
-      MapGeneratorJob mapGeneratorJob = new MapGeneratorJob(new Tile(x, y,
-          (byte) z), "1", new JobParameters(theme, DEFAULT_TEXT_SCALE),
-          new DebugSettings(false, false, false));
-      Bitmap tileBitmap = Bitmap.createBitmap(TILE_SIZE, TILE_SIZE,
-          Bitmap.Config.RGB_565);
-      boolean success = this.mapGenerator.executeJob(mapGeneratorJob, tileBitmap);
-
-
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      tileBitmap.compress(Bitmap.CompressFormat.PNG, 90, bos);
-
-      long endTime = System.currentTimeMillis();
-      Log.debug("MapsforgeFetchTileTask run success=" + success + "time: " + (endTime-startTime)+ " ms");
-      try {
-        bos.close();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-      finished(bos.toByteArray());
-      cleanUp();
+    public void fetchTile(MapTile tile) {
+        components.rasterTaskPool.execute(new MapsforgeFetchTileTask(tile, components, tileIdOffset, memoryCaching, persistentCaching, mapGenerator, theme));
     }
-  }
 
-  /**
-   * 
-   * Modified InternalRenderTheme, as mapsforge bundled does not find theme path
-   * @author jaak
-   *
-   */
-  public enum InternalRenderTheme implements JobTheme {
+    @Override
+    public void flush() {
+
+    }
+
+
     /**
-     * A render-theme similar to the OpenStreetMap Osmarender style.
-     * 
-     * @see <a href="http://wiki.openstreetmap.org/wiki/Osmarender">Osmarender</a>
+     * Task to load data from MapsForge renderer. 
+     *   Extends NetFetchTileTask just to use persistent caching
+     * @author jaak
+     *
      */
-    OSMARENDER("/org/mapsforge/android/maps/rendertheme/osmarender/osmarender.xml");
+    public class MapsforgeFetchTileTask extends NetFetchTileTask {
 
-    private final String path;
+        private static final int TILE_SIZE = 256;
+        private int z;
+        private int x;
+        private int y;
+        // private Bitmap tileBitmap;
+        private MapGenerator mapGenerator;
+        private JobTheme theme;
 
-    private InternalRenderTheme(String path) {
-      this.path = path;
+        private static final float DEFAULT_TEXT_SCALE = 1;
+
+        public MapsforgeFetchTileTask(MapTile tile, Components components,
+                long tileIdOffset, boolean memoryCaching, boolean persistentCaching, MapGenerator mapGenerator, JobTheme theme) {
+            super(tile, components, tileIdOffset, "", null, memoryCaching, persistentCaching);
+            this.mapGenerator = mapGenerator;
+            this.z = tile.zoom;
+            this.x = tile.x;
+            this.y = tile.y;
+            this.theme = theme;
+        }
+
+        @Override
+        public void run() {
+            Log.debug("MapsforgeLayer: Start loading " + " zoom=" + z + " x=" + x + " y=" + y);
+            long startTime = System.currentTimeMillis();
+            MapGeneratorJob mapGeneratorJob = new MapGeneratorJob(new Tile(x, y,
+                    (byte) z), "1", new JobParameters(theme, DEFAULT_TEXT_SCALE),
+                    new DebugSettings(false, false, false));
+            Bitmap tileBitmap = Bitmap.createBitmap(TILE_SIZE, TILE_SIZE,
+                    Bitmap.Config.RGB_565);
+            boolean success = this.mapGenerator.executeJob(mapGeneratorJob, tileBitmap);
+
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            tileBitmap.compress(Bitmap.CompressFormat.PNG, 90, bos);
+
+            long endTime = System.currentTimeMillis();
+            Log.debug("MapsforgeFetchTileTask run success=" + success + "time: " + (endTime-startTime)+ " ms");
+            try {
+                bos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            finished(bos.toByteArray());
+            cleanUp();
+        }
     }
 
-    @Override
-    public InputStream getRenderThemeAsStream() {
-      return getClass().getResourceAsStream(this.path);
+    /**
+     * 
+     * Modified InternalRenderTheme, as mapsforge bundled does not find theme path
+     * @author jaak
+     *
+     */
+    public enum InternalRenderTheme implements JobTheme {
+        /**
+         * A render-theme similar to the OpenStreetMap Osmarender style.
+         * 
+         * @see <a href="http://wiki.openstreetmap.org/wiki/Osmarender">Osmarender</a>
+         */
+        OSMARENDER("/org/mapsforge/android/maps/rendertheme/osmarender/osmarender.xml");
+
+        private final String path;
+
+        private InternalRenderTheme(String path) {
+            this.path = path;
+        }
+
+        @Override
+        public InputStream getRenderThemeAsStream() {
+            return getClass().getResourceAsStream(this.path);
+        }
     }
-  }
 
 
-  public MapDatabase getMapDatabase() {
-    return mapDatabase;
-  }
+    public MapDatabase getMapDatabase() {
+        return mapDatabase;
+    }
 
 }

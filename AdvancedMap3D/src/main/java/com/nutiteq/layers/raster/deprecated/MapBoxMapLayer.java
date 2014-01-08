@@ -35,12 +35,13 @@ import com.samskivert.mustache.Template;
  * A raster layer class for reading map tiles from MapBox online tile storage.
  * Reads also UTFGrids for interactivity
  */
+@Deprecated
 public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface{
 
     private String account;
     private String map;
     private Map<MapPos, MBTileUTFGrid> utfGrids;
-    
+
     /**
      * Requests UTFGrid for all loaded tiles
      * 
@@ -60,14 +61,14 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
         @Override
         protected void finished(byte[] data) {
             try {
-               if(data == null){
-                   Log.debug("no grid for "+tile.zoom+"/"+tile.x+"/"+tile.y);
-                   return;
-               }
-               
-               MBTileUTFGrid grid = UtfGridHelper.decodeUtfGrid(data);
-               utfGrids.put(new MapPos(tile.x,tile.y,tile.zoom), grid);
-               
+                if(data == null){
+                    Log.debug("no grid for "+tile.zoom+"/"+tile.x+"/"+tile.y);
+                    return;
+                }
+
+                MBTileUTFGrid grid = UtfGridHelper.decodeUtfGrid(data);
+                utfGrids.put(new MapPos(tile.x,tile.y,tile.zoom), grid);
+
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -79,7 +80,7 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
             }
         }
     }
-        
+
     /**
      * Default constructor.
      * 
@@ -128,11 +129,11 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
         Map<String, String> data = new HashMap<String, String>();
 
         int zoom = clickedTile.zoom;
-        
+
         // what was clicked tile?
         int tileX = clickedTile.x;
         int tileY = clickedTile.y;
-        
+
         // point on clicked tile
         int clickedX = (int) (tilePos.x * 256);
         int clickedY = 256 - (int) (tilePos.y * 256);
@@ -141,7 +142,7 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
 
         // get UTFGrid data for the tile
         MBTileUTFGrid grid = utfGrids.get(new MapPos(tileX, tileY, (int)zoom));
-        
+
         if(grid == null){ // no grid found
             Log.debug("no UTFgrid loaded for "+(int)zoom+"/"+tileX+"/"+tileY);
             return null;
@@ -152,17 +153,17 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
             Log.debug("no utfGrid data here");
             return null;
         }
-            
+
         int gridKey = Integer.parseInt(grid.keys[id]);
         JSONObject clickedData = grid.data.optJSONObject(String.valueOf(gridKey));
-        
+
         if(clickedData == null){
             Log.debug("no gridDataJson value for "+id+ " in "+Arrays.toString(grid.keys)+ " tile:"+zoom+ "/"+ tileX +"/"+ tileY);
             return null;
         }
         try {
             // convert JSON to a HashMap
-            
+
             JSONArray names = clickedData.names();
             for(int i = 0; i < names.length(); i++){
                 String name = names.getString(i);
@@ -170,9 +171,9 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
                 data.put(name,value);
             }
 
-            
+
             // resolve Mustache template using https://github.com/samskivert/jmustache lib
-            
+
             if(template != null){
 
                 // use jMustache templating
@@ -181,38 +182,38 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
                 // add one more element to activate "teaser" section
                 // options: __teaser__, __full__, __location__
                 data.put("__teaser__", "1");
-                
+
                 String teaser = (tmpl.execute(data));
-                
+
                 // replace it with "full" to get full HTML also
                 data.remove("__teaser__");
                 data.put("__full__", "1");
-                
+
                 String fullToolTip = (tmpl.execute(data));             
                 data.remove("__full__");
-                
+
                 data.put("__location__", "1");
-                
+
                 String location = (tmpl.execute(data));             
                 data.remove("__location__");
-                
+
                 Log.debug("teaser:"+teaser);
                 Log.debug("fullToolTip:"+fullToolTip);
                 Log.debug("location:"+location);
-                
+
 
                 data.put(UtfGridHelper.TEMPLATED_TEASER_KEY,teaser);
                 data.put(UtfGridHelper.TEMPLATED_FULL_KEY,fullToolTip);
                 data.put(UtfGridHelper.TEMPLATED_LOCATION_KEY,location);
             }
-    
+
         } catch (JSONException e) {
-           Log.error("UTFGrid JSON parsing error "+e.getMessage());
+            Log.error("UTFGrid JSON parsing error "+e.getMessage());
         }
-      return data;
+        return data;
     }
-    
-    
+
+
     public static class LoadMetadataTask extends AsyncTask<Void, Void, JSONObject> {
 
         private Activity activity;
@@ -226,10 +227,10 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
             this.account = account;
             this.map = map;
         }
-        
+
         protected JSONObject doInBackground(Void... v) {
             JSONObject metaData = downloadMetadata(account, map);
-            
+
             return metaData;
         }
 
@@ -240,7 +241,7 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
             }
             String template = metaData.optString("template");
             this.mapListener.setTemplate(template);
-            
+
             String legend = metaData.optString("legend");
             if(legend != null && !legend.equals("")){
                 Log.debug("legend: "+legend);
@@ -248,10 +249,10 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
             }else{
                 Log.debug("no legend found");
             }
-            
+
         }
     }
-    
+
     /**
      * Load metadata as JSON. Suggested to be called from non-UI thread.
      * @return 
@@ -265,10 +266,10 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
             JSONObject metaData = new JSONObject(json);
             Log.debug("metadata loaded: "+metaData.toString());
             return metaData;
-            
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -277,5 +278,5 @@ public class MapBoxMapLayer extends TMSMapLayer implements UtfGridLayerInterface
         return true;
     }
 
-    
+
 }

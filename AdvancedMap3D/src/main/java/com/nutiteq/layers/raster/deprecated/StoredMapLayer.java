@@ -31,6 +31,7 @@ import com.nutiteq.utils.Utils;
  * <p>
  * Result: /london/OpenStreetMap_0/0_0.mgm
  */
+@Deprecated
 public class StoredMapLayer extends RasterLayer {
     private static final String CONFIG_FILENAME = "cache.conf";
     private static final String FILE_EXT = ".mgm";

@@ -23,6 +23,7 @@ import com.nutiteq.tasks.deprecated.NetFetchTileTask;
  * 
  * Note: If you use Bing Maps tiles make sure you follow Microsoft Terms of Service. It may or it may not be legal for commercial applications.
  */
+@Deprecated
 public class QuadKeyLayer extends RasterLayer {
     protected final String extension;
     private Map<String, String> httpHeaders;

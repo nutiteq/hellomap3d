@@ -1,12 +1,17 @@
 package com.nutiteq.advancedmap.activity;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.webkit.WebView;
+import android.widget.RelativeLayout;
 import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
@@ -18,13 +23,13 @@ import com.nutiteq.components.Options;
 import com.nutiteq.datasources.raster.MBOnlineRasterDataSource;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.UTFGridRasterLayer;
-import com.nutiteq.layers.raster.deprecated.MapBoxMapLayer;
-import com.nutiteq.layers.raster.deprecated.MapBoxMapLayer.LoadMetadataTask;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.ui.Label;
 import com.nutiteq.ui.ViewLabel;
+import com.nutiteq.utils.NetUtils;
+import com.nutiteq.utils.UiUtils;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
@@ -45,9 +50,60 @@ import com.nutiteq.vectorlayers.MarkerLayer;
 public class MapBoxMapActivity extends Activity {
 
     // Please configure your ID and account here
-
     private static final String MAPBOX_MAPID = "geography-class";
     private static final String MAPBOX_ACCOUNT = "nutiteq";
+
+    /**
+     * Asynchronous task for loading metadata.
+     */
+    public class LoadMetadataTask extends AsyncTask<Void, Void, JSONObject> {
+
+        private UTFGridLayerEventListener mapListener;
+        private String account;
+        private String map;
+
+        public LoadMetadataTask(UTFGridLayerEventListener mapListener, String account, String map){
+            this.mapListener = mapListener;
+            this.account = account;
+            this.map = map;
+        }
+
+        protected JSONObject doInBackground(Void... v) {
+            try {
+                String url = "http://api.tiles.mapbox.com/v3/"+account+"."+map+".json";
+                String json = NetUtils.downloadUrl(url, null, true, "UTF-8");
+                if(json == null)
+                    return null;
+                JSONObject metaData = new JSONObject(json);
+                Log.debug("metadata loaded: "+metaData.toString());
+                return metaData;
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        protected void onPostExecute(JSONObject metaData) {
+            if(metaData == null){
+                Log.error("no metadata found");
+                return;
+            }
+            String template = metaData.optString("template");
+            this.mapListener.setTemplate(template);
+
+            String legend = metaData.optString("legend");
+            if(legend != null && !legend.equals("")){
+                Log.debug("legend: "+legend);
+                UiUtils.addWebView((RelativeLayout) findViewById(R.id.mainView), MapBoxMapActivity.this, legend, 320, 300);
+            }else{
+                Log.debug("no legend found");
+            }
+
+        }
+    }
+
     private MapView mapView;
 
 
@@ -76,7 +132,7 @@ public class MapBoxMapActivity extends Activity {
             mapView.getOptions().setMapListener(mapListener);
             mapView.getOptions().setMapListener(null);
 
-            LoadMetadataTask task = new MapBoxMapLayer.LoadMetadataTask(this, mapListener, MAPBOX_ACCOUNT, MAPBOX_MAPID);
+            LoadMetadataTask task = new LoadMetadataTask(mapListener, MAPBOX_ACCOUNT, MAPBOX_MAPID);
             task.execute();
             return;
         } else {
@@ -120,7 +176,7 @@ public class MapBoxMapActivity extends Activity {
         mapView.getOptions().setMapListener(mapListener);
 
         // download Metadata, add legend and tooltip listener hooks
-        LoadMetadataTask task = new MapBoxMapLayer.LoadMetadataTask(this, mapListener, MAPBOX_ACCOUNT, MAPBOX_MAPID);
+        LoadMetadataTask task = new LoadMetadataTask(mapListener, MAPBOX_ACCOUNT, MAPBOX_MAPID);
         task.execute();
 
         // set initial map view camera - optional. "World view" is default

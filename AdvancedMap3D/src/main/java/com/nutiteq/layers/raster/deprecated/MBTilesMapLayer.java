@@ -23,36 +23,37 @@ import com.nutiteq.tasks.FetchTileTask;
  * <i>zoom_level</i> (zoom level of the tile), <i>tile_column</i>,
  * <i>tile_row</i>, <i>tile_data</i> (compressed tile bitmap)
  */
+@Deprecated
 public class MBTilesMapLayer extends RasterLayer implements UtfGridLayerInterface{
 
     private MBTilesDbHelper db;
     private boolean tmsY;
     private boolean hasUtfGrid = false;
-    
+
     private class DbFetchTileTask extends FetchTileTask {
 
-      private MBTilesDbHelper db;
-      private int z;
-      private int x;
-      private int y;
+        private MBTilesDbHelper db;
+        private int z;
+        private int x;
+        private int y;
 
-      public DbFetchTileTask(MapTile tile, Components components, long tileIdOffset, MBTilesDbHelper db) {
-        super(tile, components, tileIdOffset);
-        this.db = db;
-        this.z = tile.zoom;
-        this.x = tile.x;
-        this.y = tile.y;
-      }
+        public DbFetchTileTask(MapTile tile, Components components, long tileIdOffset, MBTilesDbHelper db) {
+            super(tile, components, tileIdOffset);
+            this.db = db;
+            this.z = tile.zoom;
+            this.x = tile.x;
+            this.y = tile.y;
+        }
 
-      @Override
-      public void run() {
-        super.run();
-        Log.debug("DbMapLayer task: Start loading " + " zoom=" + z + " x=" + x + " y=" + y);
-        
-        // y is flipped (origin=sw in mbtiles)
-        finished(db.getTileImg(z, x, (1 << (z)) - 1 - y));
-        cleanUp();
-      }
+        @Override
+        public void run() {
+            super.run();
+            Log.debug("DbMapLayer task: Start loading " + " zoom=" + z + " x=" + x + " y=" + y);
+
+            // y is flipped (origin=sw in mbtiles)
+            finished(db.getTileImg(z, x, (1 << (z)) - 1 - y));
+            cleanUp();
+        }
 
     }
 
@@ -90,7 +91,7 @@ public class MBTilesMapLayer extends RasterLayer implements UtfGridLayerInterfac
         db.open();
 
         hasUtfGrid = db.getMetadata().containsKey("template");
-        
+
     }
 
     @Override

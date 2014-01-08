@@ -18,6 +18,7 @@ import com.nutiteq.utils.Utils;
  * 
  * @author jaak
  */
+@Deprecated
 public class WmsLayer extends RasterLayer {
 
     private String layer;

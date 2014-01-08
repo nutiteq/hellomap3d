@@ -30,6 +30,7 @@ import com.nutiteq.vectorlayers.GeometryLayer;
  * @author jaak
  *
  */
+@Deprecated
 public class SpatialiteLayer extends GeometryLayer {
 
     private SpatialLiteDbHelper spatialLite;
@@ -39,15 +40,15 @@ public class SpatialiteLayer extends GeometryLayer {
     private StyleSet<LineStyle> lineStyleSet;
     private StyleSet<PolygonStyle> polygonStyle;
     private int autoSimplifyPixels;
-    
-    
+
+
     private int minZoom;
     private int maxObjects;
     private String[] userColumns;
     private int screenWidth;
     private String filter;
 
-    
+
     /**
      * Create Spatialite layer with the data
      * 
@@ -61,13 +62,13 @@ public class SpatialiteLayer extends GeometryLayer {
      * @param lineStyleSet Style for lines
      * @param polygonStyleSet Style for polygons
      */
-    
+
     public SpatialiteLayer(Projection proj, String dbPath, String tableName,
             String geomColumnName, String[] userColumns, int maxObjects,
             StyleSet<PointStyle> pointStyleSet,
             StyleSet<LineStyle> lineStyleSet,
             StyleSet<PolygonStyle> polygonStyleSet) {
-        
+
         this(proj, new SpatialLiteDbHelper(dbPath), tableName, geomColumnName,
                 userColumns, maxObjects, pointStyleSet, lineStyleSet,
                 polygonStyleSet);
@@ -96,7 +97,7 @@ public class SpatialiteLayer extends GeometryLayer {
                 userColumns, null, maxObjects, pointStyleSet, lineStyleSet,
                 polygonStyleSet);
     }
-    
+
     /**
      * Create Spatialite layer with the SpatialLiteDb already opened, and filters
      * 
@@ -112,11 +113,11 @@ public class SpatialiteLayer extends GeometryLayer {
      * @param polygonStyleSet Style for polygons
      */
     public SpatialiteLayer(Projection proj, SpatialLiteDbHelper spatialLiteDb,
-                String tableName, String geomColumnName, String[] userColumns,
-                String filter, int maxObjects, StyleSet<PointStyle> pointStyleSet,
-                StyleSet<LineStyle> lineStyleSet,
-                StyleSet<PolygonStyle> polygonStyleSet) {
-        
+            String tableName, String geomColumnName, String[] userColumns,
+            String filter, int maxObjects, StyleSet<PointStyle> pointStyleSet,
+            StyleSet<LineStyle> lineStyleSet,
+            StyleSet<PolygonStyle> polygonStyleSet) {
+
         super(proj);
 
         this.userColumns = userColumns;
@@ -126,7 +127,7 @@ public class SpatialiteLayer extends GeometryLayer {
         this.maxObjects = maxObjects;
         this.spatialLite = spatialLiteDb;
         this.filter = filter;
-        
+
         if (pointStyleSet != null) {
             minZoom = pointStyleSet.getFirstNonNullZoomStyleZoom();
         }
@@ -136,11 +137,11 @@ public class SpatialiteLayer extends GeometryLayer {
         if (polygonStyleSet != null) {
             minZoom = polygonStyleSet.getFirstNonNullZoomStyleZoom();
         }
-        
+
 
         Map<String, SpatialLiteDbHelper.DbLayer> dbLayers = spatialLite.qrySpatialLayerMetadata();
         for (String layerKey : dbLayers.keySet()) {
-          SpatialLiteDbHelper.DbLayer layer = dbLayers.get(layerKey);
+            SpatialLiteDbHelper.DbLayer layer = dbLayers.get(layerKey);
             if (layer.table.compareTo(tableName) == 0
                     && layer.geomColumn.compareTo(geomColumnName) == 0) {
                 this.dbLayer = layer;
@@ -159,17 +160,17 @@ public class SpatialiteLayer extends GeometryLayer {
             this.userColumns = spatialLite.qryColumns(dbLayer);
         }
 
-        
+
         // fix/add SDK SRID definition for conversions
-       spatialLite.defineEPSG3857();
-        
+        spatialLite.defineEPSG3857();
+
     }
-    
+
     @Override
     public void add(Geometry element) {
         throw new UnsupportedOperationException();
     }
-    
+
     @Override
     public void remove(Geometry element) {
         throw new UnsupportedOperationException();
@@ -194,7 +195,7 @@ public class SpatialiteLayer extends GeometryLayer {
     public Envelope getDataExtent() {
         return spatialLite.qryDataExtent(dbLayer);
     }
-    
+
     public int getAutoSimplify() {
         return autoSimplifyPixels;
     }
@@ -204,33 +205,33 @@ public class SpatialiteLayer extends GeometryLayer {
         this.screenWidth = screenWidth;
     }
 
-    
+
     protected class LoadDataTask implements Task {
         final Envelope envelope;
         final int zoom;
-        
+
         LoadDataTask(Envelope envelope, int zoom) {
-          this.envelope = envelope;
-          this.zoom = zoom;
+            this.envelope = envelope;
+            this.zoom = zoom;
         }
-        
+
         @Override
         public void run() {
-          loadData(envelope, zoom);
+            loadData(envelope, zoom);
         }
 
         @Override
         public boolean isCancelable() {
-          return true;
+            return true;
         }
 
         @Override
         public void cancel() {
         }
-      }
+    }
 
     public void loadData(Envelope envelope, int zoom) {
-	// TODO: use fromInternal(Envelope) here
+        // TODO: use fromInternal(Envelope) here
         MapPos bottomLeft = projection.fromInternal(envelope.getMinX(),
                 envelope.getMinY());
         MapPos topRight = projection.fromInternal(envelope.getMaxX(),
@@ -252,7 +253,7 @@ public class SpatialiteLayer extends GeometryLayer {
                 for(Map.Entry<String, String> entry : userData.entrySet()){
                     colData.append(entry.getKey() + ": " + entry.getValue()+"\n");
                 }
-                
+
                 label = new DefaultLabel(dbLayer.table,colData.toString(),
                         LabelStyle.builder()
                         .setDescriptionAlign(Align.LEFT)
@@ -261,7 +262,7 @@ public class SpatialiteLayer extends GeometryLayer {
                         .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), 32)
                         .setTitleFont(Typeface.create("Arial", Typeface.BOLD), 36)
                         .build());
-                
+
             }
 
             Geometry newObject = null;
@@ -289,6 +290,6 @@ public class SpatialiteLayer extends GeometryLayer {
 
         Log.debug("added verteces: "+numVert);
         setVisibleElements(objects);
-        
+
     }
 }

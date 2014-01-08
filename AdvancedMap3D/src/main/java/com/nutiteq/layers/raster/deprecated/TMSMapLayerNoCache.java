@@ -2,6 +2,7 @@ package com.nutiteq.layers.raster.deprecated;
 
 import com.nutiteq.projections.Projection;
 
+@Deprecated
 public class TMSMapLayerNoCache extends TMSMapLayer {
 
     public TMSMapLayerNoCache(Projection projection, int minZoom, int maxZoom,

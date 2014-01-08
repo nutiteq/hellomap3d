@@ -41,6 +41,7 @@ import com.nutiteq.vectorlayers.GeometryLayer;
  * @author jaak
  *
  */
+@Deprecated
 public class CartoDbVectorLayer extends GeometryLayer {
     public static final String TAG_WEBMERCATOR = "the_geom_webmercator";
     private static final CharSequence BBOX_PLACEHODER = "!bbox!";

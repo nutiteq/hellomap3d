@@ -20,6 +20,7 @@ import com.nutiteq.tasks.deprecated.NetFetchTileTask;
  * <p>
  * Result: http://tile.openstreetmap.org/0/0/0.png
  */
+@Deprecated
 public class TMSMapLayer extends RasterLayer {
     protected final String separator;
     protected final String format;
