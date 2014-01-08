@@ -10,7 +10,6 @@ import org.json.JSONObject;
 import android.net.ParseException;
 import android.net.Uri;
 
-import com.nutiteq.components.Components;
 import com.nutiteq.components.Envelope;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.Geometry;

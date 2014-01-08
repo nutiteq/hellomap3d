@@ -24,6 +24,8 @@ import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
+import com.nutiteq.ui.DefaultLabel;
+import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.GeometryLayer;
 
@@ -139,60 +141,7 @@ public class CartoDbVectorMapActivity extends Activity {
 
 
         // 5. Add CartoDB vector layer to map
-
-        //  5.1 Define styles for all possible geometry types
-
-        //  5.2 Define layer and add to map
-
-        String account = "nutiteq";
-        String table = "tm_world_borders"; // kihelkonnad_1897, maakond_20120701
-        String columns = "cartodb_id,name,iso2,pop2005,area,the_geom_webmercator"; // NB! always include cartodb_id and the_geom_webmercator
-        int limit = 5000; // max number of objects
-        String sql = "SELECT "+columns+" FROM "+table+" WHERE the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT "+limit;
-
-//      String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads WHERE type in ('trunk','primary') AND the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
-//      String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads WHERE the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
-        CartoDbDataSource cartoDataSource = (new CartoDbDataSource(mapView.getLayers().getBaseLayer().getProjection(), account, sql) {
-
-            StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
-            StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
-            StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
-            
-            public CartoDbDataSource initialize() {
-                int color = Color.BLUE;
-                int minZoom = 5;
-
-                final Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
-                PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(color).setPickingSize(0.2f).build();
-                pointStyleSet.setZoomStyle(minZoom, pointStyle);
-
-                LineStyle lineStyle = LineStyle.builder().setWidth(0.04f).setColor(Color.WHITE).build();
-                lineStyleSet.setZoomStyle(minZoom, lineStyle);
-
-                PolygonStyle polygonStyle = PolygonStyle.builder().setColor(0xFFFF6600 & 0x80FFFFFF).setLineStyle(lineStyle).build();
-                polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
-                return this;
-            }
-
-            @Override
-            protected StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom) {
-                return pointStyleSet;
-            }
-
-            @Override
-            protected StyleSet<LineStyle> createLineStyleSet(Map<String, String> userData, int zoom) {
-                return lineStyleSet;
-            }
-
-            @Override
-            protected StyleSet<PolygonStyle> createPolygonStyleSet(Map<String, String> userData, int zoom) {
-                return polygonStyleSet;
-            }
-            
-        }).initialize();
-        
-        GeometryLayer cartoLayerTrunk = new GeometryLayer(cartoDataSource);
-        mapView.getLayers().addLayer(cartoLayerTrunk);
+        addCartoDbLayer();
     }
 
     @Override
@@ -211,5 +160,64 @@ public class CartoDbVectorMapActivity extends Activity {
         return mapView;
     }
 
+    private void addCartoDbLayer() {
+
+        //  5.1 Define styles for all possible geometry types
+        int color = Color.BLUE;
+        int minZoom = 5;
+
+        final Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
+        final StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>();
+        PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setSize(0.05f).setColor(color).setPickingSize(0.2f).build();
+        pointStyleSet.setZoomStyle(minZoom, pointStyle);
+
+        final StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
+        LineStyle lineStyle = LineStyle.builder().setWidth(0.04f).setColor(Color.WHITE).build();
+        lineStyleSet.setZoomStyle(minZoom, lineStyle);
+
+        final StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
+        PolygonStyle polygonStyle = PolygonStyle.builder().setColor(0xFFFF6600 & 0x80FFFFFF).setLineStyle(lineStyle).build();
+        polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
+
+        String account = "nutiteq";
+        String table = "tm_world_borders"; // kihelkonnad_1897, maakond_20120701
+        String columns = "cartodb_id,name,iso2,pop2005,area,the_geom_webmercator"; // NB! always include cartodb_id and the_geom_webmercator
+        int limit = 5000; // max number of objects
+        String sql = "SELECT "+columns+" FROM "+table+" WHERE the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT "+limit;
+
+        //      String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads WHERE type in ('trunk','primary') AND the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
+        //      String sql2 = "SELECT name, type, oneway, osm_id, the_geom_webmercator FROM osm_roads WHERE the_geom_webmercator && ST_SetSRID('BOX3D(!bbox!)'::box3d, 3857) LIMIT 500";
+        CartoDbDataSource cartoDataSource = new CartoDbDataSource(mapView.getLayers().getBaseLayer().getProjection(), account, sql) {
+
+            @Override
+            protected Label createLabel(Map<String, String> userData) {
+                StringBuffer labelTxt = new StringBuffer();
+                for (Map.Entry<String, String> entry : userData.entrySet()){
+                    labelTxt.append(entry.getKey() + ": " + entry.getValue() + "\n");
+                }
+                return new DefaultLabel("Data:", labelTxt.toString());
+            }
+
+            @Override
+            protected StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom) {
+                return pointStyleSet;
+            }
+
+            @Override
+            protected StyleSet<LineStyle> createLineStyleSet(Map<String, String> userData, int zoom) {
+                return lineStyleSet;
+            }
+
+            @Override
+            protected StyleSet<PolygonStyle> createPolygonStyleSet(Map<String, String> userData, int zoom) {
+                return polygonStyleSet;
+            }
+
+        };
+
+        GeometryLayer cartoLayerTrunk = new GeometryLayer(cartoDataSource);
+        mapView.getLayers().addLayer(cartoLayerTrunk);
+
+    }
 }
 

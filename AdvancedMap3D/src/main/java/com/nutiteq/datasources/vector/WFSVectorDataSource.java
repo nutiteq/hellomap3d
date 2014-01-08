@@ -146,9 +146,7 @@ public abstract class WFSVectorDataSource extends AbstractVectorDataSource<com.n
         }
     }
 
-    protected Label createLabel(Feature feature) {
-        return new DefaultLabel(feature.properties.name, "OSM Id: " + feature.properties.osm_id + " type:" + feature.properties.type);
-    }
+    protected abstract Label createLabel(Feature feature);
     
     protected abstract StyleSet<PointStyle> createPointFeatureStyleSet(Feature feature, int zoom);
 

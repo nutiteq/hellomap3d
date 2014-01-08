@@ -27,6 +27,8 @@ import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
+import com.nutiteq.ui.DefaultLabel;
+import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 
 /**
@@ -158,6 +160,15 @@ public class EditableCartoDbMapActivity extends EditableMapActivityBase {
 		String deleteSql = "DELETE FROM "+table+" WHERE cartodb_id=!id!";
 
 		EditableCartoDbDataSource dataSource = new EditableCartoDbDataSource(mapView.getLayers().getBaseProjection(), account, apiKey, querySql, insertSql, updateSql, deleteSql, multiGeometry) {
+
+            @Override
+            protected Label createLabel(Map<String, String> userData) {
+                StringBuffer labelTxt = new StringBuffer();
+                for (Map.Entry<String, String> entry : userData.entrySet()){
+                    labelTxt.append(entry.getKey() + ": " + entry.getValue() + "\n");
+                }
+                return new DefaultLabel("Data:", labelTxt.toString());
+            }
 
             @Override
             protected StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom) {

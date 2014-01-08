@@ -129,13 +129,7 @@ public abstract class OGRVectorDataSource extends AbstractVectorDataSource<Geome
         return elements;
     }
 
-    protected Label createLabel(Map<String, String> userData) {
-        StringBuffer labelTxt = new StringBuffer();
-        for (Map.Entry<String, String> entry : userData.entrySet()){
-            labelTxt.append(entry.getKey() + ": " + entry.getValue() + "\n");
-        }
-        return new DefaultLabel("Data:", labelTxt.toString());
-    }
+    protected abstract Label createLabel(Map<String, String> userData);
 
     protected abstract StyleSet<PointStyle> createPointStyleSet(Map<String, String> userData, int zoom);
 

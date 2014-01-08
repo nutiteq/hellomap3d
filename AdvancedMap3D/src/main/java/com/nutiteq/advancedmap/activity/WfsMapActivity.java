@@ -22,6 +22,8 @@ import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.style.TextStyle;
+import com.nutiteq.ui.DefaultLabel;
+import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.GeometryLayer;
 import com.nutiteq.vectorlayers.TextLayer;
@@ -76,6 +78,17 @@ public class WfsMapActivity extends Activity {
         }
 
         // 3. Define map layer for basemap - mandatory.
+        
+        // create styles
+        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
+
+        final StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>(
+                LineStyle.builder().setWidth(0.04f)
+                    .setColor(0xFFAAAAAA).build());
+
+        final StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>(
+                PointStyle.builder().setBitmap(pointMarker)
+                    .setSize(0.05f).setColor(Color.BLUE).setPickingSize(0.2f).build());
 
         // add WFS layer as base layer
         String layers = "osm:osm_mainroads_gen1,osm:osm_amenities,osm:osm_roads";
@@ -83,15 +96,10 @@ public class WfsMapActivity extends Activity {
 
         WFSVectorDataSource wfsDataSource = new WFSVectorDataSource(new EPSG3857(), wfsUrl) {
 
-            private Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
-
-            private StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>(
-                    LineStyle.builder().setWidth(0.04f)
-                        .setColor(0xFFAAAAAA).build());
-
-            private StyleSet<PointStyle> pointStyleSet = new StyleSet<PointStyle>(
-                    PointStyle.builder().setBitmap(pointMarker)
-                        .setSize(0.05f).setColor(Color.BLUE).setPickingSize(0.2f).build());
+            @Override
+            protected Label createLabel(Feature feature) {
+                return new DefaultLabel(feature.properties.name, "OSM Id: " + feature.properties.osm_id + " type:" + feature.properties.type);
+            }
 
             @Override
             protected StyleSet<PointStyle> createPointFeatureStyleSet(Feature feature, int zoom) {
@@ -102,6 +110,7 @@ public class WfsMapActivity extends Activity {
             protected StyleSet<LineStyle> createLineFeatureStyleSet(Feature feature, int zoom) {
                 return lineStyleSet;
             }
+
         };
 
         GeometryLayer wfsLayer = new GeometryLayer(wfsDataSource);
