@@ -1,5 +1,6 @@
 package com.nutiteq.layers.vector.deprecated;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Vector;
 
@@ -61,13 +62,14 @@ public class SpatialiteLayer extends GeometryLayer {
      * @param pointStyleSet Style for points
      * @param lineStyleSet Style for lines
      * @param polygonStyleSet Style for polygons
+     * @throws IOException 
      */
 
     public SpatialiteLayer(Projection proj, String dbPath, String tableName,
             String geomColumnName, String[] userColumns, int maxObjects,
             StyleSet<PointStyle> pointStyleSet,
             StyleSet<LineStyle> lineStyleSet,
-            StyleSet<PolygonStyle> polygonStyleSet) {
+            StyleSet<PolygonStyle> polygonStyleSet) throws IOException {
 
         this(proj, new SpatialLiteDbHelper(dbPath), tableName, geomColumnName,
                 userColumns, maxObjects, pointStyleSet, lineStyleSet,

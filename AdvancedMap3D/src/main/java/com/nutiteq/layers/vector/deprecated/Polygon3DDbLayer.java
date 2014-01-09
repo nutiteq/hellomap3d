@@ -1,5 +1,6 @@
 package com.nutiteq.layers.vector.deprecated;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -47,9 +48,10 @@ public class Polygon3DDbLayer extends Polygon3DLayer {
      * @param heightFactor multiply height with this number to make it visible
      * @param maxObjects limit number of loaded objects, set to 500 e.g. to avoid out of memory
      * @param styleSet Polygon3DStyle styleset for visualisation
+     * @throws IOException 
      */
     public Polygon3DDbLayer(String dbPath, String tableName, String geomColumnName, String heightColumnName,
-            float heightFactor, int maxObjects, StyleSet<Polygon3DStyle> styleSet) {
+            float heightFactor, int maxObjects, StyleSet<Polygon3DStyle> styleSet) throws IOException {
         super(new EPSG3857());
         this.styleSet = styleSet;
         this.heightColumnName = heightColumnName;

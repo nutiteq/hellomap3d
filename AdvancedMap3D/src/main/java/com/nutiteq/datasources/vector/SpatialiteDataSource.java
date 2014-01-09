@@ -1,5 +1,6 @@
 package com.nutiteq.datasources.vector;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +49,9 @@ public abstract class SpatialiteDataSource extends AbstractVectorDataSource<Geom
      * @param geomColumnName geometry column from the table
      * @param userColumns load data from these columns as userData
      * @param filter filter expression for queries
+     * @throws IOException 
      */
-    public SpatialiteDataSource(Projection proj, String dbPath, String tableName, String geomColumnName, String[] userColumns, String filter) {
+    public SpatialiteDataSource(Projection proj, String dbPath, String tableName, String geomColumnName, String[] userColumns, String filter) throws IOException {
         this(proj, new SpatialLiteDbHelper(dbPath), tableName, geomColumnName, userColumns, filter);
     }
 

@@ -1,5 +1,6 @@
 package com.nutiteq.editable.layers.deprecated;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,9 +49,10 @@ public class EditableSpatialiteLayer extends EditableGeometryDbLayer {
      * @param lineStyleSet required if layer has lines
      * @param polygonStyleSet required if layer has lines
      * @param context Activity who controls the layer
+     * @throws IOException 
      */
     public EditableSpatialiteLayer(Projection proj, String dbPath, String tableName, String geomColumnName, String[] userColumns, int maxObjects,
-            StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, Context context) {
+            StyleSet<PointStyle> pointStyleSet, StyleSet<LineStyle> lineStyleSet, StyleSet<PolygonStyle> polygonStyleSet, Context context) throws IOException {
         super(proj, pointStyleSet, lineStyleSet, polygonStyleSet, context);
         this.userColumns = userColumns;
         this.maxObjects = maxObjects;

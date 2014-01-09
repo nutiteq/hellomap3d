@@ -71,9 +71,6 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
     private static final int DIALOG_TABLE_LIST = 1;
     private static final int DIALOG_NO_TABLES = 2;
 
-    // Input file path
-    private String dbPath;
-
     // Spatialite-specific data
     private SpatialLiteDbHelper spatialLite;
     private Map<String, SpatialLiteDbHelper.DbLayer> dbMetaData;
@@ -98,13 +95,13 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
     protected void createEditableLayers() {
         // read filename from extras
         Bundle b = getIntent().getExtras();
-        dbPath = b.getString("selectedFile");
+        String file = b.getString("selectedFile");
 
         createStyleSets();
-        if (dbPath.endsWith(".db") || dbPath.endsWith(".sqlite") || dbPath.endsWith(".spatialite")) {
-            showSpatialiteTableList();
+        if (file.endsWith(".db") || file.endsWith(".sqlite") || file.endsWith(".spatialite")) {
+            showSpatialiteTableList(file);
         } else {
-            createEditableOGRLayers();
+            createEditableOGRLayers(file);
         }
     }
 
@@ -202,8 +199,14 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
         return null;
     }
 
-    private void showSpatialiteTableList() {
-        spatialLite = new SpatialLiteDbHelper(dbPath);
+    private void showSpatialiteTableList(String dbPath) {
+        try {
+            spatialLite = new SpatialLiteDbHelper(dbPath);
+        } catch (IOException e) {
+            Log.error(e.getLocalizedMessage());
+            Toast.makeText(this, "ERROR "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+            return;
+        }
         dbMetaData = spatialLite.qrySpatialLayerMetadata();
 
         ArrayList<String> tables = new ArrayList<String>();
@@ -251,7 +254,7 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
                 .build();
     }
 
-    private void createEditableOGRLayers() {
+    private void createEditableOGRLayers(String dbPath) {
         // create editable data source and layer
         EditableOGRVectorDataSource dataSource;
         try {
@@ -299,7 +302,7 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
         String geomColumn = tableKey[1];
 
         // create editable data source and layer
-        EditableSpatialiteDataSource dataSource = new EditableSpatialiteDataSource(new EPSG3857(), dbPath, tableName, geomColumn, new String[]{"name"}, null) {
+        EditableSpatialiteDataSource dataSource = new EditableSpatialiteDataSource(new EPSG3857(), spatialLite, tableName, geomColumn, new String[]{"name"}, null) {
 
             @Override
             protected Label createLabel(Map<String, String> userData) {

@@ -2,6 +2,7 @@ package com.nutiteq.db;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -80,30 +81,26 @@ public class SpatialLiteDbHelper {
     private String sdk_proj4text;
     private String spatialiteVersion;
 
-    public SpatialLiteDbHelper(String dbPath) {
+    public SpatialLiteDbHelper(String dbPath) throws IOException {
 
         if (!new File(dbPath).exists()) {
-            Log.error("File not found: " + dbPath);
-            db = null;
-            return;
-
+            Log.error("SpatialLite: File not found: " + dbPath);
+            throw new IOException("SpatialLite: File not found: " + dbPath);
         }
 
         this.dbPath = dbPath;
         db = new jsqlite.Database();
         try {
-            db.open(dbPath, jsqlite.Constants.SQLITE_OPEN_READWRITE);
+            db.open(this.dbPath, jsqlite.Constants.SQLITE_OPEN_READWRITE);
         } catch (Exception e) {
             Log.error("SpatialLite: Failed to open database! " + e.getMessage());
-            return;
+            throw new IOException("SpatialLite: Failed to open database! " + e.getMessage());
         }
 
         //sdk_proj4text = qryProj4Def(SDK_SRID);
-         sdk_proj4text =
-         "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
+        sdk_proj4text = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
          
-         this.spatialiteVersion = qrySpatialiteVersion();
-         
+        this.spatialiteVersion = qrySpatialiteVersion();
     }
 
     public void close() {
@@ -112,6 +109,10 @@ public class SpatialLiteDbHelper {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    public String getVersion() {
+        return spatialiteVersion;
     }
 
     public Map<String, DbLayer> qrySpatialLayerMetadata() {

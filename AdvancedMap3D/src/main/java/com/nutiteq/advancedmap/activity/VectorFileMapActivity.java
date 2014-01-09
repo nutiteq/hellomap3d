@@ -316,7 +316,13 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
     }
 
     private void showSpatialiteTableList(String dbPath) {
-        spatialLite = new SpatialLiteDbHelper(dbPath);
+        try {
+            spatialLite = new SpatialLiteDbHelper(dbPath);
+        } catch (IOException e) {
+            Log.error(e.getLocalizedMessage());
+            Toast.makeText(this, "ERROR "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+            return;
+        }
         dbMetaData = spatialLite.qrySpatialLayerMetadata();
 
         ArrayList<String> tables = new ArrayList<String>();
