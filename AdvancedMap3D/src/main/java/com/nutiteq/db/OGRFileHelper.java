@@ -29,7 +29,6 @@ import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Point;
 import com.nutiteq.geometry.Polygon;
 import com.nutiteq.log.Log;
-import com.nutiteq.projections.Projection;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.PointStyle;
 import com.nutiteq.style.PolygonStyle;
@@ -49,7 +48,6 @@ public abstract class OGRFileHelper {
 
     private Layer layer;
     private boolean transformNeeded;
-    private Projection projection;
     
     private DataSource hDataset;
     private String[] fieldNames;
@@ -67,31 +65,28 @@ public abstract class OGRFileHelper {
     private static final String EPSG_3785_PROJ4BIS3 =   "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
 
 
-    public OGRFileHelper(String fileName, String tableName, Projection proj, boolean update) throws IOException {
-        this.projection = proj;
+    public OGRFileHelper(String fileName, String tableName, boolean update) throws IOException {
         
         // open dataset
         hDataset = ogr.Open(fileName, update);
         if (hDataset == null) {
-            Log.error("OgrHelper: unable to open dataset '"+fileName+"'");
+            Log.error("OGRFileHelper: unable to open dataset '"+fileName+"'");
             
             printSupportedDrivers();    
-            throw new IOException("OgrHelper: unable to open dataset '"+fileName+"'");
+            throw new IOException("OGRFileHelper: unable to open dataset '"+fileName+"'");
         }
         
         // open the layer
         if (tableName == null) {
             layer = hDataset.GetLayer(0);
             tableName = layer.GetName();
-        }
-        else {
+        } else {
             // you can use SQL here
-          //layer = hDataset.ExecuteSQL("SELECT * FROM " + tableName+ " WHERE OKOOD=0616");
             layer = hDataset.GetLayerByName(tableName);
         }
         if (layer == null) {
-            Log.error("OgrHelper: could not find layer '"+tableName+"'");
-            return;
+            Log.error("OGRFileHelper: could not find layer '"+tableName+"'");
+            throw new IOException("OGRFileHelper: could not find layer '"+tableName+"'");
         }
         
         printLayerDetails();
@@ -185,7 +180,7 @@ public abstract class OGRFileHelper {
         }
 
         long timeEnd = System.currentTimeMillis();
-        Log.debug("OgrHelper: loaded "+layer.GetName()+" N:"+ elementList.size()+" time ms:"+(timeEnd-timeStart));
+        Log.debug("OGRFileHelper: loaded "+layer.GetName()+" N:"+ elementList.size()+" time ms:"+(timeEnd-timeStart));
         return elementList;
     }
     
@@ -202,7 +197,7 @@ public abstract class OGRFileHelper {
            feature.SetField(field, fields.get(field));   
         }
         if(layer.CreateFeature(feature) != ogrConstants.OGRERR_NONE){
-            Log.error("OgrHelper: could not create feature");
+            Log.error("OGRFileHelper: could not create feature");
         }
         
         long id = feature.GetFID();
@@ -227,7 +222,7 @@ public abstract class OGRFileHelper {
         }
         feature.SetGeometryDirectly(Geometry.CreateFromWkt(wktGeom));
         if(layer.SetFeature(feature) != ogrConstants.OGRERR_NONE){
-            Log.error("OgrHelper: could not update feature");
+            Log.error("OGRFileHelper: could not update feature");
         }
         
         layer.SyncToDisk();
@@ -235,7 +230,7 @@ public abstract class OGRFileHelper {
 
     public void deleteElement(long id) {
         if(layer.DeleteFeature((int) id) != ogrConstants.OGRERR_NONE){
-            Log.error("OgrHelper: could not delete feature with id "+id);
+            Log.error("OGRFileHelper: could not delete feature with id "+id);
         }
         
         layer.SyncToDisk();
@@ -393,7 +388,7 @@ public abstract class OGRFileHelper {
         
         String dataProjName  = EPSG_3785_PROJ4; // change here to use any other projection as default
         if(dataProj == null){
-            Log.warning("projection of table "+layer.GetName()+" unknown, using EPSG:3785 as default. Change OgrHelper code to use anything else.");
+            Log.warning("projection of table "+layer.GetName()+" unknown, using EPSG:3785 as default. Change OGRFileHelper code to use anything else.");
         }else{
             dataProjName = dataProj.ExportToProj4().trim();
         }

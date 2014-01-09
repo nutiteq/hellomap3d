@@ -71,7 +71,7 @@ public class EditableOgrVectorLayer extends EditableGeometryDbLayer {
             final StyleSet<PointStyle> pointStyleSet, final StyleSet<LineStyle> lineStyleSet, final StyleSet<PolygonStyle> polygonStyleSet, LabelStyle labelStyle, Context context) throws IOException {
         super(proj, pointStyleSet, lineStyleSet, polygonStyleSet, context);
 
-        this.ogrHelper = new OGRFileHelper(fileName, tableName, proj, true) {
+        this.ogrHelper = new OGRFileHelper(fileName, tableName, true) {
             @Override
             protected Label createLabel(Map<String, String> userData) {
                 return EditableOgrVectorLayer.this.createLabel(userData);

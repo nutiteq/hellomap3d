@@ -78,7 +78,7 @@ public abstract class OGRVectorDataSource extends AbstractVectorDataSource<Geome
     public OGRVectorDataSource(Projection proj, String fileName, String tableName, boolean update) throws IOException {
         super(proj);
 
-        this.ogrHelper = new OGRFileHelper(fileName, tableName, proj, update) {
+        this.ogrHelper = new OGRFileHelper(fileName, tableName, update) {
             @Override
             protected Label createLabel(Map<String, String> userData) {
                 return OGRVectorDataSource.this.createLabel(userData);

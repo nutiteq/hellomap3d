@@ -96,7 +96,7 @@ public class OgrLayer extends GeometryLayer {
             int maxElements, final StyleSet<PointStyle> pointStyleSet, final StyleSet<LineStyle> lineStyleSet, final StyleSet<PolygonStyle> polygonStyleSet, final LabelStyle labelStyle) throws IOException {
         super(proj);
 
-        this.ogrHelper = new OGRFileHelper(fileName, tableName, proj, true) {
+        this.ogrHelper = new OGRFileHelper(fileName, tableName, true) {
             @Override
             protected Label createLabel(Map<String, String> userData) {
                 StringBuffer labelTxt = new StringBuffer();
