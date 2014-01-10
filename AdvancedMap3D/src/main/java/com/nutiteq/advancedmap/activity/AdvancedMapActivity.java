@@ -420,7 +420,7 @@ public class AdvancedMapActivity extends Activity {
 
 
     private void basePackagedLayer() {
-        RasterDataSource dataSource = new PackagedRasterDataSource(new EPSG3857(), 0, 3, "t{zoom}_{x}_{y}", this);
+        RasterDataSource dataSource = new PackagedRasterDataSource(new EPSG3857(), 0, 3, "t{zoom}_{x}_{y}", getApplicationContext());
         RasterLayer packagedMapLayer = new RasterLayer(dataSource, 16);
         updateBaseLayer(packagedMapLayer);
     }
