@@ -5,8 +5,11 @@ com.nutiteq.geometry
 com.nutiteq.layers
 com.nutiteq.log
 com.nutiteq.projections
+com.nutiteq.rasterdatasources
 com.nutiteq.rasterlayers
+com.nutiteq.renderprojections
 com.nutiteq.style
 com.nutiteq.tasks
 com.nutiteq.ui
+com.nutiteq.vectordatasources
 com.nutiteq.vectorlayers
