@@ -172,13 +172,7 @@ public class MapBoxMapActivity extends Activity {
         clickMarkerLayer.add(clickMarker);
         mapView.getLayers().addLayer(clickMarkerLayer);
 
-        // add event listener
-        UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, (UtfGridLayerInterface) mapLayer, clickMarker);
-        mapView.getOptions().setMapListener(mapListener);
 
-        // download Metadata, add legend and tooltip listener hooks
-        LoadMetadataTask task = new LoadMetadataTask(mapListener, MAPBOX_ACCOUNT, MAPBOX_MAPID);
-        task.execute();
 
         // set initial map view camera - optional. "World view" is default
         // Location: Estonia

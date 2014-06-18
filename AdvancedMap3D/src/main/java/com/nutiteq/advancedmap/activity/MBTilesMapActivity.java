@@ -159,10 +159,6 @@ public class MBTilesMapActivity extends Activity implements FilePickerActivity{
                 clickMarkerLayer.add(clickMarker);
                 mapView.getLayers().addLayer(clickMarkerLayer);
 
-                // add event listener for clicks
-                UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, (UtfGridLayerInterface) dbLayer, clickMarker);
-                mapView.getOptions().setMapListener(mapListener);
-
                 
             }else{
                 // skip labels from utfGrid

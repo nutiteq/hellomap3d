@@ -45,12 +45,12 @@
 			<scope>compile</scope>
 		</dependency>
 
-  	<!-- dependency>
+  	<dependency>
 			<groupId>com.nutiteq</groupId>
 			     <artifactId>nutiteq-3d-sdk</artifactId>
-			<version>2.3.1</version>
+			<version>snapshot</version>
 			<scope>compile</scope>
-		</dependency-->
+		</dependency>
 		
 	<dependency>
             <groupId>com.graphhopper</groupId>

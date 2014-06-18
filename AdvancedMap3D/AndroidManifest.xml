@@ -36,8 +36,9 @@
     <activity android:name=".activity.CloudMadeRouteActivity"></activity>
     <activity android:name=".activity.Online3DMapActivity"></activity>
     <activity android:name=".activity.WfsMapActivity"></activity>
+    <activity android:name=".activity.CompassMapActivity"></activity>
     <activity
-    android:name="com.nutiteq.advancedmap.mapquest.SearchQueryResults"
+    android:name="com.nutiteq.advancedmap.mapquest.MapQuestSearchQuery"
     android:exported="false">
 	    <intent-filter>
 	        <action android:name="android.intent.action.SEARCH" />
@@ -57,7 +58,7 @@
 	<activity android:name=".activity.AddressSearchActivity">
 	                <meta-data
                 android:name="android.app.default_searchable"
-                android:value="com.nutiteq.advancedmap.mapquest.SearchQueryResults" />
+                android:value="com.nutiteq.advancedmap.mapquest.MapQuestSearchQuery" />
 	</activity>
     
   </application>

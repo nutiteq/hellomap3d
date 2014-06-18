@@ -101,6 +101,8 @@ public class WmsMapActivity extends Activity {
         //  define label as WebView to show HTML
         WebView labelView = new WebView(this); 
         // It is important to set size, exception will come otherwise
+        
+        labelView.measure((int)(300 * dpi), (int)(150 * dpi));
         labelView.layout(0, 0, (int)(300 * dpi), (int)(150 * dpi));
         Label label = new ViewLabel("", labelView, new Handler());
 
