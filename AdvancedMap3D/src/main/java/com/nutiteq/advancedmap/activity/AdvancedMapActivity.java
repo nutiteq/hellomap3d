@@ -415,6 +415,7 @@ public class AdvancedMapActivity extends Activity {
     private void addTileBorderLayer(int size) {
         RasterDataSource dataSource = new TileDebugRasterDataSource(this.proj, 0, 22, size);
         RasterLayer tileDebugLayer = new RasterLayer(dataSource, 17);
+        tileDebugLayer.setMemoryCaching(false);
         mapView.getLayers().addLayer(tileDebugLayer);
     }
 

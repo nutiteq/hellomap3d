@@ -18,8 +18,19 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:checked="true"
-        android:text="ToggleButton"
+        android:text="ProjectionButton"
         android:textOff="Flat"
         android:textOn="Sphere" />
+
+        <ToggleButton
+            android:id="@+id/toggleGrid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_toLeftOf="@+id/toggleProjection"
+            android:checked="false"
+            android:text="ToggleGrid"
+            android:textOff="Grid off"
+            android:textOn="Grid on" />
 
 </RelativeLayout>

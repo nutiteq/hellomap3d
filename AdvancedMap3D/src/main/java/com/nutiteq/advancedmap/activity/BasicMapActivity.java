@@ -22,7 +22,7 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
  * Just defines and configures map with useful settings.
  *
  * Used layer(s):
- *  TMSMapLayer for base map
+ *  RasterLayer with TMS tile source for base map
  * 
  * @author jaak
  *

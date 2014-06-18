@@ -9,6 +9,7 @@ import android.widget.ZoomControls;
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
 import com.nutiteq.components.Components;
+import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.log.Log;
@@ -16,6 +17,7 @@ import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
 import com.nutiteq.rasterdatasources.RasterDataSource;
 import com.nutiteq.rasterlayers.RasterLayer;
+import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
 
@@ -38,7 +40,7 @@ import com.nutiteq.vectorlayers.MarkerLayer;
  *      xml/searchable.xml - needed for Android searchable interface
  *
  * Used layer(s):
- *  TMSMapLayer for base map
+ *  RasterLayer with TMS tile source for base map
  *        
  * @author jaak
  *
@@ -145,6 +147,7 @@ public class AddressSearchActivity extends Activity {
         mapView.getLayers().addLayer(searchMarkerLayer);
 
         // open search right away
+        // search class is defined in AndroidManifest.xml as android.intent.action.SEARCH
         onSearchRequested();
     }
 
@@ -180,6 +183,7 @@ public class AddressSearchActivity extends Activity {
     }
 
     public static void setSearchResult(Marker marker) {
+        Log.debug("Search result selected: " + marker.getMapPos());
         searchResult = marker;
     }
 

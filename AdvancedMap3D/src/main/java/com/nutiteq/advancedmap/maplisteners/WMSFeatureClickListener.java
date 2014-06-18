@@ -52,23 +52,20 @@ public class WMSFeatureClickListener extends MapListener {
 
     // Map View manipulation handlers
     @Override
-    public void onMapClicked(final double x, final double y,
-            final boolean longClick) {
+    public void onMapClicked(final double x, final double y, final boolean longClick) {
         // x and y are in base map projection, we convert them to the familiar
         // WGS84
         Log.debug("onMapClicked " + (new EPSG3857()).toWgs84(x, y).x + " "
                 + (new EPSG3857()).toWgs84(x, y).y + " longClick: " + longClick);
 
-        final MutableMapPos tilePos = new MutableMapPos();
-        final MapTile clickedTile = mapView.worldToMapTile(x, y, tilePos);
-
-        Log.debug("clicked tile "+clickedTile+" pos:"+tilePos);
+        MapPos wgs84Pos = mapView.getComponents().layers.getBaseProjection().toWgs84(x, y);
+        final MapPos mapPos = dataSource.getProjection().fromWgs84(wgs84Pos.x, wgs84Pos.y);
 
         // perform network query to get feature info. This must be done in separate thread!
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final String featureInfo = dataSource.getFeatureInfo(clickedTile, tilePos);
+                final String featureInfo = dataSource.getFeatureInfo(mapPos);
 
                 if (featureInfo == null) {
                     return;

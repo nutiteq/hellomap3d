@@ -38,7 +38,7 @@ import com.nutiteq.vectorlayers.GeometryLayer;
  * For CartoDB editing see EditableCartoDbMapActivity.java
  * 
  * Used other layer(s):
- *  TMSMapLayer for base map
+ *  RasterLayer with TMS tile source for base map
  * 
  * @author jaak
  *

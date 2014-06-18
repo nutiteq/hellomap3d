@@ -16,13 +16,13 @@ import android.widget.ZoomControls;
 
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
-import com.nutiteq.advancedmap.maplisteners.UTFGridLayerEventListener;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.datasources.raster.MBOnlineRasterDataSource;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.layers.raster.UTFGridRasterLayer;
+import com.nutiteq.layers.raster.deprecated.UtfGridLayerInterface;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.style.MarkerStyle;
@@ -32,6 +32,7 @@ import com.nutiteq.utils.NetUtils;
 import com.nutiteq.utils.UiUtils;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.MarkerLayer;
+import com.nutiteq.advancedmap.maplisteners.UtfGridLayerEventListener;
 
 /**
  * Demonstrates usage of MapBoxMapLayer - online tile-based map source
@@ -58,11 +59,11 @@ public class MapBoxMapActivity extends Activity {
      */
     public class LoadMetadataTask extends AsyncTask<Void, Void, JSONObject> {
 
-        private UTFGridLayerEventListener mapListener;
+        private UtfGridLayerEventListener mapListener;
         private String account;
         private String map;
 
-        public LoadMetadataTask(UTFGridLayerEventListener mapListener, String account, String map){
+        public LoadMetadataTask(UtfGridLayerEventListener mapListener, String account, String map){
             this.mapListener = mapListener;
             this.account = account;
             this.map = map;
@@ -127,8 +128,8 @@ public class MapBoxMapActivity extends Activity {
             // just restore configuration, skip other initializations
             mapView.setComponents(retainObject);
             // recreate listener
-            UTFGridLayerEventListener oldListener = (UTFGridLayerEventListener ) mapView.getOptions().getMapListener();
-            UTFGridLayerEventListener mapListener = new UTFGridLayerEventListener(this, mapView, oldListener.getLayer(), oldListener.getClickMarker());
+            UtfGridLayerEventListener oldListener = (UtfGridLayerEventListener ) mapView.getOptions().getMapListener();
+            UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, oldListener.getLayer(), oldListener.getClickMarker());
             mapView.getOptions().setMapListener(mapListener);
             mapView.getOptions().setMapListener(null);
 
@@ -172,7 +173,7 @@ public class MapBoxMapActivity extends Activity {
         mapView.getLayers().addLayer(clickMarkerLayer);
 
         // add event listener
-        UTFGridLayerEventListener mapListener = new UTFGridLayerEventListener(this, mapView, mapLayer, clickMarker);
+        UtfGridLayerEventListener mapListener = new UtfGridLayerEventListener(this, mapView, (UtfGridLayerInterface) mapLayer, clickMarker);
         mapView.getOptions().setMapListener(mapListener);
 
         // download Metadata, add legend and tooltip listener hooks

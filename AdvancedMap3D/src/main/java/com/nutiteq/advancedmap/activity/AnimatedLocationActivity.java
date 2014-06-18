@@ -43,7 +43,7 @@ import com.nutiteq.utils.UnscaledBitmapLoader;
  *   MyLocationMapEventListener.MyLocationCircle - knows user location and can do OpenGL drawing for specific frame
  *  
  * Used layer(s):
- *  TMSMapLayer for base map
+ *  RasterLayer with TMS tile source for base map
  *  DriveTimeRegionLayer - Vector layer which requests drivetime from Nutiteq demo server, provided coordinates and drive time value
  *      Drive time is shown as polygon on map. Provided coordinates are user GPS location coordinates, 
  *      Drive time value is selected by user with a Seekbar control on map

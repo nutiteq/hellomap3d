@@ -26,6 +26,7 @@ import com.nutiteq.rasterdatasources.RasterDataSource;
 import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.services.routing.MapQuestDirections;
 import com.nutiteq.services.routing.Route;
+import com.nutiteq.services.routing.RouteActivity;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.StyleSet;

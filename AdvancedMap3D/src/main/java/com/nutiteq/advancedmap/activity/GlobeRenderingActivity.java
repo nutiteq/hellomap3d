@@ -8,7 +8,6 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.widget.CompoundButton;
@@ -24,50 +23,51 @@ import com.nutiteq.components.Options;
 import com.nutiteq.components.Range;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Marker;
-import com.nutiteq.geometry.Point;
-import com.nutiteq.geometry.Polygon;
-import com.nutiteq.geometry.Polygon3D;
 import com.nutiteq.geometry.Text;
 import com.nutiteq.log.Log;
-import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.EPSG4326;
 import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
 import com.nutiteq.rasterdatasources.RasterDataSource;
 import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
-import com.nutiteq.style.PointStyle;
-import com.nutiteq.style.Polygon3DStyle;
-import com.nutiteq.style.PolygonStyle;
+import com.nutiteq.style.StyleSet;
 import com.nutiteq.style.TextStyle;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.GeometryLayer;
 import com.nutiteq.vectorlayers.MarkerLayer;
-import com.nutiteq.vectorlayers.Polygon3DLayer;
 import com.nutiteq.vectorlayers.TextLayer;
 
 /**
- * This is an example of Nutiteq 3D globe rendering
+ * This is an example of Nutiteq 3D globe rendering.
+ * Used layers:
+ *  raster with TMS data source (EPSG4326 projection as EPSG3857 does not define pole area)
+ *  marker, text, geometry
  *  
  * @author mark
  * 
  */
 public class GlobeRenderingActivity extends Activity {
 
+    private static final int MINOR_ZOOM = 4;
     public MapView mapView;
+    private StyleSet<TextStyle> textStyleGeneral;
+    private StyleSet<TextStyle> textStyleMinor;
+    private TextLayer textLayer;
+    private GeometryLayer gridLayer;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.globe);
-
+        
         // enable logging for troubleshooting - optional
         Log.enableAll();
         Log.setTag("globerendering");
-
+        
         // 1. Get the MapView from the Layout xml - mandatory
         mapView = (MapView) findViewById(R.id.mapView);
 
@@ -78,7 +78,11 @@ public class GlobeRenderingActivity extends Activity {
             // just restore configuration and update listener, skip other
             // initializations
             mapView.setComponents(retainObject);
-
+            // Add custom layers 
+            addMarkerLayer();
+            initTextLayer();
+            addLineGridLayer();
+            
             setBackdropImage();
             setButtonListener();
 
@@ -130,16 +134,14 @@ public class GlobeRenderingActivity extends Activity {
         // Set backdrop image
         setBackdropImage();
 
+        // Add custom layers 
+        addMarkerLayer();
+        initTextLayer();
+        addLineGridLayer();
+        
         // Set up button listener for plane/globe mode switching
         setButtonListener();
 
-        // Add custom layers 
-        addMarkerLayer();
-        addTextLayer();
-        addPointLayer();
-        addLineLayer();
-        addPolyLayer();
-        addPoly3DLayer();
     }
 
     private void setBackdropImage() {
@@ -165,116 +167,208 @@ public class GlobeRenderingActivity extends Activity {
     }
 
     private void setButtonListener() {
-        ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleProjection);
-        mapView.getOptions().setRenderProjection(toggle.isChecked() ? Options.SPHERICAL_RENDERPROJECTION : Options.PLANAR_RENDERPROJECTION);
+        ToggleButton toggleProjection = (ToggleButton) findViewById(R.id.toggleProjection);
+        mapView.getOptions().setRenderProjection(toggleProjection.isChecked() ? Options.SPHERICAL_RENDERPROJECTION : Options.PLANAR_RENDERPROJECTION);
 
-        toggle.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+        toggleProjection.setOnCheckedChangeListener(new OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton button, boolean set) {
                 mapView.getOptions().setRenderProjection(set ? Options.SPHERICAL_RENDERPROJECTION : Options.PLANAR_RENDERPROJECTION);
             }
         });
+        
+        ToggleButton toggleGrid = (ToggleButton) findViewById(R.id.toggleGrid);
+
+        gridLayer.setVisible(toggleGrid.isChecked());
+        textLayer.setVisible(toggleGrid.isChecked());
+        
+        toggleGrid.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton button, boolean set) {
+                gridLayer.setVisible(set);
+                textLayer.setVisible(set);
+                mapView.requestRender();
+            }
+        });
+        
     }
 
-    private void addPointLayer() {
-        GeometryLayer geoLayer = new GeometryLayer(new EPSG3857());
-        mapView.getComponents().layers.addLayer(geoLayer);
-        Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(
-                getResources(), R.drawable.point);
-        Label pointLabel = new DefaultLabel("Point","Here is a point");
-        PointStyle pointStyle = PointStyle.builder().setBitmap(pointMarker).setColor(Color.GREEN).build();
-        MapPos pointLocation = mapView.getComponents().layers.getBaseProjection().fromWgs84(-149.416667f, 37.766667f);
-        Point point = new Point(pointLocation, pointLabel, pointStyle, null);
-        geoLayer.add(point);
+    private void addLineGridLayer() {
+        gridLayer = new GeometryLayer(new EPSG4326());
+        mapView.getComponents().layers.addLayer(gridLayer);
+        LineStyle lineStyleNormal = LineStyle.builder().setLineJoinMode(LineStyle.ROUND_LINEJOIN).build();
+        StyleSet<LineStyle> lineStyleNormalSet = new StyleSet<LineStyle> (lineStyleNormal);
+
+        
+        LineStyle lineStyleSpecial = LineStyle.builder()
+                .setColor(android.graphics.Color.YELLOW)
+                .setLineJoinMode(LineStyle.ROUND_LINEJOIN)
+                .build();
+        StyleSet<LineStyle> lineStyleSpecialSet = new StyleSet<LineStyle> (lineStyleSpecial);
+        
+        LineStyle lineStyleMinor = LineStyle.builder()
+                .setWidth(0.05f)
+                .build();
+        
+        StyleSet<LineStyle> lineStyleMinorSet = new StyleSet<LineStyle> ();
+        lineStyleMinorSet.setZoomStyle(MINOR_ZOOM, lineStyleMinor);
+        
+        // draw degree meridians
+        for(int lon = -180; lon < 180; lon += 5){
+            String labelString = ""+Math.abs(lon)+" "+(lon > 0 ? "E" : "W");
+            Label label = new DefaultLabel(labelString);
+            List<MapPos> posList = new ArrayList<MapPos>(Arrays.asList(
+                    new MapPos(lon, -85),
+                    new MapPos(lon, 85)
+                    ));
+
+            StyleSet<LineStyle> lineStyle;
+            StyleSet<TextStyle> textStyle;
+            
+            if((lon % 10) == 0){
+                // is dividable by 10
+                if(lon==0 || lon == -180){
+                    lineStyle = lineStyleSpecialSet;
+                }else{
+                    lineStyle = lineStyleNormalSet;
+                }
+                textStyle = textStyleGeneral;
+            }else{
+                lineStyle = lineStyleMinorSet;
+                textStyle = textStyleMinor;
+            }
+                
+            Line line = new Line(posList, label, lineStyle, null);
+            
+            gridLayer.add(line);
+            
+            addText(posList, labelString, textStyle);
+
+        }
+        
+        // draw parallels
+        for(int lat = -85; lat<90; lat+=5){
+            
+            String labelString = "";
+            if(lat == 0){
+                labelString = "Equator";
+            }else{
+                labelString = ""+Math.abs(lat)+" "+(lat < 0 ? "S" : "N");
+            }
+            
+            Label label = new DefaultLabel(labelString);
+            
+            List<MapPos> posList = new ArrayList<MapPos>();
+            for (int lon = -180; lon <=180; lon += 5){
+                posList.add(new MapPos(lon,lat));
+            }
+
+            StyleSet<LineStyle> lineStyle;
+            StyleSet<TextStyle> textStyle;
+            
+            
+            if((lat % 10) == 0){
+              // is dividable by 10
+                if(lat==0){
+                    lineStyle = lineStyleSpecialSet;
+                }else{
+                    lineStyle = lineStyleNormalSet;
+                }
+                textStyle = textStyleGeneral;
+            }else{
+                lineStyle = lineStyleMinorSet;
+                textStyle = textStyleMinor;
+            }
+            
+            Line line = new Line(posList, label, lineStyle, null);
+            gridLayer.add(line);
+
+            addText(posList, labelString, textStyle);
+            
+        }        
+        
+        // Tropic lines
+       for(int i = -1; i <= 1; i+=2){
+            // lat is from http://www.neoprogrammics.com/obliquity_of_the_ecliptic/
+           double lat = i * 23.4374255393; 
+           String labelString = "Tropic of "+(lat < 0 ? "Capricorn" : "Cancer");
+           Label label = new DefaultLabel(labelString);
+           List<MapPos> posList = new ArrayList<MapPos>();
+           for (int lon = -180; lon <=180; lon += 5){
+               posList.add(new MapPos(lon,lat));
+           }
+           Line line = new Line(posList, label, lineStyleSpecial, null);
+           gridLayer.add(line);
+           addText(posList, labelString, textStyleGeneral);
+       }
+
+       // Polar lines
+      for(int i = -1; i <= 1; i+=2){
+          double lat = i * 66.56; // in degrees
+          String labelString = (lat > 0 ? "Actic circle" : "Antarctic circle");
+          Label label = new DefaultLabel(labelString);
+          List<MapPos> posList = new ArrayList<MapPos>();
+          for (int lon = -180; lon <=180; lon += 5){
+              posList.add(new MapPos(lon,lat));
+          }
+          Line line = new Line(posList, label, lineStyleSpecial, null);
+          gridLayer.add(line);
+          addText(posList, labelString, textStyleGeneral);
+      }
+
     }
 
-    private void addLineLayer() {
-        GeometryLayer geoLayer = new GeometryLayer(new EPSG4326());
-        mapView.getComponents().layers.addLayer(geoLayer);
-        LineStyle lineStyle = LineStyle.builder().setLineJoinMode(LineStyle.ROUND_LINEJOIN).build();
-        Label label = new DefaultLabel("Line", "Here is a line");
-        List<MapPos> posList = new ArrayList<MapPos>(Arrays.asList(
-                new MapPos(-90, 30),
-                new MapPos(90, 30)
-                ));
 
-        Line line = new Line(posList, label, lineStyle, null);
-        geoLayer.add(line);
-    }
-
-    private void addPolyLayer() {
-        GeometryLayer geoLayer = new GeometryLayer(new EPSG4326());
-        mapView.getComponents().layers.addLayer(geoLayer);
-        PolygonStyle polyStyle = PolygonStyle.builder().build();
-        MapPos origin = new MapPos(0, -70);
-        List<MapPos> posList = new ArrayList<MapPos>(Arrays.asList(
-                new MapPos(origin.x - 80, origin.y + 30),
-                new MapPos(origin.x, origin.y),
-                new MapPos(origin.x + 90, origin.y + 30)
-                ));
-        List<MapPos> holePosList = new ArrayList<MapPos>(Arrays.asList(
-                new MapPos(origin.x, origin.y + 15000),
-                new MapPos(origin.x - 150000, origin.y + 210000),
-                new MapPos(origin.x + 150000, origin.y + 210000)
-                ));
-        List<List<MapPos>> holes = new ArrayList<List<MapPos>>();
-        holes.add(holePosList);
-        Label label = new DefaultLabel("Poly", "Here is a polygon");
-        Polygon poly = new Polygon(posList, null, label, polyStyle, null);
-        geoLayer.add(poly);
-    }
-
-    private void addPoly3DLayer() {
-        Polygon3DLayer geoLayer = new Polygon3DLayer(new EPSG3857());
-        mapView.getComponents().layers.addLayer(geoLayer);
-        Polygon3DStyle polyStyle = Polygon3DStyle.builder().build();
-        MapPos origin = mapView.getComponents().layers.getBaseProjection().fromWgs84(129.416667f, 37.766667f);
-        List<MapPos> posList = new ArrayList<MapPos>(Arrays.asList(
-                new MapPos(origin.x, origin.y),
-                new MapPos(origin.x - 3000000, origin.y + 1500000),
-                new MapPos(origin.x + 3000000, origin.y + 1500000)
-                ));
-        List<MapPos> holePosList = new ArrayList<MapPos>(Arrays.asList(
-                new MapPos(origin.x, origin.y + 15000),
-                new MapPos(origin.x - 150000, origin.y + 210000),
-                new MapPos(origin.x + 150000, origin.y + 210000)
-                ));
-        List<List<MapPos>> holes = new ArrayList<List<MapPos>>();
-        holes.add(holePosList);
-        Label label = new DefaultLabel("Poly3D", "Here is a polygon3D");
-        Polygon3D poly = new Polygon3D(posList, holes, 5000, label, polyStyle, null);
-        geoLayer.add(poly);
+    private void addText(List<MapPos> posList, String labelString, StyleSet<TextStyle> style) {
+        Text text = new Text(new Text.BaseLine(posList), labelString, style, null);
+        textLayer.add(text);
+        
     }
 
     private void addMarkerLayer() {
         Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.olmarker);
-        MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.5f).setAllowOverlap(false).setColor(Color.WHITE).build();
-        Label markerLabel = new DefaultLabel("San Francisco", "Here is a marker");
-        MapPos markerLocation = mapView.getComponents().layers.getBaseProjection().fromWgs84(-122.41666666667f, 37.76666666666f);
+        MarkerStyle markerStyle = MarkerStyle.builder()
+                .setBitmap(pointMarker)
+                .setSize(0.5f)
+                .setAllowOverlap(false)
+                .setPlacementPriority(2)
+                .setColor(Color.WHITE)
+                .build();
         MarkerLayer markerLayer = new MarkerLayer(mapView.getComponents().layers.getBaseProjection());
-        Marker marker = new Marker(markerLocation, markerLabel, markerStyle, null);
-        markerLayer.add(marker);
+        
+        Marker poleS = new Marker(
+                mapView.getComponents().layers.getBaseProjection().fromWgs84(0f, -90f), 
+                new DefaultLabel("South Pole"), markerStyle, null);
+        markerLayer.add(poleS);
+        
+        Marker poleN = new Marker(
+                mapView.getComponents().layers.getBaseProjection().fromWgs84(0f, 90f), 
+                new DefaultLabel("North Pole"), markerStyle, null);
+        markerLayer.add(poleN);
+     
         mapView.getLayers().addLayer(markerLayer);
     }
 
-    private void addTextLayer() {
-        TextLayer textLayer = new TextLayer(mapView.getComponents().layers.getBaseProjection());
+    private void initTextLayer() {
+        
+        textLayer = new TextLayer(mapView.getComponents().layers.getBaseProjection());
         mapView.getComponents().layers.addLayer(textLayer);
-        TextStyle textStyle = TextStyle.builder().setOrientation(MarkerStyle.GROUND_ORIENTATION).setAllowOverlap(false).setSize(30).build();
-        MapPos origin = mapView.getComponents().layers.getBaseProjection().fromWgs84(-129.416667f, 10.766667f);
-        Text text = new Text(origin, "Text Ground", textStyle, null);
-        textLayer.add(text);
+        textStyleGeneral = new StyleSet<TextStyle>(
+                        TextStyle.builder()
+                            .setOrientation(MarkerStyle.GROUND_ORIENTATION)
+                            .setAllowOverlap(false)
+                            .setSize(32)
+                            .build()
+                );
 
-        Typeface font = Typeface.create(Typeface.createFromAsset(this.getAssets(), "fonts/zapfino.ttf"), Typeface.BOLD);
-        TextStyle textStyle2 = TextStyle.builder().setOrientation(MarkerStyle.GROUND_BILLBOARD_ORIENTATION).setAllowOverlap(false).setSize(36).setFont(font).build();
-        MapPos origin2 = mapView.getComponents().layers.getBaseProjection().fromWgs84(-100.416667f, 30.766667f);
-        Text text2 = new Text(origin2, "Text Ground Billboard", textStyle2, null);
-        textLayer.add(text2);
-
-        TextStyle textStyle3 = TextStyle.builder().setOrientation(MarkerStyle.CAMERA_BILLBOARD_ORIENTATION).setAllowOverlap(false).setSize(36).setFont(font).build();
-        MapPos origin3 = mapView.getComponents().layers.getBaseProjection().fromWgs84(-70.416667f, 50.766667f);
-        Text text3 = new Text(origin3, "Text Camera Billboard", textStyle3, null);
-        textLayer.add(text3);
+        textStyleMinor = new StyleSet<TextStyle>();
+        textStyleMinor.setZoomStyle(MINOR_ZOOM, TextStyle.builder()
+                .setOrientation(MarkerStyle.GROUND_ORIENTATION)
+                .setAllowOverlap(false)
+                .setSize(28)
+                .build()
+                );
+         
     }
 
     @Override

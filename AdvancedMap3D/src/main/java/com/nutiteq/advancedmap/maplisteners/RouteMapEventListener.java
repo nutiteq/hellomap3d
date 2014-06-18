@@ -2,11 +2,11 @@ package com.nutiteq.advancedmap.maplisteners;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import com.nutiteq.advancedmap.activity.RouteActivity;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.geometry.VectorElement;
 import com.nutiteq.log.Log;
 import com.nutiteq.projections.EPSG3857;
+import com.nutiteq.services.routing.RouteActivity;
 import com.nutiteq.ui.MapListener;
 
 /**

@@ -5,9 +5,11 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mapsforge.android.maps.mapgenerator.JobTheme;
-import org.mapsforge.core.GeoPoint;
+import org.mapsforge.map.reader.MapDatabase;
+import org.mapsforge.map.reader.header.FileOpenResult;
 import org.mapsforge.map.reader.header.MapFileInfo;
+import org.mapsforge.map.rendertheme.InternalRenderTheme;
+import org.mapsforge.map.rendertheme.XmlRenderTheme;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -22,16 +24,20 @@ import android.widget.ZoomControls;
 import com.graphhopper.GHRequest;
 import com.graphhopper.GHResponse;
 import com.graphhopper.GraphHopper;
+import com.graphhopper.util.Helper;
+import com.graphhopper.util.Instruction;
+import com.graphhopper.util.InstructionList;
 import com.graphhopper.util.PointList;
 import com.graphhopper.util.StopWatch;
 import com.nutiteq.MapView;
 import com.nutiteq.advancedmap.R;
 import com.nutiteq.advancedmap.maplisteners.RouteMapEventListener;
+import com.nutiteq.components.Bounds;
 import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
-import com.nutiteq.datasources.raster.MapsforgeRasterDataSource;
 import com.nutiteq.filepicker.FilePickerActivity;
+import com.nutiteq.geometry.Geometry;
 import com.nutiteq.geometry.Line;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.log.Log;
@@ -39,6 +45,7 @@ import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.projections.Projection;
 import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.services.routing.Route;
+import com.nutiteq.services.routing.RouteActivity;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.StyleSet;
@@ -46,7 +53,7 @@ import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 import com.nutiteq.vectorlayers.GeometryLayer;
 import com.nutiteq.vectorlayers.MarkerLayer;
-
+import com.nutiteq.datasources.raster.MapsforgeRasterDataSource;
 /**
  * 
  * 
@@ -69,6 +76,10 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
     private GeometryLayer routeLayer;
     private Marker startMarker;
     private Marker stopMarker;
+    private MarkerStyle instructionUp;
+    private MarkerStyle instructionLeft;
+    private MarkerStyle instructionRight;
+    private MarkerLayer instructionLayer;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -81,7 +92,6 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
 
         // 1. Get the MapView from the Layout xml - mandatory
         mapView = (MapView) findViewById(R.id.mapView);
-
 
         // Optional, but very useful: restore map state during device rotation,
         // it is saved in onRetainNonConfigurationInstance() below
@@ -102,41 +112,48 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
             mapView.getOptions().setMapListener(mapListener);
         }
 
-
         // read filename from extras
         Bundle b = getIntent().getExtras();
-        String mapFile = b.getString("selectedFile");
+        String mapFilePath = b.getString("selectedFile");
 
-        // open graph
-        openGraph(mapFile.substring(0, mapFile.lastIndexOf("-gh/")));
-        //openGraph("/sdcard/mapxt/graphhopper/new-york");
+        //  use mapsforge as offline base map
+        XmlRenderTheme renderTheme = InternalRenderTheme.OSMARENDER;
+        MapDatabase mapDatabase = new MapDatabase();
+        mapDatabase.closeFile();
+        File mapFile = new File("/" + mapFilePath);
+        FileOpenResult fileOpenResult = mapDatabase.openFile(mapFile);
+        if (fileOpenResult.isSuccess()) {
+            Log.debug("MapsforgeRasterDataSource: MapDatabase opened ok: " + mapFilePath);
+        }
 
-        //  use mapsforge map as offline base
-        JobTheme renderTheme = MapsforgeRasterDataSource.InternalRenderTheme.OSMARENDER;
-        MapsforgeRasterDataSource dataSource = new MapsforgeRasterDataSource(new EPSG3857(), 0, 20, mapFile, renderTheme);
-        RasterLayer mapLayer = new RasterLayer(dataSource, 1044);
+        MapsforgeRasterDataSource dataSource =  new MapsforgeRasterDataSource(new EPSG3857(), 0, 20, mapFile, mapDatabase, renderTheme, this.getApplication());
+        RasterLayer mapLayer = new RasterLayer(dataSource, mapFile.hashCode());
 
         mapView.getLayers().setBaseLayer(mapLayer);
 
         // set initial map view camera from database
-        MapFileInfo fileInfo = dataSource.getMapDatabase().getMapFileInfo();
-        GeoPoint center = fileInfo.startPosition;
-        if(center != null){
-            MapPos mapCenter = new MapPos(center.getLongitude(), center.getLatitude(),0);
-            Log.debug("center: "+mapCenter);
-            mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(mapCenter.x,mapCenter.y));
+        MapFileInfo mapFileInfo = dataSource.getMapDatabase().getMapFileInfo();
+        if(mapFileInfo != null){
+            if(mapFileInfo.startPosition != null && mapFileInfo.startZoomLevel != null){
+                // start position is defined
+                MapPos mapCenter = new MapPos(mapFileInfo.startPosition.longitude, mapFileInfo.startPosition.latitude,mapFileInfo.startZoomLevel);
+                Log.debug("center: "+mapCenter);
+                mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(mapCenter.x,mapCenter.y));
+                mapView.setZoom((float) mapCenter.z);
+            }else if(mapFileInfo.boundingBox != null){
+                // start position not defined, but boundingbox is defined
+                MapPos boxMin = mapView.getLayers().getBaseLayer().getProjection().fromWgs84(mapFileInfo.boundingBox.minLongitude, mapFileInfo.boundingBox.minLatitude);
+                MapPos boxMax = mapView.getLayers().getBaseLayer().getProjection().fromWgs84(mapFileInfo.boundingBox.maxLongitude, mapFileInfo.boundingBox.maxLatitude);
+                mapView.setBoundingBox(new Bounds(boxMin.x,boxMin.y,boxMax.x,boxMax.y), true);
+            }
         }
-
-        if(fileInfo.startZoomLevel != null){
-            mapView.setZoom(fileInfo.startZoomLevel);
-        }else{
-            mapView.setZoom(10.0f);
-        }
+        
+        // open graph from folder. remove -gh and file name
+        openGraph(mapFilePath.replace("-gh", "").substring(0,mapFilePath.replace("-gh", "").lastIndexOf("/")));
 
         // routing layers
         routeLayer = new GeometryLayer(new EPSG3857());
         mapView.getLayers().addLayer(routeLayer);
-
 
         // create markers for start & end, and a layer for them
         Bitmap olMarker = UnscaledBitmapLoader.decodeResource(getResources(),
@@ -158,7 +175,27 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
 
         markerLayer.add(startMarker);
         markerLayer.add(stopMarker);
+        
+        instructionLayer = new MarkerLayer(new EPSG3857());
+        mapView.getLayers().addLayer(instructionLayer);
 
+
+        instructionUp = MarkerStyle.builder()
+                .setBitmap(UnscaledBitmapLoader.decodeResource(getResources(),
+                R.drawable.direction_up))
+                .build();
+
+        instructionLeft = MarkerStyle.builder()
+                .setBitmap(UnscaledBitmapLoader.decodeResource(getResources(),
+                R.drawable.direction_upthenleft))
+                .build();
+
+        instructionRight = MarkerStyle.builder()
+                .setBitmap(UnscaledBitmapLoader.decodeResource(getResources(),
+                R.drawable.direction_upthenright))
+                .build();
+
+        
         // rotation - 0 = north-up
         mapView.setMapRotation(0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
@@ -244,7 +281,9 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
             protected GHResponse doInBackground(Void... v) {
                 StopWatch sw = new StopWatch().start();
                 GHRequest req = new GHRequest(fromLat, fromLon, toLat, toLon)
-                .setAlgorithm("dijkstrabi");
+                .setAlgorithm("dijkstrabi")
+                .putHint("instructions", true)
+                .putHint("douglas.minprecision", 1);
                 GHResponse resp = gh.route(req);
                 time = sw.stop().getSeconds();
                 return resp;
@@ -255,18 +294,77 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
                         + toLon + " found path with distance:" + res.getDistance()
                         / 1000f + ", nodes:" + res.getPoints().getSize() + ", time:"
                         + time + " " + res.getDebugInfo());
+                
                 Toast.makeText(getApplicationContext(), "the route is " + (int) (res.getDistance() / 100) / 10f
-                        + "km long, time:" + res.getTime() / 60f + "min, calculation time:" + time, Toast.LENGTH_LONG).show();
+                        + "km long, time:" + res.getMillis() / 60000f + "min, calculation time:" + time, Toast.LENGTH_LONG).show();
 
+                
                 routeLayer.clear();
                 routeLayer.add(createPolyline(startMarker.getMapPos(), stopMarker.getMapPos(), res));
 
-
+                // add instruction markers
+                instructionLayer.clear();
+                InstructionList instructions = res.getInstructions();
+                for(Instruction instruction : instructions){
+                    Log.debug("name: "+instruction.getName()
+                            + " time: "+instruction.getTime()
+                            + " dist:" + Helper.round(instruction.getDistance(), 3) 
+                            + " sign:"+ instruction.getSign()
+                            + " message: "+instruction.getAnnotation().getMessage()
+                            + " importance:"+instruction.getAnnotation().getImportance()
+                            );
+                    instructionLayer.add(createRoutePoint(
+                            instruction.getPoints().getLongitude(0), 
+                            instruction.getPoints().getLatitude(0),
+                            instruction.getName(),
+                            instruction.getTime(),
+                            Helper.round(instruction.getDistance(), 3),
+                            instruction.getSign()));
+                }
+                
                 shortestPathRunning = false;
             }
         }.execute();
     }
 
+
+    protected Marker createRoutePoint(double lon, double lat, String name, long time, double distance, int indicator) {
+        
+    MarkerStyle style = null;
+    String str = "";
+
+    switch(indicator){
+        case Instruction.FINISH:
+            str = "finish";
+            break;
+         case Instruction.TURN_SHARP_LEFT:
+         case Instruction.TURN_LEFT:
+             style = instructionLeft;
+             str = "turn left";
+          break;
+         case Instruction.TURN_SHARP_RIGHT:
+         case Instruction.TURN_RIGHT:
+             style = instructionRight;
+             str = "turn right";
+          break;
+         case Instruction.CONTINUE_ON_STREET:
+             style = instructionUp;
+             str = "continue";
+             break;
+         case Instruction.REACHED_VIA:
+             style = instructionUp;
+             str = "stopover";
+          break;
+      }
+    
+    if (!Helper.isEmpty(name)){
+        str += " to " + name;
+    }
+        
+        Projection proj = mapView.getLayers().getBaseLayer().getProjection();
+        
+        return new Marker(proj.fromWgs84(lon, lat), new DefaultLabel(str), style, null);
+    }
 
     // creates Nutiteq line from GraphHopper response
     protected Line createPolyline(MapPos start, MapPos end, GHResponse response) {
@@ -284,7 +382,7 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
         geoPoints.add(end);
 
         String labelText = "" + (int) (response.getDistance() / 100) / 10f
-                + "km, time:" + response.getTime() / 60f + "min";
+                + "km, time:" + response.getMillis() / 60f + "min";
 
         return new Line(geoPoints, new DefaultLabel("Route", labelText), lineStyleSet, null);
     }
@@ -297,7 +395,7 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
             protected Path doInBackground(Void... v) {
                 try {
                     GraphHopper tmpHopp = new GraphHopper().forMobile();
-                    tmpHopp.setCHShortcuts(true, true);
+                    tmpHopp.setCHShortcuts("fastest");
                     tmpHopp.load(graphFile);
                     Log.debug("found graph with " + tmpHopp.getGraph().getNodes() + " nodes");
                     gh = tmpHopp;
@@ -340,7 +438,7 @@ public class GraphhopperRouteActivity extends Activity implements FilePickerActi
                         // allow to select any directory
                         return true;
                     } else if (file.isFile()
-                            && (file.getName().endsWith(".ghz") || file.getName().endsWith(".map"))) {
+                            && file.getName().endsWith(".map")) {
                         // accept files with given extension
                         return true;
                     }

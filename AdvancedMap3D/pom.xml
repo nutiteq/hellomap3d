@@ -14,22 +14,23 @@
 	</properties>
 
 	<repositories>
+
+		<repository>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+			<id>cloudbees-nutiteq-snapshot</id>
+			<name>Nutiteq SDK snapshot repository</name>
+			<url>http://repository-nutiteq.forge.cloudbees.com/snapshot/</url>
+		</repository>
 		<repository>
 			<id>cloudbees-nutiteq-release</id>
 			<name>Nutiteq SDK release repository</name>
 			<url>http://repository-nutiteq.forge.cloudbees.com/release/</url>
 		</repository>
-		<repository>
-		    <snapshots>
-        		<enabled>true</enabled>
-        		<updatePolicy>always</updatePolicy>
-    		</snapshots>
-			<id>cloudbees-nutiteq-snapshot</id>
-			<name>Nutiteq SDK snapshot repository</name>
-			<url>http://repository-nutiteq.forge.cloudbees.com/snapshot/</url>
-		</repository>
 	</repositories>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>com.google.android</groupId>
@@ -37,43 +38,24 @@
 			<version>${platform.version}</version>
 			<scope>provided</scope>
 		</dependency>
-	    <!--  Gson: Java to Json conversion -->
-	    <dependency>
-	      <groupId>com.google.code.gson</groupId> 
-	      <artifactId>gson</artifactId>
-	      <version>2.2.3</version>
-	      <scope>compile</scope>
-	    </dependency>
-<!--    		<dependency>
+		<dependency>
+			<groupId>com.nutiteq.advancedlayers</groupId>
+			<artifactId>AdvancedLayers</artifactId>
+			<version>1.0-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+
+  	<!-- dependency>
 			<groupId>com.nutiteq</groupId>
-			<artifactId>nutiteq-3d-sdk</artifactId>
-			<version>2.3-SNAPSHOT</version>
-		</dependency>
--->
-		<dependency>
-			<groupId>com.jhlabs</groupId>
-			<artifactId>javaproj-noawt</artifactId>
-			<version>1.0.6</version>
-		</dependency>
-  		<dependency>
-			<groupId>com.google.protobuf</groupId>
-			<artifactId>protobuf-java</artifactId>
-			<version>2.4.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.mapsforge.android</groupId>
-			<artifactId>mapsforge-map</artifactId>
-			<version>0.3.0</version>
-		</dependency> 
-		<dependency>
-			<groupId>com.samskivert</groupId>
-			<artifactId>jmustache</artifactId>
-			<version>1.5</version>
-		</dependency> 
-		<dependency>
+			     <artifactId>nutiteq-3d-sdk</artifactId>
+			<version>2.3.1</version>
+			<scope>compile</scope>
+		</dependency-->
+		
+	<dependency>
             <groupId>com.graphhopper</groupId>
             <artifactId>graphhopper</artifactId>
-            <version>0.1.1</version>            
+            <version>0.3</version>            
             <type>jar</type>
             <exclusions>
                 <exclusion>
@@ -90,28 +72,68 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-  <!-- 		<dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>annotations</artifactId>
-			<version>4.1.1.4</version>
-		</dependency>
--->
-
-		<!-- needed for OSM roofs -->
+		<!-- Native (NDK) libraries built by Nutiteq -->
 		<dependency>
-			<groupId>com.vividsolutions</groupId>
-			<artifactId>jts</artifactId>
-			<version>1.13</version>
+			<groupId>com.nutiteq.advancedlayers</groupId>
+			<artifactId>ogrjni</artifactId>
+			<version>snapshot</version>
+			<classifier>armeabi</classifier>
+			<scope>runtime</scope>
+			<type>so</type>
 		</dependency>
 
-		<!--  needed for fragment sample -->
-  		<dependency>
+		<dependency>
+			<groupId>com.nutiteq.advancedlayers</groupId>
+			<artifactId>gdalconstjni</artifactId>
+			<version>snapshot</version>
+			<classifier>armeabi</classifier>
+			<scope>runtime</scope>
+			<type>so</type>
+		</dependency>
+
+		<dependency>
+			<groupId>com.nutiteq.advancedlayers</groupId>
+			<artifactId>gdaljni</artifactId>
+			<version>snapshot</version>
+			<classifier>armeabi</classifier>
+			<scope>runtime</scope>
+			<type>so</type>
+		</dependency>
+
+		<dependency>
+			<groupId>com.nutiteq.advancedlayers</groupId>
+			<artifactId>jsqlite</artifactId>
+			<version>snapshot</version>
+			<classifier>armeabi</classifier>
+			<scope>runtime</scope>
+			<type>so</type>
+		</dependency>
+
+		<dependency>
+			<groupId>com.nutiteq.advancedlayers</groupId>
+			<artifactId>osrjni</artifactId>
+			<version>snapshot</version>
+			<classifier>armeabi</classifier>
+			<scope>runtime</scope>
+			<type>so</type>
+		</dependency>
+
+		<dependency>
+			<groupId>com.nutiteq.advancedlayers</groupId>
+			<artifactId>proj</artifactId>
+			<version>snapshot</version>
+			<classifier>armeabi</classifier>
+			<scope>runtime</scope>
+			<type>so</type>
+		</dependency>
+
+		<!-- needed for fragment sample -->
+		<dependency>
 			<groupId>com.google.android</groupId>
 			<artifactId>support-v4</artifactId>
 			<version>r6</version>
-		</dependency> 
-		
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -131,7 +153,7 @@
 					<undeployBeforeDeploy>true</undeployBeforeDeploy>
 					<downloadJavadocs>true</downloadJavadocs>
 				</configuration>
-				<extensions>true</extensions> 
+				<extensions>true</extensions>
 			</plugin>
 
 			<plugin>
@@ -146,16 +168,8 @@
 				<groupId>com.mysema.maven</groupId>
 				<artifactId>maven-version-plugin</artifactId>
 				<version>0.1.0</version>
-			</plugin> 
+			</plugin>
 		</plugins>
-		<extensions>
-            <!-- Extension required to deploy a snapshot or a release to the CloudBees remote maven repository using Webdav -->
-            <extension>
-                <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-webdav</artifactId>
-                <version>1.0-beta-2</version>
-            </extension>
-        </extensions>
-		
+
 	</build>
 </project>

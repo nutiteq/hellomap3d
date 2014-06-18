@@ -117,7 +117,7 @@ public class MapFragment extends Fragment {
     mapView.setComponents(new Components());
 
     // Create base layer
-    RasterDataSource dataSource = new HTTPRasterDataSource(new EPSG3857(), 0, 18, "http://otile1.mqcdn.com/tiles/1.0.0/osm/{zoom}/x/y.png");
+    RasterDataSource dataSource = new HTTPRasterDataSource(new EPSG3857(), 0, 18, "http://otile1.mqcdn.com/tiles/1.0.0/osm/{zoom}/{x}/{y}.png");
     baseLayer = new RasterLayer(dataSource, 0);
     mapView.getLayers().setBaseLayer(baseLayer);
     

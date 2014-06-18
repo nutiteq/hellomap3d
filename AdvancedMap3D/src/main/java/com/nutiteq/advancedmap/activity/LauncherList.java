@@ -36,7 +36,6 @@ public class LauncherList extends ListActivity{
             {CartoDbVectorMapActivity.class,null},
             {MapBoxMapActivity.class,null},
             {MapQuestRouteActivity.class,null},
-            {CloudMadeRouteActivity.class,null},
             {Online3DMapActivity.class,null},
             {MBTilesMapActivity.class,FilePicker.class},
             {VectorFileMapActivity.class,FilePicker.class},
@@ -47,6 +46,7 @@ public class LauncherList extends ListActivity{
             {WmsMapActivity.class, null},
             {WfsMapActivity.class, null},
             {com.nutiteq.fragmentmap.FragmentMapActivity.class,null},
+            {CompassMapActivity.class,null},
     };
 
     @Override

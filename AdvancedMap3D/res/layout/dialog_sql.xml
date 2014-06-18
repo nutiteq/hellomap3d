@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+    
+   <EditText
+       android:id="@+id/sql"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginBottom="4dp"
+       android:layout_marginLeft="4dp"
+       android:layout_marginRight="4dp"
+       android:layout_marginTop="16dp"
+       android:hint="Enter SQL"
+       android:inputType="textMultiLine" 
+       android:lines="8" 
+   	   android:minLines="6" 
+       android:gravity="top|left"
+       android:text="SELECT pt.id,HEX(AsBinary(Transform(pt.geometry,3857))),pt.name FROM pt_amenity pt, ln_highway ln WHERE ln.name like 'Tartu%' AND ln.sub_type = 'trunk' AND Contains(Buffer(Transform(ln.geometry,3301),1000), Transform(pt.geometry,3301)) limit 10" />
+
+</LinearLayout>

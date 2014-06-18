@@ -31,8 +31,8 @@ import com.nutiteq.vectorlayers.TextLayer;
 /**
  * 
  * Demonstrates usage of two layers/data sources: 
- *      WFS Layer - online vector API to WFS server
- *      WFS Text Layer - text labels for loaded objects
+ *      Geometry layer - uses data source with online vector API to WFS server
+ *      Text Layer     - uses same data source as geometry layer, reads element description (text) from vector element meta data
  * 
  * It uses one predefined URL and code-defined style for labels. Road labels are rotated to match with roads,
  * amenity labels are horizontal. The texts are configured to resolve automatically overlapping.
