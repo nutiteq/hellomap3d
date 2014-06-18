@@ -34,7 +34,7 @@ import com.nutiteq.utils.UtfGridHelper;
  * @author jaak
  *
  */
-public class UtfGridLayerEventListener extends MapListener {
+public class UtfGridLayerEventListener2 extends MapListener {
 
 	private Activity activity;
     private UtfGridLayerInterface layer;
@@ -43,7 +43,7 @@ public class UtfGridLayerEventListener extends MapListener {
     private MapView mapView;
 
 	// activity is often useful to handle click events
-	public UtfGridLayerEventListener(Activity activity, MapView mapView, UtfGridLayerInterface layer, Marker clickMarker) {
+	public UtfGridLayerEventListener2(Activity activity, MapView mapView, UtfGridLayerInterface layer, Marker clickMarker) {
 		this.activity = activity;
 		this.layer = layer;
 		this.clickMarker = clickMarker;
