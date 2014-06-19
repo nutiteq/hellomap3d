@@ -195,9 +195,10 @@ public class RasterFileMapActivity extends Activity implements FilePickerActivit
         return new FileFilter() {
             @Override
             public boolean accept(File file) {
-                String fileExtension = file.getName().substring(file.getName().lastIndexOf(".")+1).toLowerCase();
-                Vector<String> exts = GdalMapLayer.getExtensions();
-                return (file.isDirectory() || exts.contains(fileExtension));
+//                String fileExtension = file.getName().substring(file.getName().lastIndexOf(".")+1).toLowerCase();
+//                Vector<String> exts = GdalMapLayer.getExtensions();
+//                return (file.isDirectory() || exts.contains(fileExtension));
+                return true;
             }
         };
     }

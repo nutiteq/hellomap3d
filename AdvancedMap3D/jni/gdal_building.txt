@@ -1,0 +1,12 @@
+General steps:
+
+1. Get GDAL sources, configure for Android cross-platform compilation (for your target architecture)
+2. Build GDAL libraries using NDK standalone toolchain
+3. Generate up-to-date Java (JNI) wrappers with Swig
+4. Copy result files to jni/gdal/lib/<arch> (.a files) , include/ (.h files) and jni/ (_wrap.cpp and _warp.c files)
+5. Check Application.mk whether it has your target architectures included.
+6. Build your Android project with NDK (ndk-build)
+7. Build your Android Java SDK project 
+ 
+See detailed instructions for GDAL building part in https://github.com/nutiteq/gdal/wiki
+
