@@ -53,9 +53,6 @@
                 <item android:id="@+id/menu_stored"
                         android:title="OSM @APK"
                         />
-                <item android:id="@+id/menu_mgm"
-                        android:title="OSM MGM files"
-                        />
                 <item android:id="@+id/menu_regio"
                         android:title="Regio Estonia"
                         />

@@ -294,11 +294,6 @@ public class AdvancedMapActivity extends Activity {
             mapView.zoom(4.0f - mapView.getZoom(), 500);
             break;
 
-        case R.id.menu_mgm:
-            // NB! path is hardcoded here
-            addStoredBaseLayer("/sdcard/mapxt/mgm/est_tallinn/");
-            break;
-
         case R.id.menu_regio:
             baseCustomProjectionLayer();
             break;
@@ -314,10 +309,10 @@ public class AdvancedMapActivity extends Activity {
             break;
 
         case R.id.menu_wms:
-//          String url = "http://kaart.maakaart.ee/geoserver/wms?transparent=true&";
-//          String layers = "topp:states";
-            String url = "http://kaart.maakaart.ee/service?";
-            String layers = "osm";
+          String url = "http://kaart.maakaart.ee/geoserver/wms?transparent=true&";
+          String layers = "topp:states";
+//            String url = "http://kaart.maakaart.ee/service?";
+//            String layers = "osm";
             addWmsLayer(url, layers, new EPSG4326());
 
             break;
@@ -426,20 +421,16 @@ public class AdvancedMapActivity extends Activity {
         updateBaseLayer(packagedMapLayer);
     }
 
-    private void addStoredBaseLayer(String dir) {
-        StoredRasterDataSource dataSource = new StoredRasterDataSource(new EPSG3857(), 256, 0, 17, "OpenStreetMap", dir);
-        RasterLayer storedMapLayer = new RasterLayer(dataSource, 135);
-        updateBaseLayer(storedMapLayer);
-
-        mapView.setFocusPoint(dataSource.getCenter());
-        mapView.setZoom((float) dataSource.getCenter().z);
-    }
-
     // ** Add simple marker to map.
     private void addMarkerLayer(MapPos markerLocation) {
         // define marker style (image, size, color)
         Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.olmarker);
-        MarkerStyle markerStyle = MarkerStyle.builder().setBitmap(pointMarker).setSize(0.5f).setColor(Color.WHITE).build();
+        MarkerStyle markerStyle = MarkerStyle.builder()
+                .setBitmap(pointMarker)
+                .setSize(0.5f)
+                .setColor(Color.WHITE)
+                .setOrientation(MarkerStyle.GROUND_BILLBOARD_ORIENTATION)
+                .build();
         // define label what is shown when you click on marker
 
         LabelStyle labelStyle = 

@@ -305,7 +305,7 @@ public class GlobeRenderingActivity extends Activity {
        // Polar lines
       for(int i = -1; i <= 1; i+=2){
           double lat = i * 66.56; // in degrees
-          String labelString = (lat > 0 ? "Actic circle" : "Antarctic circle");
+          String labelString = (lat > 0 ? "Arctic circle" : "Antarctic circle");
           Label label = new DefaultLabel(labelString);
           List<MapPos> posList = new ArrayList<MapPos>();
           for (int lon = -180; lon <=180; lon += 5){
