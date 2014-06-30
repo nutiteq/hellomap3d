@@ -1,0 +1,63 @@
+buildscript {
+    repositories {
+        mavenCentral()
+//			maven {
+//			        url "http://repository-nutiteq.forge.cloudbees.com/release/"
+//			    }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.9.+'
+    }
+}
+
+apply plugin: 'android'
+apply plugin: 'maven'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.0.1"
+    defaultConfig {
+        versionName project.version
+    }
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+        }
+    }
+	 buildTypes {
+        release {
+            runProguard false
+            proguardFile 'proguard-project.txt'
+        }
+    }
+}
+
+
+tasks.create(name: 'exportLibs', type: Copy) {
+    dependsOn configurations.compile
+    from configurations.compile
+    include '*.jar'
+    into "build/exportedLibs"
+}
+
+tasks.withType(com.android.build.gradle.tasks.PackageApplication) { pkgTask ->
+    pkgTask.jniFolders = new HashSet<File>()
+    pkgTask.jniFolders.add(new File(projectDir, 'extlibs'))
+}
+
+dependencies {
+//    compile fileTree(dir: 'libs', includes: ['*.jar'])
+//    compile "com.nutiteq:nutiteq-3d-sdk:2.3.2"
+    compile "com.nutiteq.advancedlayers:AdvancedLayers:1.0-SNAPSHOT"
+
+    compile "com.google.code.gson:gson:2.2.3"
+    compile "com.jhlabs:javaproj-noawt:1.0.7"
+    compile "com.google.protobuf:protobuf-java:2.4.1"
+    compile "org.mapsforge.android:mapsforge-map:0.4.0-SNAPSHOT"
+    compile "com.samskivert:jmustache:1.5"
+    compile "com.graphhopper:graphhopper:0.3"
+    compile "com.vividsolutions:jts:1.13"
+    compile "com.android.support:support-v4:18.0.+"
+}

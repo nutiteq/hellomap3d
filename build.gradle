@@ -1,0 +1,19 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+apply plugin: 'maven'
+
+allprojects {
+    repositories {
+        mavenCentral()
+        maven {
+            url "http://repository-nutiteq.forge.cloudbees.com/release/"
+        }
+        maven {
+            url "http://repository-nutiteq.forge.cloudbees.com/snapshot/"
+        }
+    }
+}
