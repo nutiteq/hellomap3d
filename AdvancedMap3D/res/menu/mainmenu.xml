@@ -86,7 +86,7 @@
     
        <item android:title="Go to" android:icon="@android:drawable/ic_menu_directions">
         <menu>
-            <group android:id="@+id/overlay_group"
+            <group android:id="@+id/overlay_group2"
                     android:checkableBehavior="none" android:menuCategory="secondary">
                 <item android:id="@+id/menu_coburg" android:title="Coburg, Germany" />
                 <item android:id="@+id/menu_petronas" android:title="Petronas Towers" />      

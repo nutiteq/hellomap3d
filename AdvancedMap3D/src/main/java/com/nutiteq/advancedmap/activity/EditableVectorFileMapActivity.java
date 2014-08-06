@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import android.app.AlertDialog;
@@ -346,7 +347,7 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
 
     @Override
     public String getFileSelectMessage() {
-        return "Select Spatialite database file (.spatialite, .db, .sqlite) or OGR shape file (.shp)";
+        return "Select Spatialite database file (.spatialite, .db, .sqlite) or Shape file (.shp)";
     }
 
     @Override
@@ -359,7 +360,13 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
                     if (file.isDirectory()) {
                         // accept all directories
                         return true;
-                    } else if (file.isFile() && (file.getName().endsWith(".db") || file.getName().endsWith(".sqlite") || file.getName().endsWith(".spatialite") || file.getName().endsWith(".shp"))) {
+                    } else if (file.isFile() && (
+                            file.getName().toLowerCase(Locale.US).endsWith(".db") || 
+                            file.getName().toLowerCase(Locale.US).endsWith(".sqlite") || 
+                            file.getName().toLowerCase(Locale.US).endsWith(".spatialite") || 
+                            file.getName().toLowerCase(Locale.US).endsWith(".shp") ||
+                            file.getName().toLowerCase(Locale.US).endsWith(".tab")
+                            )) {
                         // accept files with given extension
                         return true;
                     }
