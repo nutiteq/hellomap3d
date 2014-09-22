@@ -129,7 +129,16 @@ public class EditableCartoDbMapActivity extends EditableMapActivityBase {
         return new ArrayList<String>();
     }
 
-	private void createStyleSets() {
+    @Override
+    protected Label createLabel(Map<String, String> userData) {
+        StringBuffer labelTxt = new StringBuffer();
+        for (Map.Entry<String, String> entry : userData.entrySet()){
+            labelTxt.append(entry.getKey() + ": " + entry.getValue() + "\n");
+        }
+        return new DefaultLabel("Data:", labelTxt.toString());
+    }
+
+    private void createStyleSets() {
 		pointStyleSet = new StyleSet<PointStyle>();
 		Bitmap pointMarker = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.point);
 		PointStyle pointStyle = PointStyle.builder()
@@ -163,11 +172,7 @@ public class EditableCartoDbMapActivity extends EditableMapActivityBase {
 
             @Override
             protected Label createLabel(Map<String, String> userData) {
-                StringBuffer labelTxt = new StringBuffer();
-                for (Map.Entry<String, String> entry : userData.entrySet()){
-                    labelTxt.append(entry.getKey() + ": " + entry.getValue() + "\n");
-                }
-                return new DefaultLabel("Data:", labelTxt.toString());
+                return EditableCartoDbMapActivity.this.createLabel(userData);
             }
 
             @Override

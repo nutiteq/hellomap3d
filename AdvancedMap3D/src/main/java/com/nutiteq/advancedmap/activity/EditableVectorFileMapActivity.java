@@ -171,6 +171,15 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
     }
 
     @Override
+    protected Label createLabel(Map<String, String> userData) {
+        StringBuffer labelTxt = new StringBuffer();
+        for(Map.Entry<String, String> entry : userData.entrySet()){
+            labelTxt.append(entry.getKey() + ": " + entry.getValue() + "\n");
+        }
+        return new DefaultLabel("Data:", labelTxt.toString(), labelStyle);
+    }
+
+    @Override
     protected Dialog onCreateDialog(int id) {
         switch(id) {
         case DIALOG_TABLE_LIST:
@@ -332,14 +341,6 @@ public class EditableVectorFileMapActivity extends EditableMapActivityBase imple
         // zoom map to data extent
         Envelope extent = dbEditableLayer.getDataExtent();
         mapView.setBoundingBox(new Bounds(extent.minX, extent.maxY, extent.maxX, extent.minY), false);
-    }
-
-    private Label createLabel(Map<String, String> userData) {
-        StringBuffer labelTxt = new StringBuffer();
-        for(Map.Entry<String, String> entry : userData.entrySet()){
-            labelTxt.append(entry.getKey() + ": " + entry.getValue() + "\n");
-        }
-        return new DefaultLabel("Data:", labelTxt.toString(), labelStyle);
     }
 
     // Methods for FilePicker

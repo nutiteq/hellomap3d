@@ -44,6 +44,7 @@ import com.nutiteq.projections.EPSG3857;
 import com.nutiteq.rasterdatasources.HTTPRasterDataSource;
 import com.nutiteq.rasterdatasources.RasterDataSource;
 import com.nutiteq.rasterlayers.RasterLayer;
+import com.nutiteq.ui.Label;
 import com.nutiteq.utils.LongHashMap;
 import com.nutiteq.utils.UnscaledBitmapLoader;
 
@@ -512,6 +513,7 @@ public abstract class EditableMapActivityBase extends Activity {
                             @Override
                             public void update(VectorElement element) {
                                 userData.put(key, input.getEditableText().toString());
+                                element.setLabel(createLabel(userData));
                             }
                         });
                     }
@@ -668,7 +670,7 @@ public abstract class EditableMapActivityBase extends Activity {
             }
         }
     }
-
+    
     protected abstract void createEditableLayers();
 
     protected abstract List<EditableGeometryLayer> getEditableLayers();
@@ -679,4 +681,5 @@ public abstract class EditableMapActivityBase extends Activity {
 
     protected abstract List<String> getEditableElementUserColumns(Geometry element);
 
+    protected abstract Label createLabel(Map<String, String> userData);
 }
