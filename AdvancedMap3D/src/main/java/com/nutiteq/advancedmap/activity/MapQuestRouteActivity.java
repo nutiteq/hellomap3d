@@ -6,7 +6,9 @@ import java.util.Map;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Toast;
 import android.widget.ZoomControls;
@@ -27,6 +29,7 @@ import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.services.routing.MapQuestDirections;
 import com.nutiteq.services.routing.Route;
 import com.nutiteq.services.routing.RouteActivity;
+import com.nutiteq.style.LabelStyle;
 import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.StyleSet;
@@ -60,7 +63,7 @@ import com.nutiteq.vectorlayers.MarkerLayer;
 
 public class MapQuestRouteActivity extends Activity implements RouteActivity{
 
-    private static final float MARKER_SIZE = 0.4f;
+    private static final float MARKER_SIZE = 0.2f;
     private static final String MAPQUEST_KEY = "Fmjtd%7Cluub2qu82q%2C70%3Do5-961w1w";
     private MapView mapView;
     private GeometryLayer routeLayer;
@@ -68,6 +71,8 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
     private Marker stopMarker;
     private MarkerLayer markerLayer;
     private MapQuestDirections directionsService;
+    private float dpi;
+    private LabelStyle labelStyle;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -117,16 +122,34 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
         // create markers for start & end, and a layer for them
         Bitmap olMarker = UnscaledBitmapLoader.decodeResource(getResources(),
                 R.drawable.olmarker);
+        
+        // get DPI from device
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        dpi = metrics.density;
+
+        // create custom style for label
+        labelStyle = 
+                LabelStyle.builder()
+                .setEdgePadding((int) (12 * dpi))
+                .setLinePadding((int) (6 * dpi))
+                .setTitleFont(Typeface.create("Arial", Typeface.BOLD), (int) (16 * dpi))
+                .setDescriptionFont(Typeface.create("Arial", Typeface.NORMAL), (int) (13 * dpi))
+                .build();
+        
+        // define marker style, size and bitmap
         StyleSet<MarkerStyle> startMarkerStyleSet = new StyleSet<MarkerStyle>(
                 MarkerStyle.builder().setBitmap(olMarker).setColor(Color.GREEN)
-                .setSize(MARKER_SIZE).build());
-        startMarker = new Marker(new MapPos(0, 0), new DefaultLabel("Start"),
+                .setSize(MARKER_SIZE * dpi).build());
+        
+        // create marker. Note that DefaultLabel has style as third parameter
+        startMarker = new Marker(new MapPos(0, 0), new DefaultLabel("Start", null, labelStyle),
                 startMarkerStyleSet, null);
 
         StyleSet<MarkerStyle> stopMarkerStyleSet = new StyleSet<MarkerStyle>(
                 MarkerStyle.builder().setBitmap(olMarker).setColor(Color.RED)
-                .setSize(MARKER_SIZE).build());
-        stopMarker = new Marker(new MapPos(0, 0), new DefaultLabel("Stop"),
+                .setSize(MARKER_SIZE * dpi).build());
+        stopMarker = new Marker(new MapPos(0, 0), new DefaultLabel("Stop", null, labelStyle),
                 stopMarkerStyleSet, null);
 
         markerLayer = new MarkerLayer(new EPSG3857());
@@ -244,7 +267,7 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
         routeOptions.put("routeType", "fastest");
         // Add other route options here, see http://open.mapquestapi.com/directions/
 
-        directionsService = new MapQuestDirections(this, new MapPos(fromLon, fromLat), new MapPos(toLon, toLat), routeOptions, MAPQUEST_KEY, proj, routeLineStyle);
+        directionsService = new MapQuestDirections(this, new MapPos(fromLon, fromLat), new MapPos(toLon, toLat), routeOptions, MAPQUEST_KEY, proj, routeLineStyle, labelStyle);
         directionsService.route();
     }
 
@@ -264,7 +287,7 @@ public class MapQuestRouteActivity extends Activity implements RouteActivity{
 //      Log.debug("route line: "+route.getRouteLine().toString());
         mapView.requestRender();
         Toast.makeText(this, "Route "+route.getRouteSummary(), Toast.LENGTH_LONG).show();
-        directionsService.startRoutePointMarkerLoading(markerLayer, MARKER_SIZE);
+        directionsService.startRoutePointMarkerLoading(markerLayer, MARKER_SIZE * dpi, labelStyle);
     }
 }
 
