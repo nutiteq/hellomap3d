@@ -36,7 +36,7 @@ import com.nutiteq.vectorlayers.NMLModelOnlineLayer;
  */
 public class Online3DMapActivity extends Activity {
 
-    private static final String DATASET = "http://kaart.nutiteq.ee/nml/nmlserver2.php?data=demo"; // default dataset
+    private static final String DATASET = "http://kaart.nutiteq.ee/nml/nmlserver3.php?data=chicago"; // default dataset
     private MapView mapView;
     private StyleSet<ModelStyle> modelStyleSet;
     private NMLModelOnlineLayer modelLayer;
@@ -87,7 +87,10 @@ public class Online3DMapActivity extends Activity {
 
         // San Francisco
         //mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(-122.41666666667f, 37.76666666666f));
-        getMapView().setFocusPoint(new MapPos(-1.3625947E7f, 4550716.0f));
+//        getMapView().setFocusPoint(new MapPos(-1.3625947E7f, 4550716.0f));
+        
+        // Chicago
+        getMapView().setFocusPoint(mapView.getLayers().getBaseProjection().fromWgs84(-87.6219, 41.8769), 1000);
 
         // Rotterdam
         //mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(4.480727f, 51.921098f));
@@ -182,26 +185,6 @@ public class Online3DMapActivity extends Activity {
         switch (item.getItemId()) {
 
         // map types
-        case R.id.menu3d_demo:
-            online3DLayer("http://kaart.nutiteq.ee/nml/nmlserver2.php?data=demo");
-            // San Francisco
-            getMapView().setFocusPoint(new MapPos(-1.3625947E7f, 4550716.0f), 1000);
-            break;
-        case R.id.menu3d_hover:
-            online3DLayer("http://kaart.nutiteq.ee/nml/nmlserver2.php?data=hover");
-            // San Francisco
-            getMapView().setFocusPoint(new MapPos(-1.3625947E7f, 4550716.0f), 1000);
-            break;
-        case R.id.menu3d_tomtomlod3:
-            online3DLayer("http://kaart.nutiteq.ee/nml/nmlserver3.php?data=tomtom");
-            // San Francisco
-            getMapView().setFocusPoint(new MapPos(-1.3625947E7f, 4550716.0f), 1000);
-            break;
-        case R.id.menu3d_blom:
-            online3DLayer("http://kaart.nutiteq.ee/nml/nmlserver3.php?data=blom");
-            // London
-            mapView.setFocusPoint(mapView.getLayers().getBaseProjection().fromWgs84(-0.109015f, 51.516584f), 1000);
-            break;
         case R.id.menu3d_seattle:
             online3DLayer("http://kaart.nutiteq.ee/nml/nmlserver3.php?data=seattle");
             mapView.setFocusPoint(mapView.getLayers().getBaseProjection().fromWgs84(-122.3336f, 47.6014f), 1000);

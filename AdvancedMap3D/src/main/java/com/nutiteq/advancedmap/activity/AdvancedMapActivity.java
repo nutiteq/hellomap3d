@@ -443,11 +443,11 @@ public class AdvancedMapActivity extends Activity {
 
         Label markerLabel = new DefaultLabel("San Francisco", "Here is a marker", labelStyle);
 
-
         // create layer and add object to the layer, finally add layer to the map. 
         // All overlay layers must be same projection as base layer, so we reuse it
         MarkerLayer markerLayer = new MarkerLayer(proj);
         Marker marker = new Marker(markerLocation, markerLabel, markerStyle, null);
+        
         markerLayer.add(marker);
         mapView.getLayers().addLayer(markerLayer);
         mapView.selectVectorElement(marker);

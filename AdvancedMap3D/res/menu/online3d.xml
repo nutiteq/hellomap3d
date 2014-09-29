@@ -22,18 +22,6 @@
          the attribute name checkable on items. The checkableBehavior encompasses
          the number of items that will be checkable within that group. -->
 
-                <item android:id="@+id/menu3d_demo"
-                        android:title="Warehouse 3D" 
-                         />
-                <item android:id="@+id/menu3d_hover"
-                        android:title="Hover SF"
-                        />
-				<item android:id="@+id/menu3d_blom"
-                        android:title="Blom London"
-                        />
-				<item android:id="@+id/menu3d_tomtomlod3"
-                        android:title="San Francisco LOD3 TomTom"
-                        />
 				<item android:id="@+id/menu3d_seattle"
                         android:title="Seattle LOD4 TomTom"
                         />

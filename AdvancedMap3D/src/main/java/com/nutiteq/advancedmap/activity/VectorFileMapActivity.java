@@ -72,7 +72,7 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
     private static final int DIALOG_NO_TABLES = 2;
     
     // Limit for the number of vector elements that are loaded
-    private static final int MAX_ELEMENTS = 500;
+    private static final int MAX_ELEMENTS = 15000;
 
     private MapView mapView;
 
@@ -233,9 +233,8 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
         LineStyle lineStyle = LineStyle.builder().setWidth(0.05f).setColor(color).build();
         lineStyleSet.setZoomStyle(minZoom, lineStyle);
 
-        polygonStyleSet = new StyleSet<PolygonStyle>(null);
         PolygonStyle polygonStyle = PolygonStyle.builder().setColor(color & 0x80FFFFFF).setLineStyle(lineStyle).build();
-        polygonStyleSet.setZoomStyle(minZoom, polygonStyle);
+        polygonStyleSet = new StyleSet<PolygonStyle>(polygonStyle);
 
         labelStyle = 
                 LabelStyle.builder()
@@ -375,7 +374,7 @@ public class VectorFileMapActivity extends Activity implements FilePickerActivit
         // define pixels and screen width for automatic polygon/line simplification
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);   
-        dataSource.setAutoSimplify(2, metrics.widthPixels);
+//        dataSource.setAutoSimplify(2, metrics.widthPixels);
 
         GeometryLayer spatialiteLayer = new GeometryLayer(dataSource);
 
