@@ -20,21 +20,13 @@ There are currently following options:
 * Commercial license, (c) Nutiteq Llc. Request nutiteq@nutiteq.com for details
 
 Third party software licenses for core library:
-* JavaProj - Apache License 2.0 http://sourceforge.net/projects/jproj4/ 
-* Poly2tri - New BSD License http://code.google.com/p/poly2tri/
-* Google Protobuf library - used for 3D layers
+* Google Protobuf library - used for 3D layers only
 
-Some additional layers use free and open source 3rd party software libraries:
-* Mapsforge - used for respective layer
-* OGR/GDAL and Proj.4 - used for OGR and GDAL layers
-* Spatialite lib - used in Spatialite and 3DPolygon layers. 
-* JTS - used in 3D Polygon layer with OSM Roofs (Simple 3D)
- 
-All these libraries are free and open source.
+Some additional layers use free and open source 3rd party software libraries. The libraries and functions are in separate project, see https://github.com/nutiteq/advancedlayers/blob/master/LICENSE.txt for license terms per feature.
 
-The Hello Map 3D application code is free and licensed under MIT license terms:
+Nutiteq HelloMap3D application code is free and licensed under MIT license terms:
 
-Copyright (C) 2012-2013 Nutiteq Llc
+Copyright (C) 2012-2014 Nutiteq Llc
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
