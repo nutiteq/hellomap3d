@@ -36,6 +36,7 @@
     <activity android:name=".activity.Online3DMapActivity"></activity>
     <activity android:name=".activity.WfsMapActivity"></activity>
     <activity android:name=".activity.CompassMapActivity"></activity>
+    <activity android:name=".activity.ClusteringMapActivity"></activity>
     <activity
     android:name="com.nutiteq.advancedmap.mapquest.MapQuestSearchQuery"
     android:exported="false">
