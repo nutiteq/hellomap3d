@@ -1,14 +1,12 @@
-This is a demo project for **Nutiteq 3D Android mapping SDK**. Nutiteq SDK is a replacement for Google Maps API (MapView) for Android, so it has all your usual mapping SDK features (map panning, vector/raster overlays etc) plus some extras: 
-* 2.5/3D view: map tilting, rotating and 3D models
-* offline maps (MBTiles, persistent caching etc)
-* Vector editing with online and offline backend
-* Many datasources built-in: raster and vector, online and offline
-* supports map projections, usable for GIS apps
+This is a demo project for **Nutiteq 3D Android mapping SDK 2.x version**. 
 
-![Screenshot with 3D models](https://dl.dropbox.com/u/3573333/mapxt_3d_tallinn_device-2012-07-25-124845.png)
+NB! This sample is for **older Nutiteq SDK 2.x only**, for the latest Nutiteq maps SDK 3.x for Android go to  https://github.com/nutiteq/hellomap3d-android project instead. For new app projects we suggest to start with 3.0 version now, not this older version.
 
 # Usage
 To get started see [project Wiki pages](https://github.com/nutiteq/hellomap3d/wiki). It shows how to create a map and add layers on top of that.
+
+![Screenshot with 3D models](https://dl.dropbox.com/u/3573333/mapxt_3d_tallinn_device-2012-07-25-124845.png)
+
 
 # Contribution 
 We welcome any kind of contributions: questions, pull requests, questions, feedback, wiki updates etc. Please join [nutiteq-dev@googlegroups.com] (https://groups.google.com/forum/#!forum/nutiteq-dev) for discussions.
