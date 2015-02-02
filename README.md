@@ -1,6 +1,12 @@
-This is a demo project for **Nutiteq 3D Android mapping SDK 2.x version**. 
+This is a demo project for Nutiteq 3D Android mapping SDK 2.x version. **It is for older Nutiteq SDK 2.x only**, for the latest Nutiteq maps SDK 3.x for Android go to https://developer.nutiteq.com instead. For new app projects we suggest to start with 3.0 version now, not older version.
 
-NB! This sample is for **older Nutiteq SDK 2.x only**, for the latest Nutiteq maps SDK 3.x for Android go to  https://github.com/nutiteq/hellomap3d-android project instead. For new app projects we suggest to start with 3.0 version now, not this older version.
+Nutiteq SDK 3.0 key new feature is **vector-based OSM maps**:
+ * Smaller map downloads
+ * Smaller offline map packages: download whole world with all details in 32 GB!
+ * Styling selection in client side
+ * Nice map rotation and tilting
+
+Also SDK 3.0 **supports iOS**, has **better performance** for vector overlays etc.
 
 # Usage
 To get started see [project Wiki pages](https://github.com/nutiteq/hellomap3d/wiki). It shows how to create a map and add layers on top of that.
