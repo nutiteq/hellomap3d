@@ -1,6 +1,8 @@
 package com.nutiteq.advancedmap.activity;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -24,12 +26,12 @@ import com.nutiteq.components.Components;
 import com.nutiteq.components.MapPos;
 import com.nutiteq.components.Options;
 import com.nutiteq.components.Vector3D;
-import com.nutiteq.datasources.raster.StoredRasterDataSource;
 import com.nutiteq.datasources.raster.TileDebugRasterDataSource;
 import com.nutiteq.datasources.raster.WMSRasterDataSource;
 import com.nutiteq.datasources.vector.OSMPolygon3DDataSource;
 import com.nutiteq.geometry.Marker;
 import com.nutiteq.geometry.NMLModel;
+import com.nutiteq.geometry.Polygon;
 import com.nutiteq.layers.Layer;
 import com.nutiteq.log.Log;
 import com.nutiteq.nmlpackage.NMLPackage;
@@ -43,13 +45,16 @@ import com.nutiteq.rasterdatasources.RasterDataSource;
 import com.nutiteq.rasterlayers.RasterLayer;
 import com.nutiteq.roofs.FlatRoof;
 import com.nutiteq.style.LabelStyle;
+import com.nutiteq.style.LineStyle;
 import com.nutiteq.style.MarkerStyle;
 import com.nutiteq.style.ModelStyle;
 import com.nutiteq.style.Polygon3DStyle;
+import com.nutiteq.style.PolygonStyle;
 import com.nutiteq.style.StyleSet;
 import com.nutiteq.ui.DefaultLabel;
 import com.nutiteq.ui.Label;
 import com.nutiteq.utils.UnscaledBitmapLoader;
+import com.nutiteq.vectorlayers.GeometryLayer;
 import com.nutiteq.vectorlayers.MarkerLayer;
 import com.nutiteq.vectorlayers.NMLModelLayer;
 import com.nutiteq.vectorlayers.Polygon3DLayer;
@@ -152,7 +157,7 @@ public class AdvancedMapActivity extends Activity {
         mapView.setZoom(16.0f);
         // tilt means perspective view. Default is 90 degrees for "normal" 2D map view, minimum allowed is 30 degrees.
 //      mapView.setTilt(55.0f);
-
+//        mapView.getOptions().setGeneralPanningMode(generalPanningMode);
 
         // Estonia 
 //      mapView.setFocusPoint(mapView.getLayers().getBaseLayer().getProjection().fromWgs84(24.74314f,59.43635f));
@@ -451,6 +456,59 @@ public class AdvancedMapActivity extends Activity {
         markerLayer.add(marker);
         mapView.getLayers().addLayer(markerLayer);
         mapView.selectVectorElement(marker);
+        
+        
+        // add polygon layer and polygon with holes
+        
+        final StyleSet<LineStyle> lineStyleSet = new StyleSet<LineStyle>();
+        LineStyle lineStyle = LineStyle.builder().setWidth(0.04f).setColor(Color.WHITE).build();
+        lineStyleSet.setZoomStyle(0, lineStyle);
+
+        final StyleSet<PolygonStyle> polygonStyleSet = new StyleSet<PolygonStyle>(null);
+        
+        Bitmap patern = UnscaledBitmapLoader.decodeResource(getResources(), R.drawable.ic_patern_pink);
+//        PolygonStyle.builder().setPattern(patern, 20f).setLineStyle(lineStyle).build();
+        
+        PolygonStyle polygonStyle = PolygonStyle.builder().setColor(0xFFFF6600 & 0x80FFFFFF).setLineStyle(lineStyle).setPattern(patern, 0.2f).build();
+        polygonStyleSet.setZoomStyle(0, polygonStyle);
+        
+        GeometryLayer geomLayer = new GeometryLayer(proj);
+        
+        Label geomLabel = new DefaultLabel("Polygon", "with holes", labelStyle);
+
+        // outer and then inner rings for a polygon
+        double[][] pos = {{-48.50075565622481832,-1.46090149261288249,-48.50104182452795953,-1.46199215437468388,-48.50233852465161988,-1.46209943255213171,-48.50347425510476995,-1.46015948471816537,-48.50223121153793926,-1.45861288916248832,-48.50075565622481832,-1.46090149261288249},
+                {-48.50192241924737147,-1.46023410392651454,-48.5029401844594048,-1.46029205906662307,-48.50196751011119289,-1.46120646219051809,-48.50162610785651651,-1.46078789742647253,-48.50192241924737147,-1.46023410392651454},
+                {-48.50236145752465688,-1.45956998587360776,-48.50240149932467659,-1.45977820323372809,-48.501977056244435,-1.45993837043382069,-48.50189697264438848,-1.45951392735357555,-48.50218927778455935,-1.45906946337331878,-48.50236145752465688,-1.45956998587360776},
+                {-48.50137021867675458,-1.46086677200214821,-48.50100721409172877,-1.46091214757527688,-48.5011309656548022,-1.46049964236501539,-48.50141971930198537,-1.46026038934306368,-48.50165072221973617,-1.46035526554142381,-48.50137021867675458,-1.46086677200214821},
+                {-48.50190647545009881,-1.46166290705795299,-48.50176209862650722,-1.46184440935046811,-48.5012670923741922,-1.46172478283949236,-48.50114334081111167,-1.46140302877548822,-48.5014980952919359,-1.46120090122246005,-48.50190647545009881,-1.46166290705795299},
+                {-48.50247573264025647,-1.46094927304420064,-48.5027356109227199,-1.46088739726266126,-48.50263660967225832,-1.46136177825446212,-48.50252523326548726,-1.46157215591169565,-48.50221997940989382,-1.46144015424441176,-48.50247573264025647,-1.46094927304420064},
+                {-48.50299136415308254,-1.46007888705054856,-48.5024592324318462,-1.4601448878841905,-48.50217047878466303,-1.46000876116480405,-48.50252110821338647,-1.45975300793444185,-48.50266961008907884,-1.45963750647556867,-48.50286761259000912,-1.45972413256972366,-48.50299136415308254,-1.46007888705054856}
+                };
+        
+        List<MapPos> outerRing = new ArrayList<MapPos>(pos[0].length);
+        for(int i=0;i<pos[0].length-1;i+=2){
+            outerRing.add(proj.fromWgs84(pos[0][i], pos[0][i+1]));
+        }
+        
+        List<List<MapPos>> innerRings = new ArrayList<List<MapPos>>(pos.length-1);
+        
+        for(int i=1;i<pos.length;i++){
+            List<MapPos> innerRing = new ArrayList<MapPos>(pos[i].length);
+            for(int j=0;j<pos[i].length-1; j+=2){
+                innerRing.add(proj.fromWgs84(pos[i][j], pos[i][j+1]));
+            }
+                        
+            innerRings.add(innerRing);
+        }
+        
+        
+        Polygon polygon = new Polygon(outerRing, innerRings, geomLabel, polygonStyleSet, null);
+        
+        geomLayer.add(polygon);
+        mapView.getLayers().addLayer(geomLayer);
+        mapView.setFocusPoint(outerRing.get(0));
+        
     }
 
     // Load online simple building 3D boxes
